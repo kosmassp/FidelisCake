@@ -9,7 +9,8 @@ namespace InventoryAndSales.Database.Manager
 {
   public class CustomerManager : BaseManager<Customer>
   {
-    public CustomerManager(BaseDao<Customer> baseDao) : base(baseDao)
+    public CustomerManager(CustomerDao dao)
+      : base(dao)
     {
     }
   }

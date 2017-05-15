@@ -6,18 +6,35 @@ using InventoryAndSales.Database.Model;
 
 namespace InventoryAndSales.GUI.Model
 {
-  public class ViewCartModel
+  public class ViewItemMaster
   {
-    public Item Item { get; set; }
-    public int Quantity { get; set; }
+    public int Id { get; set; }
+    public string Code { get; set; }
+    public string Name { get; set; }
     public decimal Price { get; set; }
     public decimal Discount { get; set; }
-    public decimal Subtotal { get; set; }
 
-
-    public ViewCartModel(TransactionDetail detail)
+    public ViewItemMaster(Product product)
     {
-      
     }
+    public decimal DiscountAmount
+    {
+      get
+      {
+        var discount = Discount;
+        if (Discount < 0)
+          discount = Price * (-Discount / 100);
+        return Math.Min(Price, discount);
+      }
+    }
+
+    public decimal NetPrice
+    {
+      get
+      {
+        return Price - DiscountAmount;
+      }
+    }
+
   }
 }

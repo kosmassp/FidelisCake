@@ -10,52 +10,42 @@ namespace InventoryAndSales.Business
 {
   public class CashierManager
   {
-    private static CashierManager _instance;
-    public static CashierManager Instance
+    private readonly TransactionManager _transactionManager;
+    public CashierManager(TransactionManager transactionManager)
     {
-      get
-      {
-        lock (_instance)
-        {
-          if (_instance == null)
-            _instance = new CashierManager();
-        }
-        return _instance;
-      }
+      _transactionManager = transactionManager;
+      _cart = new Dictionary<int, TransactionDetail>();
     }
 
-    private TransactionManager _transactionManager;
+
+
     public decimal GetCartTotal(out decimal totalPrice, out decimal totalDiscount)
     {
       totalPrice = 0;
       totalDiscount = 0;
-      foreach (KeyValuePair<Item, int> cartItem in _cart)
+      foreach (KeyValuePair<int, TransactionDetail> cartItem in _cart)
       {
-        totalPrice += cartItem.Key.Price * cartItem.Value;
-        totalDiscount += cartItem.Key.DiscountAmount * cartItem.Value;
+        totalPrice += cartItem.Value.SubtotalPrice;
+        totalDiscount += cartItem.Value.SubtotalDiscount;
       }
       return totalPrice - totalDiscount;
     }
-    private Dictionary<Item, int> _cart;
-    private object lockCart = new object();
+    private Dictionary<int, TransactionDetail> _cart;
+    private readonly object _lockCart = new object();
     
-    public delegate void CartChangeDelegate(object sender, KeyValuePair<Item, int> args);
+    public delegate void CartChangeDelegate(object sender, KeyValuePair<Product, int> args);
     public event CartChangeDelegate CartChange;
-    public bool AddToCart(Item item, int quantity)
+    public bool AddToCart(Product product, int quantity)
     {
-      lock (lockCart)
+      lock (_lockCart)
       {
         try
         {
-          if (_cart == null)
-          {
-            _cart = new Dictionary<Item, int>();
-          }
-          if (_cart.ContainsKey(item))
-            _cart[item] = _cart[item] + quantity;
+          if (_cart.ContainsKey(product.Id))
+            _cart[product.Id].UpdateQuantity(_cart[product.Id].Quantity + quantity);
           else
-            _cart.Add(item, quantity);
-          InvokeCartChanges(item, _cart[item]);
+            _cart.Add(product.Id, new TransactionDetail(product, quantity));
+          InvokeCartChanges(product, _cart[product.Id].Quantity);
           return true;
         }
         catch (Exception e)
@@ -65,31 +55,27 @@ namespace InventoryAndSales.Business
       }
     }
 
-    private void InvokeCartChanges(Item item, int quantity)
+    private void InvokeCartChanges(Product product, int quantity)
     {
       if(CartChange != null)
       {
-        CartChange(this, new KeyValuePair<Item, int>(item, quantity));
+        CartChange(this, new KeyValuePair<Product, int>(product, quantity));
       }
     }
 
-    public bool UpdateItemCart(Item item, int quantity)
+    public bool UpdateItemCart(Product product, int quantity)
     {
-      lock (lockCart)
+      lock (_lockCart)
       {
         try
         {
-          if (_cart == null)
-          {
-            _cart = new Dictionary<Item, int>();
-          }
           if (quantity <= 0)
-            return RemoveItemCart(item);
-          if (_cart.ContainsKey(item))
-            _cart[item] = quantity;
+            return RemoveItemCart(product);
+          if (_cart.ContainsKey(product.Id))
+            _cart[product.Id].UpdateQuantity(quantity);
           else
-            _cart.Add(item, quantity);
-          InvokeCartChanges(item, _cart[item]);
+            _cart.Add(product.Id, new TransactionDetail(product, quantity));
+          InvokeCartChanges(product, quantity);
           return true;
         }
         catch (Exception e)
@@ -100,24 +86,20 @@ namespace InventoryAndSales.Business
     }
     public void NewCart()
     {
-      lock (lockCart)
+      lock (_lockCart)
       {
         _cart.Clear();
       }
     }
-    public bool RemoveItemCart(Item item)
+    public bool RemoveItemCart(Product product)
     {
-      lock (lockCart)
+      lock (_lockCart)
       {
         try
         {
-          if (_cart == null)
-          {
-            _cart = new Dictionary<Item, int>();
-          }
-          if (_cart.ContainsKey(item))
-            _cart.Remove(item);
-          InvokeCartChanges(item, _cart[item]);
+          if (_cart.ContainsKey(product.Id))
+            _cart.Remove(product.Id);
+          InvokeCartChanges(product, 0);
           return true;
         }
         catch (Exception e)
@@ -127,25 +109,29 @@ namespace InventoryAndSales.Business
       }
     }
 
-    public void Checkout(decimal payment, string notes)
+    public void Checkout(decimal payment, string notes, int userId, int customerId, out Transaction transaction, out List<TransactionDetail> transactionDetails)
     {
-      Transaction t = new Transaction();
-      t.TotalPrice = 0;
-      t.TotalDiscount = 0;
-      t.Total = 0;
-      t.Notes = notes;
-      t.Time = DateTime.Now;
-      t.Factur = DateTime.Now.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture);
-      t.Payment = payment;
-      foreach (KeyValuePair<Item, int> detail in _cart)
+      transaction = new Transaction();
+      transaction.TotalPrice = 0;
+      transaction.TotalDiscount = 0;
+      transaction.Total = 0;
+      transaction.Notes = notes;
+      transaction.Time = DateTime.Now;
+      transaction.Factur = DateTime.Now.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture);
+      transaction.Payment = payment;
+      transaction.UserId = userId;
+      transaction.CustomerId = customerId;
+      transactionDetails =  new List<TransactionDetail>();
+      foreach (KeyValuePair<int, TransactionDetail> detail in _cart)
       {
-        TransactionDetail td = new TransactionDetail(detail.Key, detail.Value, t);
-        t.TotalDiscount += td.SubtotalDiscount;
-        t.TotalPrice += td.SubtotalPrice;
-        t.Total += (td.SubtotalPrice - td.SubtotalDiscount);
-        t.TransactionDetails.Add(td);
+        TransactionDetail td = detail.Value;
+        transaction.TotalDiscount += td.SubtotalDiscount;
+        transaction.TotalPrice += td.SubtotalPrice;
+        transaction.Total += (td.SubtotalPrice - td.SubtotalDiscount);
+        transactionDetails.Add(td);
       }
-      _transactionManager.SaveUpdate(t);
+      transaction.Exchange = transaction.Payment - transaction.Total;
+      _transactionManager.SaveCompleteTransaction(transaction, transactionDetails);
 
     }
   }

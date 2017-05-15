@@ -1,31 +1,112 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace InventoryAndSales.Database.Model
 {
   public class TransactionDetail : BaseObject
   {
-    public TransactionDetail(Item item, int quantity, Transaction transaction)
+    public TransactionDetail()
     {
-      Item = item;
+    }
+
+    public TransactionDetail(Product product, int quantity)
+      : this()
+    {
+      ProductName = product.Name;
+      ProductId = product.Id;
+      ProductDiscount = product.DiscountAmount;
+      ProductPrice = product.Price;
+      UpdateQuantity(quantity);
+    }
+
+    public void UpdateQuantity(int quantity)
+    {
       Quantity = quantity;
-      SubtotalDiscount = item.DiscountAmount * quantity;
-      SubtotalPrice = item.Price * quantity;
+      SubtotalDiscount = ProductDiscount * quantity;
+      SubtotalPrice = ProductPrice * quantity;
       Subtotal = SubtotalPrice - SubtotalDiscount;
-      Transaction = transaction;
     }
 
     public int Id { get; set; }
-    public Item Item { get; set; }
+    public int ProductId { get; set; }
+    public decimal ProductDiscount { get; set; }
+    public decimal ProductPrice { get; set; }
+    //Not save. Only for display
+    public string ProductName { get; set; }
+
     public int Quantity { get; set; }
     public decimal SubtotalDiscount { get; set; }
     public decimal SubtotalPrice { get; set; }
     public decimal Subtotal { get; set; }
-    public Transaction Transaction { get; set; }
+    public int TransactionId { get; set; }
 
-    public override Dictionary<string, object> Data
+    [Browsable(false)]
+    public override object this[string columnName]
     {
-      get { throw new NotImplementedException(); }
+      get
+      {
+        switch (columnName)
+        {
+          case "Id":
+            return Id;
+          case "ProductId":
+            return ProductId;
+          case "ProductDiscount":
+            return ProductDiscount;
+          case "ProductPrice":
+            return ProductPrice;
+          case "Quantity":
+            return Quantity;
+          case "SubtotalDiscount":
+            return SubtotalDiscount;
+          case "SubtotalPrice":
+            return SubtotalPrice;
+          case "Subtotal":
+            return Subtotal;
+          case "TransactionId":
+            return TransactionId;
+        }
+        throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));
+      }
+
+      set
+      {
+        switch (columnName)
+        {
+          case "Id":
+            Id = (int) value;
+            break;
+          case "ProductId":
+            ProductId = (int) value;
+            break;
+          case "ProductDiscount":
+            ProductDiscount = (decimal) value;
+            break;
+          case "ProductPrice":
+            ProductPrice = (decimal)value;
+            break;
+          case "Quantity":
+            Quantity = (int) value;
+            break;
+          case "SubtotalDiscount":
+            SubtotalDiscount = (decimal)value;
+            break;
+          case "SubtotalPrice":
+            SubtotalPrice = (decimal)value;
+            break;
+          case "Subtotal":
+            Subtotal = (decimal)value;
+            break;
+          case "TransactionId":
+            TransactionId = (int) value;
+            break;
+          default:
+            throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));
+
+        }
+      }
     }
   }
 }

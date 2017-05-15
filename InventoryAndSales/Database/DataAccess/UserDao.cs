@@ -9,7 +9,8 @@ namespace InventoryAndSales.Database.DataAccess
 {
   public class UserDao : BaseDao<User>
   {
-    public UserDao(IDataTable dataTable) : base(dataTable)
+    public UserDao() 
+      : base()
     {
     }
   }

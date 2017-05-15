@@ -9,7 +9,8 @@ namespace InventoryAndSales.Database.DataAccess
 {
   public class TransactionDao : BaseDao<Transaction>
   {
-    public TransactionDao(IDataTable dataTable) : base(dataTable)
+    public TransactionDao() 
+      : base()
     {
     }
   }

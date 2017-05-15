@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -48,12 +49,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Business\BusinessFactory.cs" />
     <Compile Include="Business\CashierManager.cs" />
+    <Compile Include="Business\ReportManager.cs" />
+    <Compile Include="Business\MasterManager.cs" />
+    <Compile Include="Database\DataAccess\CustomDao.cs" />
+    <Compile Include="Database\Manager\CustomManager.cs" />
+    <Compile Include="Database\Model\CustomQuery.cs" />
+    <Compile Include="Enum\MenuAccess.cs" />
     <Compile Include="Business\LoginManager.cs" />
     <Compile Include="Database\DataAccess\BaseDao.cs" />
     <Compile Include="Database\DataAccess\CustomerDao.cs" />
+    <Compile Include="Database\DataTable\DataTableList.cs" />
     <Compile Include="Database\DataTable\IDataTable.cs" />
-    <Compile Include="Database\DataAccess\ItemDao.cs" />
+    <Compile Include="Database\DataAccess\ProductDao.cs" />
     <Compile Include="Database\DataAccess\TransactionDao.cs" />
     <Compile Include="Database\DataAccess\TransactionDetailDao.cs" />
     <Compile Include="Database\DataAccess\UserDao.cs" />
@@ -61,13 +70,13 @@
     <Compile Include="Database\DBFactory.cs" />
     <Compile Include="Database\Manager\BaseManager.cs" />
     <Compile Include="Database\Manager\CustomerManager.cs" />
-    <Compile Include="Database\Manager\ItemManager.cs" />
+    <Compile Include="Database\Manager\ProductManager.cs" />
     <Compile Include="Database\Manager\TransactionDetailManager.cs" />
     <Compile Include="Database\Manager\TransactionManager.cs" />
     <Compile Include="Database\Manager\UserManager.cs" />
     <Compile Include="Database\Model\BaseObject.cs" />
     <Compile Include="Database\Model\Customer.cs" />
-    <Compile Include="Database\Model\Item.cs" />
+    <Compile Include="Database\Model\Product.cs" />
     <Compile Include="Database\Model\Transaction.cs" />
     <Compile Include="Database\Model\TransactionDetail.cs" />
     <Compile Include="Database\Model\User.cs" />
@@ -79,6 +88,7 @@
     </Compile>
     <Compile Include="GUI\MainFormController.cs" />
     <Compile Include="GUI\Model\ViewCartModel.cs" />
+    <Compile Include="Utility\Constant.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="GUI\MainForm.resx">
@@ -92,7 +102,9 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="App.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -108,6 +120,11 @@
       <Project>{B7F460E8-B9C5-418D-9F01-C0BAEF3550E6}</Project>
       <Name>SimpleCommon</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Icon\Add.png" />
+    <EmbeddedResource Include="Icon\Edit.png" />
+    <EmbeddedResource Include="Icon\Remove.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

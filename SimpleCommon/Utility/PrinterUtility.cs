@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Linq;
@@ -58,7 +59,9 @@ namespace SimpleCommon.Utility
 
     public void Print()
     {
+      string printerName = ConfigurationManager.AppSettings["PrinterName"];
       PrintDocument printDoc = new PrintDocument();
+      printDoc.PrinterSettings.PrinterName = printerName;
       printDoc.PrintPage += new PrintPageEventHandler(pd_PrintPage);
       printDoc.Print();
     }
@@ -78,17 +81,17 @@ namespace SimpleCommon.Utility
       linesPerPage = ev.MarginBounds.Height / _printFont.GetHeight(ev.Graphics);
 
       // Iterate over the file, printing each line.
-      while (count < linesPerPage && (enumerator.Current != null))
+      while (count < linesPerPage  )
       {
-        StringPrint sp = enumerator.Current;
-        line = sp.Text;
-        yPos = topMargin + (count*_printFont.GetHeight(ev.Graphics));
-        ev.Graphics.DrawString(line, _printFont, Brushes.Black, leftMargin, yPos, sp.Format);
         if (!enumerator.MoveNext())
         {
           line = null;
           break;
         }
+        StringPrint sp = enumerator.Current;
+        line = sp.Text;
+        yPos = topMargin + (count*_printFont.GetHeight(ev.Graphics));
+        ev.Graphics.DrawString(line, _printFont, Brushes.Black, leftMargin, yPos, sp.Format);
         count++;
       }
 

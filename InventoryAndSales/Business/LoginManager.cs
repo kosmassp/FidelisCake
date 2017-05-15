@@ -5,42 +5,32 @@ using System.Security.Cryptography;
 using System.Text;
 using InventoryAndSales.Database.Manager;
 using InventoryAndSales.Database.Model;
+using SimpleCommon.Utility;
 
 namespace InventoryAndSales.Business
 {
   public class LoginManager
   {
-    private static LoginManager _instance;
-    public static LoginManager Instance
+    private readonly UserManager _userManager;
+    public LoginManager(UserManager userManager)
     {
-      get
-      {
-        lock (_instance)
-        {
-          if (_instance == null)
-            _instance = new LoginManager();
-        }
-        return _instance;
-      }
-    }
-
-    private UserManager userManager;
-    private LoginManager()
-    {
-      //userManager = DBFactory.GetUserManager();
+      _userManager = userManager;
     }
 
     public User ActiveUser { get; private set; }
     public bool Login(string username, string password)
     {
-      SHA512 hashCreator = SHA512.Create();
-      hashCreator.ComputeHash(Encoding.UTF8.GetBytes(password));
-      string encryptedPass = BitConverter.ToString(hashCreator.Hash);
-      User user = userManager.FindUserByUsernamePassword(username, encryptedPass);
+      string encryptedPass = HashUtility.GetEncryptedPass(password);
+      User user = _userManager.FindUserByUsernamePassword(username, encryptedPass);
       if( user == null )
         return false;
       ActiveUser = user;
       return true;
+    }
+
+    public void Logout()
+    {
+      ActiveUser = null;
     }
   }
 }

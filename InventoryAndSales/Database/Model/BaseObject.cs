@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace InventoryAndSales.Database.Model
 {
@@ -8,6 +10,7 @@ namespace InventoryAndSales.Database.Model
     /// Return dictionary of table column and it's values
     /// </summary>
     /// <returns></returns>
-    public abstract Dictionary<string, object> Data { get; }
+    [IndexerName("DataColumn")]
+    public abstract object this[string columnName] { get; set; }
   }
 }

@@ -9,22 +9,31 @@ namespace InventoryAndSales.Database.Manager
 {
   public class TransactionManager : BaseManager<Transaction>
   {
-    private TransactionDetailDao tdDao;
-    //private TransactionDao trxDao;
-    public TransactionManager(BaseDao<Transaction> baseDao) : base(baseDao)
+    private TransactionDetailDao _tdDao;
+    private TransactionDao _trxDao;
+    public TransactionManager(TransactionDao dao, TransactionDetailDao tdDao)
+      : base(dao)
     {
-      //tdDao = ;
+      _tdDao = tdDao;
+      _trxDao = dao;
     }
 
-    public void SaveCompleteTransaction(Transaction transaction)
+    public void SaveCompleteTransaction(Transaction transaction, List<TransactionDetail> transactionDetails)
     {
-      //using (var tran = BeginTransaction())
+      DBFactory.GetInstance().BeginTransaction();
+      try
       {
-        BaseDao.SaveOrUpdate(transaction);
-        foreach (var tDetail in transaction.TransactionDetails)
+        _trxDao.Save(transaction);
+        foreach (TransactionDetail tDetail in transactionDetails)
         {
-          tdDao.SaveOrUpdate(tDetail);
+          tDetail.TransactionId = transaction.Id;
+          _tdDao.Save(tDetail);
         }
+        DBFactory.GetInstance().CommitTransaction();
+      }
+      catch(Exception e)
+      {
+        DBFactory.GetInstance().RollbackTransaction();
       }
     }
   }

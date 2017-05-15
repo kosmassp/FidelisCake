@@ -9,8 +9,8 @@ namespace InventoryAndSales.Database.Manager
 {
   public class TransactionDetailManager : BaseManager<TransactionDetail>
   {
-    public TransactionDetailManager(BaseDao<TransactionDetail> baseDao)
-      : base(baseDao)
+    public TransactionDetailManager(TransactionDetailDao dao)
+      : base(dao)
     {
     }
   }

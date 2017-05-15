@@ -7,7 +7,7 @@ using InventoryAndSales.Database.Model;
 
 namespace InventoryAndSales.Database.Manager
 {
-  public abstract class BaseManager<T> where T:BaseObject
+  public abstract class BaseManager<T> where T:BaseObject, new()
   //public abstract class BaseManager<T,V> when we start to use Int65 as Id
   {
     //public abstract T FindById(V id);
@@ -21,9 +21,25 @@ namespace InventoryAndSales.Database.Manager
     {
       return BaseDao.FindById(id);
     }
-    public virtual bool SaveOrUpdate(T t)
+    public virtual bool Save(T t)
     {
-      return BaseDao.SaveOrUpdate(t);
+      DBFactory.GetInstance().BeginTransaction();
+      bool success = false;
+      try
+      {
+        success = BaseDao.Save(t);
+        DBFactory.GetInstance().CommitTransaction();
+      }
+      catch (Exception e)
+      {
+        DBFactory.GetInstance().RollbackTransaction();
+      }
+      return success;
+    }
+
+    public virtual int Update(T t)
+    {
+      return BaseDao.Update(t);
     }
     public virtual bool Delete(T t)
     {
@@ -34,5 +50,9 @@ namespace InventoryAndSales.Database.Manager
       return BaseDao.DeleteById(id);
     }
 
+    public virtual List<T> GetAll()
+    {
+      return BaseDao.FindByQuery(string.Empty);
+    }
   }
 }
