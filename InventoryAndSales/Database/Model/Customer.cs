@@ -8,6 +8,8 @@ namespace InventoryAndSales.Database.Model
   {
     public int Id { get; set; }
     public string Name { get; set; }
+    public string Address { get; set; }
+    public string Phone { get; set; }
     public int MemberType { get; set; }
 
     [Browsable(false)]
@@ -19,6 +21,8 @@ namespace InventoryAndSales.Database.Model
         {
           case "Id": return Id;
           case "Name": return Name;
+          case "Address": return Address;
+          case "Phone": return Phone;
           case "MemberType": return MemberType;
         }
         throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));
@@ -33,6 +37,12 @@ namespace InventoryAndSales.Database.Model
             break;
           case "Name":
             Name = (string)value;
+            break;
+          case "Address":
+            Address = (string)value;
+            break;
+          case "Phone":
+            Phone = (string)value;
             break;
           case "MemberType":
             MemberType = (int)value;

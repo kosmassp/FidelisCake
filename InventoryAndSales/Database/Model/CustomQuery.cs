@@ -15,7 +15,19 @@ namespace InventoryAndSales.Database.Model
     public override object this[string columnName]
     {
       get { return _columnValues[columnName]; }
-      set { _columnValues[columnName] = value.ToString(); }
+      set
+      {
+        if (value is DateTime)
+        {
+          DateTime dt = (DateTime) value;
+          if (dt.TimeOfDay == TimeSpan.Zero)
+            _columnValues[columnName] = dt.ToString("dd MMM yyyy");
+          else
+            _columnValues[columnName] = dt.ToString("dd MMM yyyy HH:mm:ss");
+        }
+        else
+          _columnValues[columnName] = value.ToString();
+      }
     }
 
     public Dictionary<string, string> GetDict()

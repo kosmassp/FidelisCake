@@ -19,9 +19,9 @@ namespace InventoryAndSales.Database.Manager
     public User FindUserByUsernamePassword(string username, string encryptedPass)
     {
       if (username == "Kosmas" && encryptedPass == HashUtility.GetEncryptedPass("kosmas"))
-        return new User(-1, username, string.Empty, 1023);
+        return new User(-1, username, string.Empty, "Kosmas", 1023, false);
 
-      var fubup = BaseDao.FindByQuery(string.Format("USERNAME = '{0}' AND PASSWORD = '{1}'", username, encryptedPass));
+      var fubup = BaseDao.FindByQuery(string.Format("USERNAME = '{0}' AND PASSWORD = '{1}' AND DELETED = '{2}'", username, encryptedPass, false));
       if (fubup != null)
       {
         if (fubup.Count == 1)
@@ -29,6 +29,14 @@ namespace InventoryAndSales.Database.Manager
       }
       return null;
     }
+
+
+    public override List<User> GetAll()
+    {
+      List<User> users = BaseDao.FindByQuery(string.Format("WHERE Deleted = '{0}'", false));
+      return users;
+    }
+
 
   }
 }

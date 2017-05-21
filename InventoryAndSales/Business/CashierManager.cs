@@ -117,7 +117,7 @@ namespace InventoryAndSales.Business
       transaction.Total = 0;
       transaction.Notes = notes;
       transaction.Time = DateTime.Now;
-      transaction.Factur = DateTime.Now.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture);
+      transaction.Factur = GenerateFactur();
       transaction.Payment = payment;
       transaction.UserId = userId;
       transaction.CustomerId = customerId;
@@ -134,6 +134,93 @@ namespace InventoryAndSales.Business
       _transactionManager.SaveCompleteTransaction(transaction, transactionDetails);
 
     }
+
+    private string GenerateFactur()
+    {
+      DateTime Now = DateTime.Now;
+      string factur = ConvertToChar(Now.Year) + ConvertToChar(Now.DayOfYear) + "_" + 
+                      ConvertToChar(Now.Hour) + ConvertToChar(Now.Minute) + ConvertToChar(Now.Second) + ConvertToChar(Now.Millisecond);
+      return factur;
+
+    }
+
+
+    public string ConvertToChar(int value)
+    {
+      if (value > StringNumber.Length)
+      {
+        return ConvertToChar(value / StringNumber.Length) + ConvertToChar(value % StringNumber.Length);
+      }
+      return StringNumber[value];
+    }
+
+    private string[] StringNumber = new string[]
+                                      {
+                                        "A", 
+                                        "B",
+                                        "C",
+                                        "D",
+                                        "E",
+                                        "F",
+                                        "G",
+                                        "H",
+                                        "I",
+                                        "J",
+                                        "K",
+                                        "L",
+                                        "M",
+                                        "N",
+                                        "O",
+                                        "P",
+                                        "Q",
+                                        "R",
+                                        "S",
+                                        "T",
+                                        "U",
+                                        "V",
+                                        "W",
+                                        "X",
+                                        "Y",
+                                        "Z",
+                                        "0",
+                                        "1",
+                                        "2",
+                                        "3",
+                                        "3",
+                                        "4",
+                                        "5",
+                                        "6",
+                                        "7",
+                                        "8",
+                                        "9",
+                                        "0",
+                                        "a",
+                                        "b",
+                                        "c",
+                                        "d",
+                                        "e",
+                                        "f",
+                                        "g",
+                                        "h",
+                                        "i",
+                                        "j",
+                                        "k",
+                                        "l",
+                                        "m",
+                                        "n",
+                                        "o",
+                                        "p",
+                                        "q",
+                                        "r",
+                                        "s",
+                                        "t",
+                                        "u",
+                                        "v",
+                                        "w",
+                                        "x",
+                                        "y",
+                                        "z"
+                                      };
   }
 
 }

@@ -28,6 +28,12 @@ namespace InventoryAndSales.Database.Manager
       return ConvertToList(returnList);
     }
 
+    public List<Dictionary<string, string>> GetReportSummaryByCashier(DateTime start, DateTime stop)
+    {
+      List<CustomQuery> returnList = _customDao.GetReportSummaryByUserId(start, stop);
+      return ConvertToList(returnList);
+    }
+
     private static List<Dictionary<string, string>> ConvertToList(List<CustomQuery> returnList)
     {
       List<Dictionary<string, string>> returnListDict = new List<Dictionary<string, string>>(returnList.Count);

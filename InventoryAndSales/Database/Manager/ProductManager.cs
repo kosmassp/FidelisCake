@@ -16,7 +16,7 @@ namespace InventoryAndSales.Database.Manager
 
     public override List<Product> GetAll()
     {
-      List<Product> items =  BaseDao.FindByQuery(string.Empty);
+      List<Product> items =  BaseDao.FindByQuery(string.Format("WHERE Deleted = '{0}'", false));
       //List<Product> items = new List<Product>();
       //items.Add(new Product(1, "A0001", "Roti Enak", 10000, 0));
       //items.Add(new Product( 2, "A0002", "Roti Enak Special", 15000, -5 ));

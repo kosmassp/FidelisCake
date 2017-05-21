@@ -12,25 +12,24 @@ namespace InventoryAndSales.Database.Model
     [Browsable(false)]
     public int Id { get; set; }
     public string Code { get; set; }
+    public string Barcode { get; set; }
     public string Name { get; set; }
     public decimal Price { get; set; }
+    [Browsable(false)]
+    public bool Deleted { get; set; }
     [Browsable(false)]
     public decimal Discount { get; set; }
 
     public Product()  {}
-    public Product(string code, string name, decimal price, decimal discount)
+    public Product(string code, string barcode, string name, decimal price, decimal discount, bool deleted)
       : this()
     {
       Code = code;
+      Barcode = barcode;
       Name = name;
       Price = price;
       Discount = discount;
-    }
-
-    public Product(int id, string code, string name, decimal price, decimal discount)
-      : this(code, name, price, discount)
-    {
-      Id = id;
+      Deleted = deleted;
     }
 
     [DisplayName("Discount")]
@@ -72,9 +71,11 @@ namespace InventoryAndSales.Database.Model
         {
           case "Id": return Id;
           case "Code": return Code;
+          case "Barcode": return Barcode;
           case "Name": return Name;
           case "Price": return Price;
           case "Discount": return Discount;
+          case "Deleted": return Deleted;
         }
         throw new KeyNotFoundException(string.Format("Column name {0} not registered on class",columnName));
       }
@@ -89,6 +90,9 @@ namespace InventoryAndSales.Database.Model
           case "Code":
             Code = (string)value;
             break;
+          case "Barcode":
+            Barcode = (string)value;
+            break;
           case "Name":
             Name = (string)value;
             break;
@@ -97,6 +101,9 @@ namespace InventoryAndSales.Database.Model
             break;
           case "Discount":
             Discount = (decimal)value;
+            break;
+          case "Deleted":
+            Deleted = (bool)value;
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

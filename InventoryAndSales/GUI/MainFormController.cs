@@ -11,6 +11,7 @@ using InventoryAndSales.Business;
 using InventoryAndSales.Database;
 using InventoryAndSales.Database.Manager;
 using InventoryAndSales.Database.Model;
+using InventoryAndSales.GUI.Utility;
 using SimpleCommon.Utility;
 
 namespace InventoryAndSales.GUI
@@ -42,14 +43,20 @@ namespace InventoryAndSales.GUI
       _mainForm.UpdateTotal(total);
     }
 
-    public string Checkout(decimal payment, string notes)
+    public string Checkout(decimal payment, string notes, out string successMessage)
     {
+      successMessage = string.Empty;
       if(payment < 0)
         return "Pembayaran kurang dari 0";
 
-      //decimal total = _cashierManager.GetCartTotal();
-      //if (payment < total)
-      //  return "Pembayaran kurang dari 0";
+      decimal x, y;
+      decimal total = _cashierManager.GetCartTotal(out x, out y);
+      if (total <= 0)
+        return "Tidak ada pembelian. Silahkan tambahkan item yang dibeli";
+      decimal changes = payment - total;
+
+      if (changes < 0)
+        return "Pembayaran kurang dari harga yang harus dibayarkan.";
 
       try
       {
@@ -57,6 +64,7 @@ namespace InventoryAndSales.GUI
         List<TransactionDetail> transactionDetails;
         _cashierManager.Checkout(payment, notes, _loginManager.ActiveUser.Id, 1, out transaction, out transactionDetails );
         PrintPaymentNote(transaction, transactionDetails);
+        successMessage = string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ", changes.ToString(Constant.DISPLAY_CURRENCY));
         NewCart();
       }
       catch(Exception e)
@@ -69,8 +77,13 @@ namespace InventoryAndSales.GUI
     public bool Login(string username, string password)
     {
       bool loginSuccess = _loginManager.Login(username, password);
-      if(loginSuccess)
-        _mainForm.EnableMenu(_loginManager.ActiveUser.Role);
+      if (loginSuccess)
+      {
+        User activeUser = _loginManager.ActiveUser;
+
+        _mainForm.EnableMenu(activeUser.Role);
+        _mainForm.UpdateActiveUser(activeUser.Name);
+      }
       return loginSuccess;
     }
 
@@ -108,7 +121,16 @@ namespace InventoryAndSales.GUI
           stringToPrint.Add(new StringPrint("Discount: "+tDetail.SubtotalDiscount, leftString));
       }
       stringToPrint.Add(new StringPrint(lineSeparator, centerString));
-      stringToPrint.Add(new StringPrint("TOTAL:     " + transaction.Total, leftString));
+      stringToPrint.Add(new StringPrint("TOTAL BELANJA :     " + transaction.TotalPrice, leftString));
+      stringToPrint.Add(new StringPrint("TOTAL DISCOUNT:     " + transaction.TotalDiscount, leftString));
+      stringToPrint.Add(new StringPrint("TOTAL         :     " + transaction.Total, leftString));
+      stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
+      stringToPrint.Add(new StringPrint("PEMBAYARAN    :     " + transaction.Payment, leftString));
+      stringToPrint.Add(new StringPrint("KEMBALI       :     " + transaction.Exchange, leftString));
+      //Todo customize this
+      stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
+      stringToPrint.Add(new StringPrint(lineSeparator, centerString));
+      stringToPrint.Add(new StringPrint("TERIMA KASIH", centerString));
 
       PrinterUtility.Print(stringToPrint, _printFont);
     }
@@ -129,15 +151,16 @@ namespace InventoryAndSales.GUI
       _cashierManager.UpdateItemCart(product, value);
     }
 
-    public void AddItem(string code, string name, decimal price, decimal discount)
+    public void AddItem(string code, string barcode, string name, decimal price, decimal discount)
     {
-      _masterManager.AddProduct(new Product(code, name, price, discount));
+      _masterManager.AddProduct(new Product(code, barcode, name, price, discount, false));
       ResetItemList();
     }
 
-    public void UpdateItem(Product currentProductSelection, string code, string name, decimal price, decimal discount)
+    public void UpdateItem(Product currentProductSelection, string code, string barcode, string name, decimal price, decimal discount)
     {
       currentProductSelection.Code = code;
+      currentProductSelection.Barcode = barcode;
       currentProductSelection.Name = name;
       currentProductSelection.Price = price;
       currentProductSelection.Discount = discount;
@@ -160,14 +183,23 @@ namespace InventoryAndSales.GUI
     public void Logout()
     {
       _mainForm.EnableMenu(0);
+      _mainForm.UpdateActiveUser("");
       _loginManager.Logout();
     }
 
     public void ShowSummaryReport(DateTime start, DateTime stop)
     {
+      List<Dictionary<string, string>> detailReport = _reportManager.GetDetailReport(start, stop);
+      DataTable dataTableDetail = GetDataTable(detailReport, "DetailReport");
+
+      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetReportSummaryByCashier(start, stop);
+      DataTable dataTableDetailCashier = GetDataTable(reportSummaryByCashier, "SummaryReportCashier");
+
       List<Dictionary<string, string>> summaryReport = _reportManager.GetSummaryReport(start, stop);
       DataTable dataTable = GetDataTable(summaryReport, "SummaryReport");
-      _mainForm.UpdateReportDataGridView(dataTable);
+
+      _mainForm.UpdateReportDataGridView(new DataTable[] {dataTable, dataTableDetail, dataTableDetailCashier});
+
     }
 
     private DataTable GetDataTable(List<Dictionary<string, string>> summaryReport, string tableName)
@@ -187,11 +219,30 @@ namespace InventoryAndSales.GUI
       return dataTable;
     }
 
-    public void ShowDetailReport(DateTime start, DateTime stop)
+    public List<User> GetUsers()
     {
-      List<Dictionary<string, string>> detailReport = _reportManager.GetDetailReport(start, stop);
-      DataTable dataTable = GetDataTable(detailReport, "DetailReport");
-      _mainForm.UpdateReportDataGridView(dataTable);
+      return _masterManager.GetUsers();
+    }
+
+    public void DeleteUser(User currentUserSelection)
+    {
+      _masterManager.DeleteUser(currentUserSelection);
+    }
+
+    public void UpdateUser(User currentUserSelection, string username, string name, string password, int role)
+    {
+      if ( string.IsNullOrEmpty(currentUserSelection.Password) || !currentUserSelection.Password.StartsWith(password) )
+      {
+        currentUserSelection.Password = HashUtility.GetEncryptedPass(password);
+      }
+      currentUserSelection.Name = name;
+      currentUserSelection.Role = role;
+      _masterManager.UpdateUser(currentUserSelection);
+    }
+
+    public void AddUser(string username, string name, string password, int role)
+    {
+      _masterManager.AddUser(new User(username, HashUtility.GetEncryptedPass(password), name, role, false));
     }
   }
 }

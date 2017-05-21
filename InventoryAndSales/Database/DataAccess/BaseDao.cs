@@ -138,7 +138,8 @@ namespace InventoryAndSales.Database.DataAccess
         //This one should pick from dataTable so some new column or unspecified column in the code will be ignored.
         foreach (string columnName in _dataTable.Columns)
         {
-          t[columnName] = reader[columnName];
+          if (!(reader[columnName] is DBNull))
+            t[columnName] = reader[columnName];
         }
         returnList.Add(t);
       }

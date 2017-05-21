@@ -29,10 +29,10 @@
     private void InitializeComponent()
     {
       this.components = new System.ComponentModel.Container();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
       this.menuStripMain = new System.Windows.Forms.MenuStrip();
       this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.loginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,12 +56,6 @@
       this.tabPageCashier = new System.Windows.Forms.TabPage();
       this.groupBoxCart = new System.Windows.Forms.GroupBox();
       this.dataGridViewCart = new System.Windows.Forms.DataGridView();
-      this.CartItemCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemQuantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemSubtotal = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.groupBoxSummary = new System.Windows.Forms.GroupBox();
       this.buttonClearCart = new System.Windows.Forms.Button();
       this.labelNotes = new System.Windows.Forms.Label();
@@ -90,6 +84,8 @@
       this.buttonImport = new System.Windows.Forms.Button();
       this.buttonExportItems = new System.Windows.Forms.Button();
       this.groupBoxMasterItemDetail = new System.Windows.Forms.GroupBox();
+      this.textBoxDetailItemBarcode = new System.Windows.Forms.TextBox();
+      this.labelBarcode = new System.Windows.Forms.Label();
       this.buttonOkEdit = new System.Windows.Forms.Button();
       this.buttonCancelEdit = new System.Windows.Forms.Button();
       this.labelDiscountRupiah = new System.Windows.Forms.Label();
@@ -110,22 +106,47 @@
       this.buttonUpdate = new System.Windows.Forms.Button();
       this.buttonAdd = new System.Windows.Forms.Button();
       this.tabPageReport = new System.Windows.Forms.TabPage();
-      this.label5 = new System.Windows.Forms.Label();
-      this.label4 = new System.Windows.Forms.Label();
-      this.label3 = new System.Windows.Forms.Label();
-      this.label2 = new System.Windows.Forms.Label();
-      this.label1 = new System.Windows.Forms.Label();
+      this.tabControlSummaryReport = new System.Windows.Forms.TabControl();
+      this.tabPageReportPerCashier = new System.Windows.Forms.TabPage();
+      this.dataGridViewLaporanKasir = new System.Windows.Forms.DataGridView();
+      this.tabPageReportPerProduct = new System.Windows.Forms.TabPage();
       this.dataGridViewLaporan = new System.Windows.Forms.DataGridView();
+      this.dataGridViewLaporanDetail = new System.Windows.Forms.DataGridView();
       this.groupBoxReportFilter = new System.Windows.Forms.GroupBox();
       this.labelLaporanStart = new System.Windows.Forms.Label();
-      this.buttonShowReportDetail = new System.Windows.Forms.Button();
       this.dateTimePickerStart = new System.Windows.Forms.DateTimePicker();
       this.buttonShowReportSummary = new System.Windows.Forms.Button();
       this.dateTimePickerStop = new System.Windows.Forms.DateTimePicker();
       this.labelLaporanEnd = new System.Windows.Forms.Label();
+      this.tabPageUserMaster = new System.Windows.Forms.TabPage();
+      this.groupBoxUserMaster = new System.Windows.Forms.GroupBox();
+      this.labelRoleUserMaster = new System.Windows.Forms.Label();
+      this.comboBoxRoleMaster = new System.Windows.Forms.ComboBox();
+      this.textBoxUsernameMaster = new System.Windows.Forms.TextBox();
+      this.labelUsernameMaster = new System.Windows.Forms.Label();
+      this.labelPasswordMaster = new System.Windows.Forms.Label();
+      this.labelRepasswordMaster = new System.Windows.Forms.Label();
+      this.textBoxNameMaster = new System.Windows.Forms.TextBox();
+      this.textBoxPasswordMaster = new System.Windows.Forms.TextBox();
+      this.label6 = new System.Windows.Forms.Label();
+      this.textBoxRePasswordMaster = new System.Windows.Forms.TextBox();
+      this.buttonOkUserMaster = new System.Windows.Forms.Button();
+      this.buttonCancelUserMaster = new System.Windows.Forms.Button();
+      this.buttonDeleteUserMaster = new System.Windows.Forms.Button();
+      this.buttonEditUserMaster = new System.Windows.Forms.Button();
+      this.buttonAddUserMaster = new System.Windows.Forms.Button();
+      this.dataGridViewUserMaster = new System.Windows.Forms.DataGridView();
       this.statusStripInformation = new System.Windows.Forms.StatusStrip();
       this.toolStripStatusCurrentDate = new System.Windows.Forms.ToolStripStatusLabel();
+      this.toolStripStatusLabelEmpty = new System.Windows.Forms.ToolStripStatusLabel();
+      this.toolStripStatusLabelActiveUser = new System.Windows.Forms.ToolStripStatusLabel();
       this.timerDisplayDate = new System.Windows.Forms.Timer(this.components);
+      this.CartItemCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemQuantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemSubtotal = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.menuStripMain.SuspendLayout();
       this.tabControlPage.SuspendLayout();
       this.tabPageLogin.SuspendLayout();
@@ -142,8 +163,16 @@
       this.groupBoxMasterItemDetail.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewMasterItemList)).BeginInit();
       this.tabPageReport.SuspendLayout();
+      this.tabControlSummaryReport.SuspendLayout();
+      this.tabPageReportPerCashier.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanKasir)).BeginInit();
+      this.tabPageReportPerProduct.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporan)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanDetail)).BeginInit();
       this.groupBoxReportFilter.SuspendLayout();
+      this.tabPageUserMaster.SuspendLayout();
+      this.groupBoxUserMaster.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewUserMaster)).BeginInit();
       this.statusStripInformation.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -181,6 +210,7 @@
       this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
       this.exitToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
       this.exitToolStripMenuItem.Text = "Exit";
+      this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
       // 
       // transaksiToolStripMenuItem
       // 
@@ -241,6 +271,7 @@
       this.tabControlPage.Controls.Add(this.tabPageCashier);
       this.tabControlPage.Controls.Add(this.tabPageProductMaster);
       this.tabControlPage.Controls.Add(this.tabPageReport);
+      this.tabControlPage.Controls.Add(this.tabPageUserMaster);
       this.tabControlPage.Dock = System.Windows.Forms.DockStyle.Fill;
       this.tabControlPage.Location = new System.Drawing.Point(0, 24);
       this.tabControlPage.Name = "tabControlPage";
@@ -376,63 +407,6 @@
       this.dataGridViewCart.TabIndex = 0;
       this.dataGridViewCart.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewCart_CellValueChanged);
       // 
-      // CartItemCode
-      // 
-      this.CartItemCode.HeaderText = "Kode";
-      this.CartItemCode.Name = "CartItemCode";
-      this.CartItemCode.ReadOnly = true;
-      this.CartItemCode.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemCode.Width = 45;
-      // 
-      // CartItemName
-      // 
-      this.CartItemName.FillWeight = 200F;
-      this.CartItemName.HeaderText = "Nama Barang";
-      this.CartItemName.Name = "CartItemName";
-      this.CartItemName.ReadOnly = true;
-      this.CartItemName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemName.Width = 200;
-      // 
-      // CartItemQuantity
-      // 
-      this.CartItemQuantity.FillWeight = 45F;
-      this.CartItemQuantity.HeaderText = "Bnyk";
-      this.CartItemQuantity.Name = "CartItemQuantity";
-      this.CartItemQuantity.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemQuantity.Width = 45;
-      // 
-      // CartItemPrice
-      // 
-      dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemPrice.DefaultCellStyle = dataGridViewCellStyle5;
-      this.CartItemPrice.FillWeight = 120F;
-      this.CartItemPrice.HeaderText = "Harga Barang";
-      this.CartItemPrice.Name = "CartItemPrice";
-      this.CartItemPrice.ReadOnly = true;
-      this.CartItemPrice.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemPrice.Width = 120;
-      // 
-      // CartItemDiscount
-      // 
-      dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemDiscount.DefaultCellStyle = dataGridViewCellStyle6;
-      this.CartItemDiscount.FillWeight = 120F;
-      this.CartItemDiscount.HeaderText = "Diskon";
-      this.CartItemDiscount.Name = "CartItemDiscount";
-      this.CartItemDiscount.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemDiscount.Width = 120;
-      // 
-      // CartItemSubtotal
-      // 
-      dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemSubtotal.DefaultCellStyle = dataGridViewCellStyle7;
-      this.CartItemSubtotal.FillWeight = 120F;
-      this.CartItemSubtotal.HeaderText = "Total";
-      this.CartItemSubtotal.Name = "CartItemSubtotal";
-      this.CartItemSubtotal.ReadOnly = true;
-      this.CartItemSubtotal.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemSubtotal.Width = 120;
-      // 
       // groupBoxSummary
       // 
       this.groupBoxSummary.Controls.Add(this.buttonClearCart);
@@ -482,7 +456,7 @@
       this.textBoxNotes.Multiline = true;
       this.textBoxNotes.Name = "textBoxNotes";
       this.textBoxNotes.Size = new System.Drawing.Size(218, 63);
-      this.textBoxNotes.TabIndex = 1;
+      this.textBoxNotes.TabIndex = 0;
       // 
       // textBoxChanges
       // 
@@ -499,7 +473,7 @@
       this.textBoxPayment.Location = new System.Drawing.Point(316, 64);
       this.textBoxPayment.Name = "textBoxPayment";
       this.textBoxPayment.Size = new System.Drawing.Size(183, 20);
-      this.textBoxPayment.TabIndex = 0;
+      this.textBoxPayment.TabIndex = 1;
       this.textBoxPayment.Click += new System.EventHandler(this.textBoxPayment_Click);
       this.textBoxPayment.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBoxPayment_KeyUp);
       // 
@@ -608,8 +582,8 @@
       // 
       // ItemPrice
       // 
-      dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.ItemPrice.DefaultCellStyle = dataGridViewCellStyle8;
+      dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.ItemPrice.DefaultCellStyle = dataGridViewCellStyle4;
       this.ItemPrice.FillWeight = 20F;
       this.ItemPrice.HeaderText = "Harga";
       this.ItemPrice.Name = "ItemPrice";
@@ -646,9 +620,10 @@
       // 
       this.textBoxFilter.Location = new System.Drawing.Point(67, 14);
       this.textBoxFilter.Name = "textBoxFilter";
-      this.textBoxFilter.Size = new System.Drawing.Size(211, 20);
+      this.textBoxFilter.Size = new System.Drawing.Size(331, 20);
       this.textBoxFilter.TabIndex = 0;
       this.textBoxFilter.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBoxFilter_KeyUp);
+      this.textBoxFilter.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxFilter_KeyPress);
       // 
       // tabPageProductMaster
       // 
@@ -674,7 +649,7 @@
       this.buttonCancelSave.Location = new System.Drawing.Point(927, 606);
       this.buttonCancelSave.Name = "buttonCancelSave";
       this.buttonCancelSave.Size = new System.Drawing.Size(164, 28);
-      this.buttonCancelSave.TabIndex = 10;
+      this.buttonCancelSave.TabIndex = 4;
       this.buttonCancelSave.Text = "Batal";
       this.buttonCancelSave.UseVisualStyleBackColor = true;
       this.buttonCancelSave.Visible = false;
@@ -685,7 +660,7 @@
       this.buttonSave.Location = new System.Drawing.Point(750, 606);
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size(164, 28);
-      this.buttonSave.TabIndex = 0;
+      this.buttonSave.TabIndex = 3;
       this.buttonSave.Text = "Simpan";
       this.buttonSave.UseVisualStyleBackColor = true;
       this.buttonSave.Visible = false;
@@ -699,16 +674,16 @@
       this.buttonDelete.Location = new System.Drawing.Point(591, 134);
       this.buttonDelete.Name = "buttonDelete";
       this.buttonDelete.Size = new System.Drawing.Size(40, 40);
-      this.buttonDelete.TabIndex = 5;
+      this.buttonDelete.TabIndex = 2;
       this.buttonDelete.UseVisualStyleBackColor = true;
-      this.buttonDelete.Click += new System.EventHandler(this.buttonDelete_Click);
+      this.buttonDelete.Click += new System.EventHandler(this.buttonDeleteProduct_Click);
       // 
       // groupBoxExportImport
       // 
       this.groupBoxExportImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
       this.groupBoxExportImport.Controls.Add(this.buttonImport);
       this.groupBoxExportImport.Controls.Add(this.buttonExportItems);
-      this.groupBoxExportImport.Location = new System.Drawing.Point(653, 258);
+      this.groupBoxExportImport.Location = new System.Drawing.Point(653, 291);
       this.groupBoxExportImport.Name = "groupBoxExportImport";
       this.groupBoxExportImport.Size = new System.Drawing.Size(441, 84);
       this.groupBoxExportImport.TabIndex = 8;
@@ -737,6 +712,8 @@
       // groupBoxMasterItemDetail
       // 
       this.groupBoxMasterItemDetail.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.groupBoxMasterItemDetail.Controls.Add(this.textBoxDetailItemBarcode);
+      this.groupBoxMasterItemDetail.Controls.Add(this.labelBarcode);
       this.groupBoxMasterItemDetail.Controls.Add(this.buttonOkEdit);
       this.groupBoxMasterItemDetail.Controls.Add(this.buttonCancelEdit);
       this.groupBoxMasterItemDetail.Controls.Add(this.labelDiscountRupiah);
@@ -755,18 +732,35 @@
       this.groupBoxMasterItemDetail.Controls.Add(this.textBoxDetailItemPrice);
       this.groupBoxMasterItemDetail.Location = new System.Drawing.Point(653, 28);
       this.groupBoxMasterItemDetail.Name = "groupBoxMasterItemDetail";
-      this.groupBoxMasterItemDetail.Size = new System.Drawing.Size(441, 199);
+      this.groupBoxMasterItemDetail.Size = new System.Drawing.Size(441, 257);
       this.groupBoxMasterItemDetail.TabIndex = 7;
       this.groupBoxMasterItemDetail.TabStop = false;
       this.groupBoxMasterItemDetail.Text = "Detail Barang";
       // 
+      // textBoxDetailItemBarcode
+      // 
+      this.textBoxDetailItemBarcode.Enabled = false;
+      this.textBoxDetailItemBarcode.Location = new System.Drawing.Point(76, 78);
+      this.textBoxDetailItemBarcode.Name = "textBoxDetailItemBarcode";
+      this.textBoxDetailItemBarcode.Size = new System.Drawing.Size(100, 20);
+      this.textBoxDetailItemBarcode.TabIndex = 2;
+      // 
+      // labelBarcode
+      // 
+      this.labelBarcode.AutoSize = true;
+      this.labelBarcode.Location = new System.Drawing.Point(19, 81);
+      this.labelBarcode.Name = "labelBarcode";
+      this.labelBarcode.Size = new System.Drawing.Size(47, 13);
+      this.labelBarcode.TabIndex = 19;
+      this.labelBarcode.Text = "Barcode";
+      // 
       // buttonOkEdit
       // 
       this.buttonOkEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonOkEdit.Location = new System.Drawing.Point(274, 164);
+      this.buttonOkEdit.Location = new System.Drawing.Point(274, 222);
       this.buttonOkEdit.Name = "buttonOkEdit";
       this.buttonOkEdit.Size = new System.Drawing.Size(75, 23);
-      this.buttonOkEdit.TabIndex = 17;
+      this.buttonOkEdit.TabIndex = 6;
       this.buttonOkEdit.Text = "OK";
       this.buttonOkEdit.UseVisualStyleBackColor = true;
       this.buttonOkEdit.Click += new System.EventHandler(this.buttonOkEdit_Click);
@@ -774,10 +768,10 @@
       // buttonCancelEdit
       // 
       this.buttonCancelEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonCancelEdit.Location = new System.Drawing.Point(357, 164);
+      this.buttonCancelEdit.Location = new System.Drawing.Point(357, 222);
       this.buttonCancelEdit.Name = "buttonCancelEdit";
       this.buttonCancelEdit.Size = new System.Drawing.Size(75, 23);
-      this.buttonCancelEdit.TabIndex = 16;
+      this.buttonCancelEdit.TabIndex = 7;
       this.buttonCancelEdit.Text = "Batal";
       this.buttonCancelEdit.UseVisualStyleBackColor = true;
       this.buttonCancelEdit.Click += new System.EventHandler(this.buttonCancelEdit_Click);
@@ -785,7 +779,7 @@
       // labelDiscountRupiah
       // 
       this.labelDiscountRupiah.AutoSize = true;
-      this.labelDiscountRupiah.Location = new System.Drawing.Point(182, 110);
+      this.labelDiscountRupiah.Location = new System.Drawing.Point(182, 137);
       this.labelDiscountRupiah.Name = "labelDiscountRupiah";
       this.labelDiscountRupiah.Size = new System.Drawing.Size(41, 13);
       this.labelDiscountRupiah.TabIndex = 15;
@@ -794,7 +788,7 @@
       // labelPriceRupiah
       // 
       this.labelPriceRupiah.AutoSize = true;
-      this.labelPriceRupiah.Location = new System.Drawing.Point(182, 82);
+      this.labelPriceRupiah.Location = new System.Drawing.Point(182, 109);
       this.labelPriceRupiah.Name = "labelPriceRupiah";
       this.labelPriceRupiah.Size = new System.Drawing.Size(41, 13);
       this.labelPriceRupiah.TabIndex = 14;
@@ -803,7 +797,7 @@
       // labelDiscountPercent
       // 
       this.labelDiscountPercent.AutoSize = true;
-      this.labelDiscountPercent.Location = new System.Drawing.Point(182, 138);
+      this.labelDiscountPercent.Location = new System.Drawing.Point(182, 165);
       this.labelDiscountPercent.Name = "labelDiscountPercent";
       this.labelDiscountPercent.Size = new System.Drawing.Size(15, 13);
       this.labelDiscountPercent.TabIndex = 13;
@@ -813,7 +807,7 @@
       // 
       this.radioButtonDiscountPercent.AutoSize = true;
       this.radioButtonDiscountPercent.Enabled = false;
-      this.radioButtonDiscountPercent.Location = new System.Drawing.Point(76, 139);
+      this.radioButtonDiscountPercent.Location = new System.Drawing.Point(76, 166);
       this.radioButtonDiscountPercent.Name = "radioButtonDiscountPercent";
       this.radioButtonDiscountPercent.Size = new System.Drawing.Size(14, 13);
       this.radioButtonDiscountPercent.TabIndex = 12;
@@ -824,7 +818,7 @@
       // 
       this.radioButtonDiscountAmount.AutoSize = true;
       this.radioButtonDiscountAmount.Enabled = false;
-      this.radioButtonDiscountAmount.Location = new System.Drawing.Point(76, 110);
+      this.radioButtonDiscountAmount.Location = new System.Drawing.Point(76, 137);
       this.radioButtonDiscountAmount.Name = "radioButtonDiscountAmount";
       this.radioButtonDiscountAmount.Size = new System.Drawing.Size(14, 13);
       this.radioButtonDiscountAmount.TabIndex = 11;
@@ -834,16 +828,16 @@
       // textBoxDetailItemDiscountPercent
       // 
       this.textBoxDetailItemDiscountPercent.Enabled = false;
-      this.textBoxDetailItemDiscountPercent.Location = new System.Drawing.Point(97, 135);
+      this.textBoxDetailItemDiscountPercent.Location = new System.Drawing.Point(97, 162);
       this.textBoxDetailItemDiscountPercent.Name = "textBoxDetailItemDiscountPercent";
       this.textBoxDetailItemDiscountPercent.Size = new System.Drawing.Size(79, 20);
-      this.textBoxDetailItemDiscountPercent.TabIndex = 4;
+      this.textBoxDetailItemDiscountPercent.TabIndex = 5;
       this.textBoxDetailItemDiscountPercent.TextChanged += new System.EventHandler(this.textBoxDiscountPercent_TextChanged);
       // 
       // labelDiscount
       // 
       this.labelDiscount.AutoSize = true;
-      this.labelDiscount.Location = new System.Drawing.Point(19, 110);
+      this.labelDiscount.Location = new System.Drawing.Point(19, 137);
       this.labelDiscount.Name = "labelDiscount";
       this.labelDiscount.Size = new System.Drawing.Size(40, 13);
       this.labelDiscount.TabIndex = 9;
@@ -860,7 +854,7 @@
       // labelPrice
       // 
       this.labelPrice.AutoSize = true;
-      this.labelPrice.Location = new System.Drawing.Point(19, 82);
+      this.labelPrice.Location = new System.Drawing.Point(19, 109);
       this.labelPrice.Name = "labelPrice";
       this.labelPrice.Size = new System.Drawing.Size(36, 13);
       this.labelPrice.TabIndex = 8;
@@ -887,10 +881,10 @@
       // textBoxDetailItemDiscountAmount
       // 
       this.textBoxDetailItemDiscountAmount.Enabled = false;
-      this.textBoxDetailItemDiscountAmount.Location = new System.Drawing.Point(97, 107);
+      this.textBoxDetailItemDiscountAmount.Location = new System.Drawing.Point(97, 134);
       this.textBoxDetailItemDiscountAmount.Name = "textBoxDetailItemDiscountAmount";
       this.textBoxDetailItemDiscountAmount.Size = new System.Drawing.Size(79, 20);
-      this.textBoxDetailItemDiscountAmount.TabIndex = 3;
+      this.textBoxDetailItemDiscountAmount.TabIndex = 4;
       this.textBoxDetailItemDiscountAmount.TextChanged += new System.EventHandler(this.textBoxDiscountAmount_TextChanged);
       // 
       // textBoxDetailItemName
@@ -904,10 +898,10 @@
       // textBoxDetailItemPrice
       // 
       this.textBoxDetailItemPrice.Enabled = false;
-      this.textBoxDetailItemPrice.Location = new System.Drawing.Point(76, 79);
+      this.textBoxDetailItemPrice.Location = new System.Drawing.Point(76, 106);
       this.textBoxDetailItemPrice.Name = "textBoxDetailItemPrice";
       this.textBoxDetailItemPrice.Size = new System.Drawing.Size(100, 20);
-      this.textBoxDetailItemPrice.TabIndex = 2;
+      this.textBoxDetailItemPrice.TabIndex = 3;
       // 
       // dataGridViewMasterItemList
       // 
@@ -934,9 +928,9 @@
       this.buttonUpdate.Location = new System.Drawing.Point(591, 81);
       this.buttonUpdate.Name = "buttonUpdate";
       this.buttonUpdate.Size = new System.Drawing.Size(40, 40);
-      this.buttonUpdate.TabIndex = 7;
+      this.buttonUpdate.TabIndex = 1;
       this.buttonUpdate.UseVisualStyleBackColor = true;
-      this.buttonUpdate.Click += new System.EventHandler(this.buttonUpdate_Click);
+      this.buttonUpdate.Click += new System.EventHandler(this.buttonEditProduct_Click);
       // 
       // buttonAdd
       // 
@@ -946,18 +940,14 @@
       this.buttonAdd.Location = new System.Drawing.Point(591, 28);
       this.buttonAdd.Name = "buttonAdd";
       this.buttonAdd.Size = new System.Drawing.Size(40, 40);
-      this.buttonAdd.TabIndex = 6;
+      this.buttonAdd.TabIndex = 0;
       this.buttonAdd.UseVisualStyleBackColor = true;
-      this.buttonAdd.Click += new System.EventHandler(this.buttonAdd_Click);
+      this.buttonAdd.Click += new System.EventHandler(this.buttonAddProduct_Click);
       // 
       // tabPageReport
       // 
-      this.tabPageReport.Controls.Add(this.label5);
-      this.tabPageReport.Controls.Add(this.label4);
-      this.tabPageReport.Controls.Add(this.label3);
-      this.tabPageReport.Controls.Add(this.label2);
-      this.tabPageReport.Controls.Add(this.label1);
-      this.tabPageReport.Controls.Add(this.dataGridViewLaporan);
+      this.tabPageReport.Controls.Add(this.tabControlSummaryReport);
+      this.tabPageReport.Controls.Add(this.dataGridViewLaporanDetail);
       this.tabPageReport.Controls.Add(this.groupBoxReportFilter);
       this.tabPageReport.Location = new System.Drawing.Point(4, 22);
       this.tabPageReport.Name = "tabPageReport";
@@ -967,83 +957,104 @@
       this.tabPageReport.Text = "Laporan";
       this.tabPageReport.UseVisualStyleBackColor = true;
       // 
-      // label5
+      // tabControlSummaryReport
       // 
-      this.label5.AutoSize = true;
-      this.label5.Location = new System.Drawing.Point(19, 410);
-      this.label5.Name = "label5";
-      this.label5.Size = new System.Drawing.Size(161, 13);
-      this.label5.TabIndex = 12;
-      this.label5.Text = "Total Transaksi (Setelah Diskon)";
+      this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerCashier);
+      this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerProduct);
+      this.tabControlSummaryReport.Location = new System.Drawing.Point(348, 16);
+      this.tabControlSummaryReport.Name = "tabControlSummaryReport";
+      this.tabControlSummaryReport.SelectedIndex = 0;
+      this.tabControlSummaryReport.Size = new System.Drawing.Size(732, 191);
+      this.tabControlSummaryReport.TabIndex = 15;
       // 
-      // label4
+      // tabPageReportPerCashier
       // 
-      this.label4.AutoSize = true;
-      this.label4.Location = new System.Drawing.Point(19, 297);
-      this.label4.Name = "label4";
-      this.label4.Size = new System.Drawing.Size(124, 13);
-      this.label4.TabIndex = 11;
-      this.label4.Text = "Total Discount Diberikan";
+      this.tabPageReportPerCashier.Controls.Add(this.dataGridViewLaporanKasir);
+      this.tabPageReportPerCashier.Location = new System.Drawing.Point(4, 22);
+      this.tabPageReportPerCashier.Name = "tabPageReportPerCashier";
+      this.tabPageReportPerCashier.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPageReportPerCashier.Size = new System.Drawing.Size(724, 165);
+      this.tabPageReportPerCashier.TabIndex = 0;
+      this.tabPageReportPerCashier.Text = "Per Kasir";
+      this.tabPageReportPerCashier.UseVisualStyleBackColor = true;
       // 
-      // label3
+      // dataGridViewLaporanKasir
       // 
-      this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point(19, 381);
-      this.label3.Name = "label3";
-      this.label3.Size = new System.Drawing.Size(88, 13);
-      this.label3.TabIndex = 10;
-      this.label3.Text = "Total Roti Terjual";
+      this.dataGridViewLaporanKasir.AllowUserToAddRows = false;
+      this.dataGridViewLaporanKasir.AllowUserToDeleteRows = false;
+      this.dataGridViewLaporanKasir.AllowUserToOrderColumns = true;
+      this.dataGridViewLaporanKasir.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
+      this.dataGridViewLaporanKasir.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
+      this.dataGridViewLaporanKasir.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.dataGridViewLaporanKasir.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.dataGridViewLaporanKasir.Enabled = false;
+      this.dataGridViewLaporanKasir.Location = new System.Drawing.Point(3, 3);
+      this.dataGridViewLaporanKasir.Name = "dataGridViewLaporanKasir";
+      this.dataGridViewLaporanKasir.ReadOnly = true;
+      this.dataGridViewLaporanKasir.RowHeadersVisible = false;
+      this.dataGridViewLaporanKasir.Size = new System.Drawing.Size(718, 159);
+      this.dataGridViewLaporanKasir.TabIndex = 14;
       // 
-      // label2
+      // tabPageReportPerProduct
       // 
-      this.label2.AutoSize = true;
-      this.label2.Location = new System.Drawing.Point(19, 351);
-      this.label2.Name = "label2";
-      this.label2.Size = new System.Drawing.Size(115, 13);
-      this.label2.TabIndex = 9;
-      this.label2.Text = "Total Jenis Roti Terjual";
-      // 
-      // label1
-      // 
-      this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point(18, 322);
-      this.label1.Name = "label1";
-      this.label1.Size = new System.Drawing.Size(166, 13);
-      this.label1.TabIndex = 8;
-      this.label1.Text = "Total Transaksi (Sebelum Diskon)";
+      this.tabPageReportPerProduct.Controls.Add(this.dataGridViewLaporan);
+      this.tabPageReportPerProduct.Location = new System.Drawing.Point(4, 22);
+      this.tabPageReportPerProduct.Name = "tabPageReportPerProduct";
+      this.tabPageReportPerProduct.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPageReportPerProduct.Size = new System.Drawing.Size(724, 165);
+      this.tabPageReportPerProduct.TabIndex = 1;
+      this.tabPageReportPerProduct.Text = "Per Product";
+      this.tabPageReportPerProduct.UseVisualStyleBackColor = true;
       // 
       // dataGridViewLaporan
       // 
       this.dataGridViewLaporan.AllowUserToAddRows = false;
       this.dataGridViewLaporan.AllowUserToDeleteRows = false;
       this.dataGridViewLaporan.AllowUserToOrderColumns = true;
-      this.dataGridViewLaporan.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                  | System.Windows.Forms.AnchorStyles.Left)
-                  | System.Windows.Forms.AnchorStyles.Right)));
       this.dataGridViewLaporan.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
       this.dataGridViewLaporan.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
       this.dataGridViewLaporan.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-      this.dataGridViewLaporan.Location = new System.Drawing.Point(265, 22);
+      this.dataGridViewLaporan.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.dataGridViewLaporan.Enabled = false;
+      this.dataGridViewLaporan.Location = new System.Drawing.Point(3, 3);
       this.dataGridViewLaporan.Name = "dataGridViewLaporan";
       this.dataGridViewLaporan.ReadOnly = true;
       this.dataGridViewLaporan.RowHeadersVisible = false;
-      this.dataGridViewLaporan.Size = new System.Drawing.Size(815, 629);
+      this.dataGridViewLaporan.Size = new System.Drawing.Size(718, 159);
       this.dataGridViewLaporan.TabIndex = 7;
+      // 
+      // dataGridViewLaporanDetail
+      // 
+      this.dataGridViewLaporanDetail.AllowUserToAddRows = false;
+      this.dataGridViewLaporanDetail.AllowUserToDeleteRows = false;
+      this.dataGridViewLaporanDetail.AllowUserToOrderColumns = true;
+      this.dataGridViewLaporanDetail.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                  | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.dataGridViewLaporanDetail.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
+      this.dataGridViewLaporanDetail.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
+      this.dataGridViewLaporanDetail.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.dataGridViewLaporanDetail.Enabled = false;
+      this.dataGridViewLaporanDetail.Location = new System.Drawing.Point(17, 213);
+      this.dataGridViewLaporanDetail.Name = "dataGridViewLaporanDetail";
+      this.dataGridViewLaporanDetail.ReadOnly = true;
+      this.dataGridViewLaporanDetail.RowHeadersVisible = false;
+      this.dataGridViewLaporanDetail.Size = new System.Drawing.Size(1063, 432);
+      this.dataGridViewLaporanDetail.TabIndex = 13;
       // 
       // groupBoxReportFilter
       // 
       this.groupBoxReportFilter.Controls.Add(this.labelLaporanStart);
-      this.groupBoxReportFilter.Controls.Add(this.buttonShowReportDetail);
       this.groupBoxReportFilter.Controls.Add(this.dateTimePickerStart);
       this.groupBoxReportFilter.Controls.Add(this.buttonShowReportSummary);
       this.groupBoxReportFilter.Controls.Add(this.dateTimePickerStop);
       this.groupBoxReportFilter.Controls.Add(this.labelLaporanEnd);
       this.groupBoxReportFilter.Location = new System.Drawing.Point(17, 16);
       this.groupBoxReportFilter.Name = "groupBoxReportFilter";
-      this.groupBoxReportFilter.Size = new System.Drawing.Size(242, 124);
+      this.groupBoxReportFilter.Size = new System.Drawing.Size(325, 187);
       this.groupBoxReportFilter.TabIndex = 6;
       this.groupBoxReportFilter.TabStop = false;
-      this.groupBoxReportFilter.Text = ",";
+      this.groupBoxReportFilter.Text = "Laporan Periode";
       // 
       // labelLaporanStart
       // 
@@ -1054,34 +1065,24 @@
       this.labelLaporanStart.TabIndex = 2;
       this.labelLaporanStart.Text = "Dari Tanggal:";
       // 
-      // buttonShowReportDetail
-      // 
-      this.buttonShowReportDetail.Location = new System.Drawing.Point(121, 84);
-      this.buttonShowReportDetail.Name = "buttonShowReportDetail";
-      this.buttonShowReportDetail.Size = new System.Drawing.Size(95, 23);
-      this.buttonShowReportDetail.TabIndex = 5;
-      this.buttonShowReportDetail.Text = "Lihat Detail";
-      this.buttonShowReportDetail.UseVisualStyleBackColor = true;
-      this.buttonShowReportDetail.Click += new System.EventHandler(this.buttonShowReportDetail_Click);
-      // 
       // dateTimePickerStart
       // 
       this.dateTimePickerStart.CustomFormat = "dd  MMM yyyy";
       this.dateTimePickerStart.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-      this.dateTimePickerStart.Location = new System.Drawing.Point(104, 22);
+      this.dateTimePickerStart.Location = new System.Drawing.Point(175, 26);
       this.dateTimePickerStart.MaxDate = new System.DateTime(2115, 12, 31, 0, 0, 0, 0);
       this.dateTimePickerStart.MinDate = new System.DateTime(2015, 1, 1, 0, 0, 0, 0);
       this.dateTimePickerStart.Name = "dateTimePickerStart";
-      this.dateTimePickerStart.Size = new System.Drawing.Size(112, 20);
+      this.dateTimePickerStart.Size = new System.Drawing.Size(128, 20);
       this.dateTimePickerStart.TabIndex = 0;
       // 
       // buttonShowReportSummary
       // 
-      this.buttonShowReportSummary.Location = new System.Drawing.Point(12, 84);
+      this.buttonShowReportSummary.Location = new System.Drawing.Point(128, 148);
       this.buttonShowReportSummary.Name = "buttonShowReportSummary";
-      this.buttonShowReportSummary.Size = new System.Drawing.Size(95, 23);
+      this.buttonShowReportSummary.Size = new System.Drawing.Size(175, 23);
       this.buttonShowReportSummary.TabIndex = 4;
-      this.buttonShowReportSummary.Text = "Lihat Summary";
+      this.buttonShowReportSummary.Text = "Lihat Laporan";
       this.buttonShowReportSummary.UseVisualStyleBackColor = true;
       this.buttonShowReportSummary.Click += new System.EventHandler(this.buttonShowReportSummary_Click);
       // 
@@ -1089,26 +1090,221 @@
       // 
       this.dateTimePickerStop.CustomFormat = "dd  MMM yyyy";
       this.dateTimePickerStop.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-      this.dateTimePickerStop.Location = new System.Drawing.Point(104, 48);
+      this.dateTimePickerStop.Location = new System.Drawing.Point(175, 63);
       this.dateTimePickerStop.MaxDate = new System.DateTime(2115, 12, 31, 0, 0, 0, 0);
       this.dateTimePickerStop.MinDate = new System.DateTime(2015, 1, 1, 0, 0, 0, 0);
       this.dateTimePickerStop.Name = "dateTimePickerStop";
-      this.dateTimePickerStop.Size = new System.Drawing.Size(112, 20);
+      this.dateTimePickerStop.Size = new System.Drawing.Size(128, 20);
       this.dateTimePickerStop.TabIndex = 1;
       // 
       // labelLaporanEnd
       // 
       this.labelLaporanEnd.AutoSize = true;
-      this.labelLaporanEnd.Location = new System.Drawing.Point(9, 52);
+      this.labelLaporanEnd.Location = new System.Drawing.Point(9, 63);
       this.labelLaporanEnd.Name = "labelLaporanEnd";
       this.labelLaporanEnd.Size = new System.Drawing.Size(87, 13);
       this.labelLaporanEnd.TabIndex = 3;
       this.labelLaporanEnd.Text = "Sampai Tanggal:";
       // 
+      // tabPageUserMaster
+      // 
+      this.tabPageUserMaster.Controls.Add(this.groupBoxUserMaster);
+      this.tabPageUserMaster.Controls.Add(this.buttonDeleteUserMaster);
+      this.tabPageUserMaster.Controls.Add(this.buttonEditUserMaster);
+      this.tabPageUserMaster.Controls.Add(this.buttonAddUserMaster);
+      this.tabPageUserMaster.Controls.Add(this.dataGridViewUserMaster);
+      this.tabPageUserMaster.Location = new System.Drawing.Point(4, 22);
+      this.tabPageUserMaster.Name = "tabPageUserMaster";
+      this.tabPageUserMaster.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPageUserMaster.Size = new System.Drawing.Size(1100, 657);
+      this.tabPageUserMaster.TabIndex = 4;
+      this.tabPageUserMaster.Text = "Daftar User";
+      this.tabPageUserMaster.UseVisualStyleBackColor = true;
+      // 
+      // groupBoxUserMaster
+      // 
+      this.groupBoxUserMaster.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.groupBoxUserMaster.Controls.Add(this.labelRoleUserMaster);
+      this.groupBoxUserMaster.Controls.Add(this.comboBoxRoleMaster);
+      this.groupBoxUserMaster.Controls.Add(this.textBoxUsernameMaster);
+      this.groupBoxUserMaster.Controls.Add(this.labelUsernameMaster);
+      this.groupBoxUserMaster.Controls.Add(this.labelPasswordMaster);
+      this.groupBoxUserMaster.Controls.Add(this.labelRepasswordMaster);
+      this.groupBoxUserMaster.Controls.Add(this.textBoxNameMaster);
+      this.groupBoxUserMaster.Controls.Add(this.textBoxPasswordMaster);
+      this.groupBoxUserMaster.Controls.Add(this.label6);
+      this.groupBoxUserMaster.Controls.Add(this.textBoxRePasswordMaster);
+      this.groupBoxUserMaster.Controls.Add(this.buttonOkUserMaster);
+      this.groupBoxUserMaster.Controls.Add(this.buttonCancelUserMaster);
+      this.groupBoxUserMaster.Location = new System.Drawing.Point(515, 22);
+      this.groupBoxUserMaster.Name = "groupBoxUserMaster";
+      this.groupBoxUserMaster.Size = new System.Drawing.Size(353, 305);
+      this.groupBoxUserMaster.TabIndex = 14;
+      this.groupBoxUserMaster.TabStop = false;
+      this.groupBoxUserMaster.Text = "User Data";
+      // 
+      // labelRoleUserMaster
+      // 
+      this.labelRoleUserMaster.AutoSize = true;
+      this.labelRoleUserMaster.Location = new System.Drawing.Point(90, 163);
+      this.labelRoleUserMaster.Name = "labelRoleUserMaster";
+      this.labelRoleUserMaster.Size = new System.Drawing.Size(32, 13);
+      this.labelRoleUserMaster.TabIndex = 12;
+      this.labelRoleUserMaster.Text = "Role:";
+      // 
+      // comboBoxRoleMaster
+      // 
+      this.comboBoxRoleMaster.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxRoleMaster.FormattingEnabled = true;
+      this.comboBoxRoleMaster.Location = new System.Drawing.Point(128, 160);
+      this.comboBoxRoleMaster.Name = "comboBoxRoleMaster";
+      this.comboBoxRoleMaster.Size = new System.Drawing.Size(121, 21);
+      this.comboBoxRoleMaster.TabIndex = 4;
+      // 
+      // textBoxUsernameMaster
+      // 
+      this.textBoxUsernameMaster.Location = new System.Drawing.Point(128, 32);
+      this.textBoxUsernameMaster.Name = "textBoxUsernameMaster";
+      this.textBoxUsernameMaster.Size = new System.Drawing.Size(183, 20);
+      this.textBoxUsernameMaster.TabIndex = 0;
+      // 
+      // labelUsernameMaster
+      // 
+      this.labelUsernameMaster.AutoSize = true;
+      this.labelUsernameMaster.Location = new System.Drawing.Point(64, 35);
+      this.labelUsernameMaster.Name = "labelUsernameMaster";
+      this.labelUsernameMaster.Size = new System.Drawing.Size(58, 13);
+      this.labelUsernameMaster.TabIndex = 0;
+      this.labelUsernameMaster.Text = "Username:";
+      // 
+      // labelPasswordMaster
+      // 
+      this.labelPasswordMaster.AutoSize = true;
+      this.labelPasswordMaster.Location = new System.Drawing.Point(66, 97);
+      this.labelPasswordMaster.Name = "labelPasswordMaster";
+      this.labelPasswordMaster.Size = new System.Drawing.Size(56, 13);
+      this.labelPasswordMaster.TabIndex = 1;
+      this.labelPasswordMaster.Text = "Password:";
+      // 
+      // labelRepasswordMaster
+      // 
+      this.labelRepasswordMaster.AutoSize = true;
+      this.labelRepasswordMaster.Location = new System.Drawing.Point(33, 132);
+      this.labelRepasswordMaster.Name = "labelRepasswordMaster";
+      this.labelRepasswordMaster.Size = new System.Drawing.Size(89, 13);
+      this.labelRepasswordMaster.TabIndex = 2;
+      this.labelRepasswordMaster.Text = "Ulangi Password:";
+      // 
+      // textBoxNameMaster
+      // 
+      this.textBoxNameMaster.Location = new System.Drawing.Point(128, 61);
+      this.textBoxNameMaster.Name = "textBoxNameMaster";
+      this.textBoxNameMaster.Size = new System.Drawing.Size(183, 20);
+      this.textBoxNameMaster.TabIndex = 1;
+      // 
+      // textBoxPasswordMaster
+      // 
+      this.textBoxPasswordMaster.Location = new System.Drawing.Point(128, 92);
+      this.textBoxPasswordMaster.Name = "textBoxPasswordMaster";
+      this.textBoxPasswordMaster.PasswordChar = '*';
+      this.textBoxPasswordMaster.Size = new System.Drawing.Size(183, 20);
+      this.textBoxPasswordMaster.TabIndex = 2;
+      // 
+      // label6
+      // 
+      this.label6.AutoSize = true;
+      this.label6.Location = new System.Drawing.Point(84, 66);
+      this.label6.Name = "label6";
+      this.label6.Size = new System.Drawing.Size(38, 13);
+      this.label6.TabIndex = 9;
+      this.label6.Text = "Name:";
+      // 
+      // textBoxRePasswordMaster
+      // 
+      this.textBoxRePasswordMaster.Location = new System.Drawing.Point(128, 126);
+      this.textBoxRePasswordMaster.Name = "textBoxRePasswordMaster";
+      this.textBoxRePasswordMaster.PasswordChar = '*';
+      this.textBoxRePasswordMaster.Size = new System.Drawing.Size(183, 20);
+      this.textBoxRePasswordMaster.TabIndex = 3;
+      // 
+      // buttonOkUserMaster
+      // 
+      this.buttonOkUserMaster.Location = new System.Drawing.Point(174, 247);
+      this.buttonOkUserMaster.Name = "buttonOkUserMaster";
+      this.buttonOkUserMaster.Size = new System.Drawing.Size(75, 23);
+      this.buttonOkUserMaster.TabIndex = 5;
+      this.buttonOkUserMaster.Text = "OK";
+      this.buttonOkUserMaster.UseVisualStyleBackColor = true;
+      this.buttonOkUserMaster.Click += new System.EventHandler(this.buttonOkUserMaster_Click);
+      // 
+      // buttonCancelUserMaster
+      // 
+      this.buttonCancelUserMaster.Location = new System.Drawing.Point(255, 247);
+      this.buttonCancelUserMaster.Name = "buttonCancelUserMaster";
+      this.buttonCancelUserMaster.Size = new System.Drawing.Size(75, 23);
+      this.buttonCancelUserMaster.TabIndex = 6;
+      this.buttonCancelUserMaster.Text = "Cancel";
+      this.buttonCancelUserMaster.UseVisualStyleBackColor = true;
+      this.buttonCancelUserMaster.Click += new System.EventHandler(this.buttonCancelUserMaster_Click);
+      // 
+      // buttonDeleteUserMaster
+      // 
+      this.buttonDeleteUserMaster.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonDeleteUserMaster.BackgroundImage = global::InventoryAndSales.Properties.Resources.Remove;
+      this.buttonDeleteUserMaster.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+      this.buttonDeleteUserMaster.Location = new System.Drawing.Point(435, 157);
+      this.buttonDeleteUserMaster.Name = "buttonDeleteUserMaster";
+      this.buttonDeleteUserMaster.Size = new System.Drawing.Size(40, 40);
+      this.buttonDeleteUserMaster.TabIndex = 2;
+      this.buttonDeleteUserMaster.UseVisualStyleBackColor = true;
+      this.buttonDeleteUserMaster.Click += new System.EventHandler(this.buttonDeleteUserMaster_Click);
+      // 
+      // buttonEditUserMaster
+      // 
+      this.buttonEditUserMaster.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonEditUserMaster.BackgroundImage = global::InventoryAndSales.Properties.Resources.Edit;
+      this.buttonEditUserMaster.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+      this.buttonEditUserMaster.Location = new System.Drawing.Point(435, 104);
+      this.buttonEditUserMaster.Name = "buttonEditUserMaster";
+      this.buttonEditUserMaster.Size = new System.Drawing.Size(40, 40);
+      this.buttonEditUserMaster.TabIndex = 1;
+      this.buttonEditUserMaster.UseVisualStyleBackColor = true;
+      this.buttonEditUserMaster.Click += new System.EventHandler(this.buttonEditUserMaster_Click);
+      // 
+      // buttonAddUserMaster
+      // 
+      this.buttonAddUserMaster.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonAddUserMaster.BackgroundImage = global::InventoryAndSales.Properties.Resources.Add;
+      this.buttonAddUserMaster.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+      this.buttonAddUserMaster.Location = new System.Drawing.Point(435, 51);
+      this.buttonAddUserMaster.Name = "buttonAddUserMaster";
+      this.buttonAddUserMaster.Size = new System.Drawing.Size(40, 40);
+      this.buttonAddUserMaster.TabIndex = 0;
+      this.buttonAddUserMaster.UseVisualStyleBackColor = true;
+      this.buttonAddUserMaster.Click += new System.EventHandler(this.buttonAddUserMaster_Click);
+      // 
+      // dataGridViewUserMaster
+      // 
+      this.dataGridViewUserMaster.AllowUserToAddRows = false;
+      this.dataGridViewUserMaster.AllowUserToDeleteRows = false;
+      this.dataGridViewUserMaster.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                  | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.dataGridViewUserMaster.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.dataGridViewUserMaster.Location = new System.Drawing.Point(20, 22);
+      this.dataGridViewUserMaster.Name = "dataGridViewUserMaster";
+      this.dataGridViewUserMaster.ReadOnly = true;
+      this.dataGridViewUserMaster.RowHeadersVisible = false;
+      this.dataGridViewUserMaster.Size = new System.Drawing.Size(398, 617);
+      this.dataGridViewUserMaster.TabIndex = 8;
+      this.dataGridViewUserMaster.SelectionChanged += new System.EventHandler(this.dataGridViewUserMaster_SelectionChanged);
+      // 
       // statusStripInformation
       // 
       this.statusStripInformation.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusCurrentDate});
+            this.toolStripStatusCurrentDate,
+            this.toolStripStatusLabelEmpty,
+            this.toolStripStatusLabelActiveUser});
       this.statusStripInformation.Location = new System.Drawing.Point(0, 707);
       this.statusStripInformation.Name = "statusStripInformation";
       this.statusStripInformation.Size = new System.Drawing.Size(1108, 22);
@@ -1121,11 +1317,81 @@
       this.toolStripStatusCurrentDate.Size = new System.Drawing.Size(77, 17);
       this.toolStripStatusCurrentDate.Text = "{DateDisplay}";
       // 
+      // toolStripStatusLabelEmpty
+      // 
+      this.toolStripStatusLabelEmpty.Name = "toolStripStatusLabelEmpty";
+      this.toolStripStatusLabelEmpty.Size = new System.Drawing.Size(945, 17);
+      this.toolStripStatusLabelEmpty.Spring = true;
+      // 
+      // toolStripStatusLabelActiveUser
+      // 
+      this.toolStripStatusLabelActiveUser.Name = "toolStripStatusLabelActiveUser";
+      this.toolStripStatusLabelActiveUser.Size = new System.Drawing.Size(71, 17);
+      this.toolStripStatusLabelActiveUser.Text = "{ActiveUser}";
+      // 
       // timerDisplayDate
       // 
       this.timerDisplayDate.Enabled = true;
       this.timerDisplayDate.Interval = 1000;
       this.timerDisplayDate.Tick += new System.EventHandler(this.timerDisplayDate_Tick);
+      // 
+      // CartItemCode
+      // 
+      this.CartItemCode.HeaderText = "Kode";
+      this.CartItemCode.Name = "CartItemCode";
+      this.CartItemCode.ReadOnly = true;
+      this.CartItemCode.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemCode.Width = 45;
+      // 
+      // CartItemName
+      // 
+      this.CartItemName.FillWeight = 200F;
+      this.CartItemName.HeaderText = "Nama Barang";
+      this.CartItemName.Name = "CartItemName";
+      this.CartItemName.ReadOnly = true;
+      this.CartItemName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemName.Width = 200;
+      // 
+      // CartItemQuantity
+      // 
+      this.CartItemQuantity.FillWeight = 45F;
+      this.CartItemQuantity.HeaderText = "Bnyk";
+      this.CartItemQuantity.Name = "CartItemQuantity";
+      this.CartItemQuantity.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemQuantity.Width = 45;
+      // 
+      // CartItemPrice
+      // 
+      dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemPrice.DefaultCellStyle = dataGridViewCellStyle1;
+      this.CartItemPrice.FillWeight = 120F;
+      this.CartItemPrice.HeaderText = "Harga Barang";
+      this.CartItemPrice.Name = "CartItemPrice";
+      this.CartItemPrice.ReadOnly = true;
+      this.CartItemPrice.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemPrice.Width = 120;
+      // 
+      // CartItemDiscount
+      // 
+      dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemDiscount.DefaultCellStyle = dataGridViewCellStyle2;
+      this.CartItemDiscount.FillWeight = 120F;
+      this.CartItemDiscount.HeaderText = "Diskon";
+      this.CartItemDiscount.Name = "CartItemDiscount";
+      this.CartItemDiscount.ReadOnly = true;
+      this.CartItemDiscount.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemDiscount.Width = 120;
+      // 
+      // CartItemSubtotal
+      // 
+      dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemSubtotal.DefaultCellStyle = dataGridViewCellStyle3;
+      this.CartItemSubtotal.FillWeight = 120F;
+      this.CartItemSubtotal.HeaderText = "Total";
+      this.CartItemSubtotal.Name = "CartItemSubtotal";
+      this.CartItemSubtotal.ReadOnly = true;
+      this.CartItemSubtotal.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemSubtotal.Width = 120;
       // 
       // MainForm
       // 
@@ -1161,10 +1427,18 @@
       this.groupBoxMasterItemDetail.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewMasterItemList)).EndInit();
       this.tabPageReport.ResumeLayout(false);
-      this.tabPageReport.PerformLayout();
+      this.tabControlSummaryReport.ResumeLayout(false);
+      this.tabPageReportPerCashier.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanKasir)).EndInit();
+      this.tabPageReportPerProduct.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporan)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanDetail)).EndInit();
       this.groupBoxReportFilter.ResumeLayout(false);
       this.groupBoxReportFilter.PerformLayout();
+      this.tabPageUserMaster.ResumeLayout(false);
+      this.groupBoxUserMaster.ResumeLayout(false);
+      this.groupBoxUserMaster.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewUserMaster)).EndInit();
       this.statusStripInformation.ResumeLayout(false);
       this.statusStripInformation.PerformLayout();
       this.ResumeLayout(false);
@@ -1235,12 +1509,6 @@
     private System.Windows.Forms.Button buttonCancelSave;
     private System.Windows.Forms.Button buttonClearCart;
     private System.Windows.Forms.Label labelCannotLogin;
-    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemCode;
-    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemName;
-    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemQuantity;
-    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemPrice;
-    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemDiscount;
-    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemSubtotal;
     private System.Windows.Forms.Button buttonImport;
     private System.Windows.Forms.Button buttonCancelEdit;
     private System.Windows.Forms.Button buttonOkEdit;
@@ -1260,13 +1528,40 @@
     private System.Windows.Forms.DateTimePicker dateTimePickerStop;
     private System.Windows.Forms.DateTimePicker dateTimePickerStart;
     private System.Windows.Forms.GroupBox groupBoxReportFilter;
-    private System.Windows.Forms.Button buttonShowReportDetail;
     private System.Windows.Forms.DataGridView dataGridViewLaporan;
-    private System.Windows.Forms.Label label5;
-    private System.Windows.Forms.Label label4;
-    private System.Windows.Forms.Label label3;
-    private System.Windows.Forms.Label label2;
-    private System.Windows.Forms.Label label1;
+    private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelActiveUser;
+    private System.Windows.Forms.TabPage tabPageUserMaster;
+    private System.Windows.Forms.TextBox textBoxRePasswordMaster;
+    private System.Windows.Forms.TextBox textBoxPasswordMaster;
+    private System.Windows.Forms.TextBox textBoxUsernameMaster;
+    private System.Windows.Forms.Label labelRepasswordMaster;
+    private System.Windows.Forms.Label labelPasswordMaster;
+    private System.Windows.Forms.Label labelUsernameMaster;
+    private System.Windows.Forms.Button buttonDeleteUserMaster;
+    private System.Windows.Forms.Button buttonEditUserMaster;
+    private System.Windows.Forms.Button buttonAddUserMaster;
+    private System.Windows.Forms.TextBox textBoxNameMaster;
+    private System.Windows.Forms.Label label6;
+    private System.Windows.Forms.DataGridView dataGridViewUserMaster;
+    private System.Windows.Forms.Button buttonCancelUserMaster;
+    private System.Windows.Forms.Button buttonOkUserMaster;
+    private System.Windows.Forms.GroupBox groupBoxUserMaster;
+    private System.Windows.Forms.Label labelRoleUserMaster;
+    private System.Windows.Forms.ComboBox comboBoxRoleMaster;
+    private System.Windows.Forms.TextBox textBoxDetailItemBarcode;
+    private System.Windows.Forms.Label labelBarcode;
+    private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelEmpty;
+    private System.Windows.Forms.DataGridView dataGridViewLaporanDetail;
+    private System.Windows.Forms.DataGridView dataGridViewLaporanKasir;
+    private System.Windows.Forms.TabControl tabControlSummaryReport;
+    private System.Windows.Forms.TabPage tabPageReportPerCashier;
+    private System.Windows.Forms.TabPage tabPageReportPerProduct;
+    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemCode;
+    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemName;
+    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemQuantity;
+    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemPrice;
+    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemDiscount;
+    private System.Windows.Forms.DataGridViewTextBoxColumn CartItemSubtotal;
   }
 }
 

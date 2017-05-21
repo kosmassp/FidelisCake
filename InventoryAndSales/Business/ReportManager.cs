@@ -26,5 +26,10 @@ namespace InventoryAndSales.Business
     {
       return _customManager.GetDetailReport(start, stop);
     }
+
+    public List<Dictionary<string, string>> GetReportSummaryByCashier(DateTime start, DateTime stop)
+    {
+      return _customManager.GetReportSummaryByCashier(start, stop);
+    }
   }
 }
