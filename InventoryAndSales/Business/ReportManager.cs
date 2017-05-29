@@ -17,9 +17,14 @@ namespace InventoryAndSales.Business
       _customManager = customManager;
     }
 
-    public List<Dictionary<string, string>> GetSummaryReport(DateTime start, DateTime stop)
+    public List<Dictionary<string, string>> GetSummaryReportProduct(DateTime start, DateTime stop)
     {
-      return _customManager.GetSummaryReport(start, stop);
+      return _customManager.GetSummaryReportByProduct(start, stop);
+    }
+
+    public List<Dictionary<string, string>> GetReportSummaryByTransaction(DateTime start, DateTime stop)
+    {
+      return _customManager.GetReportSummaryByTransaction(start, stop);
     }
 
     public List<Dictionary<string, string>> GetDetailReport(DateTime start, DateTime stop)

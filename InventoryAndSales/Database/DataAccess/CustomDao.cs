@@ -37,12 +37,18 @@ namespace InventoryAndSales.Database.DataAccess
     }
 
     private const string QUERY_REPORT_DETAIL_BY_TIME =
-      " select COALESCE(p.Name,'Telah Dihapus') as ProductName, td.ProductPrice, td.ProductDiscount, t.TransactionTime," +
+      " select" +
+      " COALESCE(u.Name, 'ADMIN') as Cashier," +
+      " t.Factur," +
+      " t.TransactionTime," +
+      " COALESCE(p.Name,'Telah Dihapus') as ProductName," +
       " Quantity as 'Jumlah'," +
+      " td.ProductPrice as Harga," +
+      " td.ProductDiscount as Diskon," +
       " SubtotalPrice as 'Total Sebelum Diskon'," +
       " SubtotalDiscount as 'Total Diskon'," +
-      " Subtotal as 'Total'," +
-      " COALESCE(u.Name, 'ADMIN') as Cashier" +
+      " Subtotal as 'SubTotal'," +
+      " t.Total as 'Total'" +
       " from T_TRANSACTION_DETAILS td" +
       " left join T_TRANSACTIONS t on (t.Id = td.TransactionId)" +
       " left join M_PRODUCTS p on (p.Id = td.ProductId)" +
@@ -51,9 +57,12 @@ namespace InventoryAndSales.Database.DataAccess
       " order by t.TransactionTime ";
 
 
-    private const string QUERY_REPORT_SUMMARY_BY_TIME =
-      " select COALESCE(p.Name,'Telah Dihapus') as ProductName, CAST(t.TransactionTime as date) as 'TransactionDate'," +
-      " sum(Quantity) as 'Jumlah'," +
+    private const string QUERY_REPORT_SUMMARY_BY_PRODUCT =
+      " select" +
+      " COALESCE(p.Name,'Telah Dihapus') as ProductName," +
+      " CAST(t.TransactionTime as date) as 'TransactionDate'," +
+      " count(t.Id) as 'Jumlah Transaksi'," +
+      " sum(Quantity) as 'Jumlah Barang Terjual'," +
       " sum(SubtotalPrice) as 'Total Sebelum Diskon'," +
       " sum(SubtotalDiscount) as 'Total Diskon'," +
       " sum(Subtotal) as 'Total'" +
@@ -65,8 +74,11 @@ namespace InventoryAndSales.Database.DataAccess
       " order by CAST(t.TransactionTime as date)";
 
     private const string QUERY_REPORT_SUMMARY_BY_USER_ID =
-      " select COALESCE(u.Name,'ADMIN') as Kasir, CAST(t.TransactionTime as date) as 'Tanggal Transaksi'," +
-      " sum(Quantity) as 'Jumlah'," +
+      " select"+
+      " COALESCE(u.Name,'ADMIN') as Kasir,"+
+      " CAST(t.TransactionTime as date) as 'Tanggal Transaksi'," +
+      " count(t.Id) as 'Jumlah Transaksi'," +
+      " sum(Quantity) as 'Jumlah Barang Terjual'," +
       " sum(SubtotalPrice) as 'Total Sebelum Diskon'," +
       " sum(SubtotalDiscount) as 'Total Diskon'," +
       " sum(Subtotal) as 'Total'" +
@@ -79,10 +91,30 @@ namespace InventoryAndSales.Database.DataAccess
       " order by CAST(t.TransactionTime as date)";
 
 
+    private const string QUERY_REPORT_SUMMARY_BY_TRANSACTION =
+      " select"+
+      " COALESCE(u.Name,'ADMIN') as Kasir,"+
+      " t.Factur," +
+      " CAST(t.TransactionTime as date) as 'Tanggal Transaksi'," +
+      " t.Total as 'Total'," +
+      " t.Notes as 'Catatan'," +
+      " t.Payment as 'Pembayaran'," +
+      " t.Exchange as 'Kembalian'" +
+      " from T_TRANSACTIONS t" +
+      " left join M_USERS u on (u.Id = t.UserId)" +
+      " where CAST(TransactionTime as date) between '{0}' and '{1}'" +
+      " order by t.TransactionTime";
 
-    public List<CustomQuery> GetReportSummaryByTime(DateTime start, DateTime stop)
+
+
+    public List<CustomQuery> GetReportSummaryByProduct(DateTime start, DateTime stop)
     {
-      return ExecuteReader(string.Format(QUERY_REPORT_SUMMARY_BY_TIME, start.ToShortDateString(), stop.ToShortDateString()));
+      return ExecuteReader(string.Format(QUERY_REPORT_SUMMARY_BY_PRODUCT, start.ToShortDateString(), stop.ToShortDateString()));
+    }
+
+    public List<CustomQuery> GetReportSummaryByTransaction(DateTime start, DateTime stop)
+    {
+      return ExecuteReader(string.Format(QUERY_REPORT_SUMMARY_BY_TRANSACTION, start.ToShortDateString(), stop.ToShortDateString()));
     }
 
     public List<CustomQuery> GetReportDetailByTime(DateTime start, DateTime stop)

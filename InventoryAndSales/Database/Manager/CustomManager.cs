@@ -16,9 +16,15 @@ namespace InventoryAndSales.Database.Manager
       _customDao = dao;
     }
 
-    public List<Dictionary<string, string>> GetSummaryReport(DateTime start, DateTime stop)
+    public List<Dictionary<string, string>> GetSummaryReportByProduct(DateTime start, DateTime stop)
     {
-      List<CustomQuery> returnList = _customDao.GetReportSummaryByTime(start, stop);
+      List<CustomQuery> returnList = _customDao.GetReportSummaryByProduct(start, stop);
+      return ConvertToList(returnList);
+    }
+
+    public List<Dictionary<string, string>> GetReportSummaryByTransaction(DateTime start, DateTime stop)
+    {
+      List<CustomQuery> returnList = _customDao.GetReportSummaryByTransaction(start, stop);
       return ConvertToList(returnList);
     }
 

@@ -29,10 +29,10 @@
     private void InitializeComponent()
     {
       this.components = new System.ComponentModel.Container();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle17 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle18 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle19 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle20 = new System.Windows.Forms.DataGridViewCellStyle();
       this.menuStripMain = new System.Windows.Forms.MenuStrip();
       this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.loginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,6 +56,12 @@
       this.tabPageCashier = new System.Windows.Forms.TabPage();
       this.groupBoxCart = new System.Windows.Forms.GroupBox();
       this.dataGridViewCart = new System.Windows.Forms.DataGridView();
+      this.CartItemCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemQuantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.CartItemSubtotal = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.groupBoxSummary = new System.Windows.Forms.GroupBox();
       this.buttonClearCart = new System.Windows.Forms.Button();
       this.labelNotes = new System.Windows.Forms.Label();
@@ -110,9 +116,13 @@
       this.tabPageReportPerCashier = new System.Windows.Forms.TabPage();
       this.dataGridViewLaporanKasir = new System.Windows.Forms.DataGridView();
       this.tabPageReportPerProduct = new System.Windows.Forms.TabPage();
-      this.dataGridViewLaporan = new System.Windows.Forms.DataGridView();
+      this.dataGridViewLaporanProduct = new System.Windows.Forms.DataGridView();
+      this.tabPageReportPerTransaction = new System.Windows.Forms.TabPage();
+      this.dataGridViewLaporanTransaksi = new System.Windows.Forms.DataGridView();
+      this.tabPageReportDetail = new System.Windows.Forms.TabPage();
       this.dataGridViewLaporanDetail = new System.Windows.Forms.DataGridView();
       this.groupBoxReportFilter = new System.Windows.Forms.GroupBox();
+      this.buttonShowDetailTransaction = new System.Windows.Forms.Button();
       this.labelLaporanStart = new System.Windows.Forms.Label();
       this.dateTimePickerStart = new System.Windows.Forms.DateTimePicker();
       this.buttonShowReportSummary = new System.Windows.Forms.Button();
@@ -141,12 +151,6 @@
       this.toolStripStatusLabelEmpty = new System.Windows.Forms.ToolStripStatusLabel();
       this.toolStripStatusLabelActiveUser = new System.Windows.Forms.ToolStripStatusLabel();
       this.timerDisplayDate = new System.Windows.Forms.Timer(this.components);
-      this.CartItemCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemQuantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.CartItemSubtotal = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.menuStripMain.SuspendLayout();
       this.tabControlPage.SuspendLayout();
       this.tabPageLogin.SuspendLayout();
@@ -167,7 +171,10 @@
       this.tabPageReportPerCashier.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanKasir)).BeginInit();
       this.tabPageReportPerProduct.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporan)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanProduct)).BeginInit();
+      this.tabPageReportPerTransaction.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanTransaksi)).BeginInit();
+      this.tabPageReportDetail.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanDetail)).BeginInit();
       this.groupBoxReportFilter.SuspendLayout();
       this.tabPageUserMaster.SuspendLayout();
@@ -407,6 +414,64 @@
       this.dataGridViewCart.TabIndex = 0;
       this.dataGridViewCart.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewCart_CellValueChanged);
       // 
+      // CartItemCode
+      // 
+      this.CartItemCode.HeaderText = "Kode";
+      this.CartItemCode.Name = "CartItemCode";
+      this.CartItemCode.ReadOnly = true;
+      this.CartItemCode.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemCode.Width = 45;
+      // 
+      // CartItemName
+      // 
+      this.CartItemName.FillWeight = 200F;
+      this.CartItemName.HeaderText = "Nama Barang";
+      this.CartItemName.Name = "CartItemName";
+      this.CartItemName.ReadOnly = true;
+      this.CartItemName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemName.Width = 200;
+      // 
+      // CartItemQuantity
+      // 
+      this.CartItemQuantity.FillWeight = 45F;
+      this.CartItemQuantity.HeaderText = "Bnyk";
+      this.CartItemQuantity.Name = "CartItemQuantity";
+      this.CartItemQuantity.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemQuantity.Width = 45;
+      // 
+      // CartItemPrice
+      // 
+      dataGridViewCellStyle17.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemPrice.DefaultCellStyle = dataGridViewCellStyle17;
+      this.CartItemPrice.FillWeight = 120F;
+      this.CartItemPrice.HeaderText = "Harga Barang";
+      this.CartItemPrice.Name = "CartItemPrice";
+      this.CartItemPrice.ReadOnly = true;
+      this.CartItemPrice.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemPrice.Width = 120;
+      // 
+      // CartItemDiscount
+      // 
+      dataGridViewCellStyle18.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemDiscount.DefaultCellStyle = dataGridViewCellStyle18;
+      this.CartItemDiscount.FillWeight = 120F;
+      this.CartItemDiscount.HeaderText = "Diskon";
+      this.CartItemDiscount.Name = "CartItemDiscount";
+      this.CartItemDiscount.ReadOnly = true;
+      this.CartItemDiscount.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemDiscount.Width = 120;
+      // 
+      // CartItemSubtotal
+      // 
+      dataGridViewCellStyle19.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemSubtotal.DefaultCellStyle = dataGridViewCellStyle19;
+      this.CartItemSubtotal.FillWeight = 120F;
+      this.CartItemSubtotal.HeaderText = "Total";
+      this.CartItemSubtotal.Name = "CartItemSubtotal";
+      this.CartItemSubtotal.ReadOnly = true;
+      this.CartItemSubtotal.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+      this.CartItemSubtotal.Width = 120;
+      // 
       // groupBoxSummary
       // 
       this.groupBoxSummary.Controls.Add(this.buttonClearCart);
@@ -582,8 +647,8 @@
       // 
       // ItemPrice
       // 
-      dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.ItemPrice.DefaultCellStyle = dataGridViewCellStyle4;
+      dataGridViewCellStyle20.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.ItemPrice.DefaultCellStyle = dataGridViewCellStyle20;
       this.ItemPrice.FillWeight = 20F;
       this.ItemPrice.HeaderText = "Harga";
       this.ItemPrice.Name = "ItemPrice";
@@ -947,7 +1012,6 @@
       // tabPageReport
       // 
       this.tabPageReport.Controls.Add(this.tabControlSummaryReport);
-      this.tabPageReport.Controls.Add(this.dataGridViewLaporanDetail);
       this.tabPageReport.Controls.Add(this.groupBoxReportFilter);
       this.tabPageReport.Location = new System.Drawing.Point(4, 22);
       this.tabPageReport.Name = "tabPageReport";
@@ -959,12 +1023,17 @@
       // 
       // tabControlSummaryReport
       // 
+      this.tabControlSummaryReport.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                  | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
       this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerCashier);
       this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerProduct);
-      this.tabControlSummaryReport.Location = new System.Drawing.Point(348, 16);
+      this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerTransaction);
+      this.tabControlSummaryReport.Controls.Add(this.tabPageReportDetail);
+      this.tabControlSummaryReport.Location = new System.Drawing.Point(17, 200);
       this.tabControlSummaryReport.Name = "tabControlSummaryReport";
       this.tabControlSummaryReport.SelectedIndex = 0;
-      this.tabControlSummaryReport.Size = new System.Drawing.Size(732, 191);
+      this.tabControlSummaryReport.Size = new System.Drawing.Size(1075, 454);
       this.tabControlSummaryReport.TabIndex = 15;
       // 
       // tabPageReportPerCashier
@@ -973,7 +1042,7 @@
       this.tabPageReportPerCashier.Location = new System.Drawing.Point(4, 22);
       this.tabPageReportPerCashier.Name = "tabPageReportPerCashier";
       this.tabPageReportPerCashier.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPageReportPerCashier.Size = new System.Drawing.Size(724, 165);
+      this.tabPageReportPerCashier.Size = new System.Drawing.Size(1067, 428);
       this.tabPageReportPerCashier.TabIndex = 0;
       this.tabPageReportPerCashier.Text = "Per Kasir";
       this.tabPageReportPerCashier.UseVisualStyleBackColor = true;
@@ -987,63 +1056,97 @@
       this.dataGridViewLaporanKasir.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
       this.dataGridViewLaporanKasir.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
       this.dataGridViewLaporanKasir.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.dataGridViewLaporanKasir.Enabled = false;
       this.dataGridViewLaporanKasir.Location = new System.Drawing.Point(3, 3);
       this.dataGridViewLaporanKasir.Name = "dataGridViewLaporanKasir";
       this.dataGridViewLaporanKasir.ReadOnly = true;
       this.dataGridViewLaporanKasir.RowHeadersVisible = false;
-      this.dataGridViewLaporanKasir.Size = new System.Drawing.Size(718, 159);
+      this.dataGridViewLaporanKasir.Size = new System.Drawing.Size(1061, 422);
       this.dataGridViewLaporanKasir.TabIndex = 14;
       // 
       // tabPageReportPerProduct
       // 
-      this.tabPageReportPerProduct.Controls.Add(this.dataGridViewLaporan);
+      this.tabPageReportPerProduct.Controls.Add(this.dataGridViewLaporanProduct);
       this.tabPageReportPerProduct.Location = new System.Drawing.Point(4, 22);
       this.tabPageReportPerProduct.Name = "tabPageReportPerProduct";
       this.tabPageReportPerProduct.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPageReportPerProduct.Size = new System.Drawing.Size(724, 165);
+      this.tabPageReportPerProduct.Size = new System.Drawing.Size(462, 419);
       this.tabPageReportPerProduct.TabIndex = 1;
       this.tabPageReportPerProduct.Text = "Per Product";
       this.tabPageReportPerProduct.UseVisualStyleBackColor = true;
       // 
-      // dataGridViewLaporan
+      // dataGridViewLaporanProduct
       // 
-      this.dataGridViewLaporan.AllowUserToAddRows = false;
-      this.dataGridViewLaporan.AllowUserToDeleteRows = false;
-      this.dataGridViewLaporan.AllowUserToOrderColumns = true;
-      this.dataGridViewLaporan.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
-      this.dataGridViewLaporan.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
-      this.dataGridViewLaporan.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-      this.dataGridViewLaporan.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.dataGridViewLaporan.Enabled = false;
-      this.dataGridViewLaporan.Location = new System.Drawing.Point(3, 3);
-      this.dataGridViewLaporan.Name = "dataGridViewLaporan";
-      this.dataGridViewLaporan.ReadOnly = true;
-      this.dataGridViewLaporan.RowHeadersVisible = false;
-      this.dataGridViewLaporan.Size = new System.Drawing.Size(718, 159);
-      this.dataGridViewLaporan.TabIndex = 7;
+      this.dataGridViewLaporanProduct.AllowUserToAddRows = false;
+      this.dataGridViewLaporanProduct.AllowUserToDeleteRows = false;
+      this.dataGridViewLaporanProduct.AllowUserToOrderColumns = true;
+      this.dataGridViewLaporanProduct.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
+      this.dataGridViewLaporanProduct.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
+      this.dataGridViewLaporanProduct.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.dataGridViewLaporanProduct.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.dataGridViewLaporanProduct.Location = new System.Drawing.Point(3, 3);
+      this.dataGridViewLaporanProduct.Name = "dataGridViewLaporanProduct";
+      this.dataGridViewLaporanProduct.ReadOnly = true;
+      this.dataGridViewLaporanProduct.RowHeadersVisible = false;
+      this.dataGridViewLaporanProduct.Size = new System.Drawing.Size(456, 413);
+      this.dataGridViewLaporanProduct.TabIndex = 7;
+      // 
+      // tabPageReportPerTransaction
+      // 
+      this.tabPageReportPerTransaction.Controls.Add(this.dataGridViewLaporanTransaksi);
+      this.tabPageReportPerTransaction.Location = new System.Drawing.Point(4, 22);
+      this.tabPageReportPerTransaction.Name = "tabPageReportPerTransaction";
+      this.tabPageReportPerTransaction.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPageReportPerTransaction.Size = new System.Drawing.Size(462, 419);
+      this.tabPageReportPerTransaction.TabIndex = 2;
+      this.tabPageReportPerTransaction.Text = "Per Transaksi";
+      this.tabPageReportPerTransaction.UseVisualStyleBackColor = true;
+      // 
+      // dataGridViewLaporanTransaksi
+      // 
+      this.dataGridViewLaporanTransaksi.AllowUserToAddRows = false;
+      this.dataGridViewLaporanTransaksi.AllowUserToDeleteRows = false;
+      this.dataGridViewLaporanTransaksi.AllowUserToOrderColumns = true;
+      this.dataGridViewLaporanTransaksi.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
+      this.dataGridViewLaporanTransaksi.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
+      this.dataGridViewLaporanTransaksi.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.dataGridViewLaporanTransaksi.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.dataGridViewLaporanTransaksi.Location = new System.Drawing.Point(3, 3);
+      this.dataGridViewLaporanTransaksi.Name = "dataGridViewLaporanTransaksi";
+      this.dataGridViewLaporanTransaksi.ReadOnly = true;
+      this.dataGridViewLaporanTransaksi.RowHeadersVisible = false;
+      this.dataGridViewLaporanTransaksi.Size = new System.Drawing.Size(456, 413);
+      this.dataGridViewLaporanTransaksi.TabIndex = 14;
+      // 
+      // tabPageReportDetail
+      // 
+      this.tabPageReportDetail.Controls.Add(this.dataGridViewLaporanDetail);
+      this.tabPageReportDetail.Location = new System.Drawing.Point(4, 22);
+      this.tabPageReportDetail.Name = "tabPageReportDetail";
+      this.tabPageReportDetail.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPageReportDetail.Size = new System.Drawing.Size(462, 419);
+      this.tabPageReportDetail.TabIndex = 3;
+      this.tabPageReportDetail.Text = "Detail Laporan";
+      this.tabPageReportDetail.UseVisualStyleBackColor = true;
       // 
       // dataGridViewLaporanDetail
       // 
       this.dataGridViewLaporanDetail.AllowUserToAddRows = false;
       this.dataGridViewLaporanDetail.AllowUserToDeleteRows = false;
       this.dataGridViewLaporanDetail.AllowUserToOrderColumns = true;
-      this.dataGridViewLaporanDetail.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                  | System.Windows.Forms.AnchorStyles.Left)
-                  | System.Windows.Forms.AnchorStyles.Right)));
       this.dataGridViewLaporanDetail.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
       this.dataGridViewLaporanDetail.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
       this.dataGridViewLaporanDetail.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-      this.dataGridViewLaporanDetail.Enabled = false;
-      this.dataGridViewLaporanDetail.Location = new System.Drawing.Point(17, 213);
+      this.dataGridViewLaporanDetail.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.dataGridViewLaporanDetail.Location = new System.Drawing.Point(3, 3);
       this.dataGridViewLaporanDetail.Name = "dataGridViewLaporanDetail";
       this.dataGridViewLaporanDetail.ReadOnly = true;
       this.dataGridViewLaporanDetail.RowHeadersVisible = false;
-      this.dataGridViewLaporanDetail.Size = new System.Drawing.Size(1063, 432);
+      this.dataGridViewLaporanDetail.Size = new System.Drawing.Size(456, 413);
       this.dataGridViewLaporanDetail.TabIndex = 13;
       // 
       // groupBoxReportFilter
       // 
+      this.groupBoxReportFilter.Controls.Add(this.buttonShowDetailTransaction);
       this.groupBoxReportFilter.Controls.Add(this.labelLaporanStart);
       this.groupBoxReportFilter.Controls.Add(this.dateTimePickerStart);
       this.groupBoxReportFilter.Controls.Add(this.buttonShowReportSummary);
@@ -1051,10 +1154,20 @@
       this.groupBoxReportFilter.Controls.Add(this.labelLaporanEnd);
       this.groupBoxReportFilter.Location = new System.Drawing.Point(17, 16);
       this.groupBoxReportFilter.Name = "groupBoxReportFilter";
-      this.groupBoxReportFilter.Size = new System.Drawing.Size(325, 187);
+      this.groupBoxReportFilter.Size = new System.Drawing.Size(325, 167);
       this.groupBoxReportFilter.TabIndex = 6;
       this.groupBoxReportFilter.TabStop = false;
       this.groupBoxReportFilter.Text = "Laporan Periode";
+      // 
+      // buttonShowDetailTransaction
+      // 
+      this.buttonShowDetailTransaction.Location = new System.Drawing.Point(131, 130);
+      this.buttonShowDetailTransaction.Name = "buttonShowDetailTransaction";
+      this.buttonShowDetailTransaction.Size = new System.Drawing.Size(175, 23);
+      this.buttonShowDetailTransaction.TabIndex = 5;
+      this.buttonShowDetailTransaction.Text = "Lihat Semua Detail";
+      this.buttonShowDetailTransaction.UseVisualStyleBackColor = true;
+      this.buttonShowDetailTransaction.Click += new System.EventHandler(this.buttonShowDetailTransaction_Click);
       // 
       // labelLaporanStart
       // 
@@ -1078,7 +1191,7 @@
       // 
       // buttonShowReportSummary
       // 
-      this.buttonShowReportSummary.Location = new System.Drawing.Point(128, 148);
+      this.buttonShowReportSummary.Location = new System.Drawing.Point(130, 96);
       this.buttonShowReportSummary.Name = "buttonShowReportSummary";
       this.buttonShowReportSummary.Size = new System.Drawing.Size(175, 23);
       this.buttonShowReportSummary.TabIndex = 4;
@@ -1335,64 +1448,6 @@
       this.timerDisplayDate.Interval = 1000;
       this.timerDisplayDate.Tick += new System.EventHandler(this.timerDisplayDate_Tick);
       // 
-      // CartItemCode
-      // 
-      this.CartItemCode.HeaderText = "Kode";
-      this.CartItemCode.Name = "CartItemCode";
-      this.CartItemCode.ReadOnly = true;
-      this.CartItemCode.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemCode.Width = 45;
-      // 
-      // CartItemName
-      // 
-      this.CartItemName.FillWeight = 200F;
-      this.CartItemName.HeaderText = "Nama Barang";
-      this.CartItemName.Name = "CartItemName";
-      this.CartItemName.ReadOnly = true;
-      this.CartItemName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemName.Width = 200;
-      // 
-      // CartItemQuantity
-      // 
-      this.CartItemQuantity.FillWeight = 45F;
-      this.CartItemQuantity.HeaderText = "Bnyk";
-      this.CartItemQuantity.Name = "CartItemQuantity";
-      this.CartItemQuantity.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemQuantity.Width = 45;
-      // 
-      // CartItemPrice
-      // 
-      dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemPrice.DefaultCellStyle = dataGridViewCellStyle1;
-      this.CartItemPrice.FillWeight = 120F;
-      this.CartItemPrice.HeaderText = "Harga Barang";
-      this.CartItemPrice.Name = "CartItemPrice";
-      this.CartItemPrice.ReadOnly = true;
-      this.CartItemPrice.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemPrice.Width = 120;
-      // 
-      // CartItemDiscount
-      // 
-      dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemDiscount.DefaultCellStyle = dataGridViewCellStyle2;
-      this.CartItemDiscount.FillWeight = 120F;
-      this.CartItemDiscount.HeaderText = "Diskon";
-      this.CartItemDiscount.Name = "CartItemDiscount";
-      this.CartItemDiscount.ReadOnly = true;
-      this.CartItemDiscount.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemDiscount.Width = 120;
-      // 
-      // CartItemSubtotal
-      // 
-      dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemSubtotal.DefaultCellStyle = dataGridViewCellStyle3;
-      this.CartItemSubtotal.FillWeight = 120F;
-      this.CartItemSubtotal.HeaderText = "Total";
-      this.CartItemSubtotal.Name = "CartItemSubtotal";
-      this.CartItemSubtotal.ReadOnly = true;
-      this.CartItemSubtotal.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.CartItemSubtotal.Width = 120;
-      // 
       // MainForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1431,7 +1486,10 @@
       this.tabPageReportPerCashier.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanKasir)).EndInit();
       this.tabPageReportPerProduct.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporan)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanProduct)).EndInit();
+      this.tabPageReportPerTransaction.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanTransaksi)).EndInit();
+      this.tabPageReportDetail.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanDetail)).EndInit();
       this.groupBoxReportFilter.ResumeLayout(false);
       this.groupBoxReportFilter.PerformLayout();
@@ -1528,7 +1586,7 @@
     private System.Windows.Forms.DateTimePicker dateTimePickerStop;
     private System.Windows.Forms.DateTimePicker dateTimePickerStart;
     private System.Windows.Forms.GroupBox groupBoxReportFilter;
-    private System.Windows.Forms.DataGridView dataGridViewLaporan;
+    private System.Windows.Forms.DataGridView dataGridViewLaporanProduct;
     private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelActiveUser;
     private System.Windows.Forms.TabPage tabPageUserMaster;
     private System.Windows.Forms.TextBox textBoxRePasswordMaster;
@@ -1562,6 +1620,10 @@
     private System.Windows.Forms.DataGridViewTextBoxColumn CartItemPrice;
     private System.Windows.Forms.DataGridViewTextBoxColumn CartItemDiscount;
     private System.Windows.Forms.DataGridViewTextBoxColumn CartItemSubtotal;
+    private System.Windows.Forms.TabPage tabPageReportPerTransaction;
+    private System.Windows.Forms.TabPage tabPageReportDetail;
+    private System.Windows.Forms.DataGridView dataGridViewLaporanTransaksi;
+    private System.Windows.Forms.Button buttonShowDetailTransaction;
   }
 }
 

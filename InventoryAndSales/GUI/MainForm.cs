@@ -717,6 +717,12 @@ namespace InventoryAndSales.GUI
     {
       controller.ShowSummaryReport(dateTimePickerStart.Value, dateTimePickerStop.Value);
     }
+    private void buttonShowDetailTransaction_Click(object sender, EventArgs e)
+    {
+      controller.ShowDetailReport(dateTimePickerStart.Value, dateTimePickerStop.Value);
+    }
+
+
 
     public void UpdateReportDataGridView(DataTable[] dataTables)
     {
@@ -725,9 +731,19 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.OneValueArrayHandler<DataTable>(UpdateReportDataGridView), dataTables);
         return;
       }
-      dataGridViewLaporan.DataSource = dataTables[0];
-      dataGridViewLaporanDetail.DataSource = dataTables[1];
+      dataGridViewLaporanProduct.DataSource = dataTables[0];
+      dataGridViewLaporanTransaksi.DataSource = dataTables[1];
       dataGridViewLaporanKasir.DataSource = dataTables[2];
+    }
+
+    public void UpdateReportDetailDataGridView(DataTable dataTable)
+    {
+      if(InvokeRequired)
+      {
+        this.BeginInvoke(new DelegateUtility.OneValueArrayHandler<DataTable>(UpdateReportDataGridView), dataTable);
+        return;
+      }
+      dataGridViewLaporanDetail.DataSource = dataTable;
     }
 
 

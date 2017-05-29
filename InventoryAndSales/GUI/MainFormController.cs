@@ -189,16 +189,25 @@ namespace InventoryAndSales.GUI
 
     public void ShowSummaryReport(DateTime start, DateTime stop)
     {
+      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetReportSummaryByCashier(start, stop);
+      DataTable dataTableSummaryCashier = GetDataTable(reportSummaryByCashier, "SummaryReportCashier");
+
+      List<Dictionary<string, string>> reportSummaryByTransaction = _reportManager.GetReportSummaryByTransaction(start, stop);
+      DataTable dataTableSummaryTransaction = GetDataTable(reportSummaryByTransaction, "SummaryReportTransaction");
+
+      List<Dictionary<string, string>> summaryReport = _reportManager.GetSummaryReportProduct(start, stop);
+      DataTable dataTableSummaryProduct = GetDataTable(summaryReport, "SummaryReportProduct");
+
+      _mainForm.UpdateReportDataGridView(new DataTable[] { dataTableSummaryProduct, dataTableSummaryTransaction, dataTableSummaryCashier });
+
+    }
+
+    public void ShowDetailReport(DateTime start, DateTime stop)
+    {
       List<Dictionary<string, string>> detailReport = _reportManager.GetDetailReport(start, stop);
       DataTable dataTableDetail = GetDataTable(detailReport, "DetailReport");
 
-      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetReportSummaryByCashier(start, stop);
-      DataTable dataTableDetailCashier = GetDataTable(reportSummaryByCashier, "SummaryReportCashier");
-
-      List<Dictionary<string, string>> summaryReport = _reportManager.GetSummaryReport(start, stop);
-      DataTable dataTable = GetDataTable(summaryReport, "SummaryReport");
-
-      _mainForm.UpdateReportDataGridView(new DataTable[] {dataTable, dataTableDetail, dataTableDetailCashier});
+      _mainForm.UpdateReportDetailDataGridView(dataTableDetail);
 
     }
 
