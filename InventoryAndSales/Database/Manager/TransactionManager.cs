@@ -17,6 +17,19 @@ namespace InventoryAndSales.Database.Manager
       _tdDao = tdDao;
       _trxDao = dao;
     }
+    public Transaction GetTransaction(string factur, out List<TransactionDetail> transactionDetails)
+    {
+      Transaction t = _trxDao.FindByFactur(factur);
+      if(t!= null)
+      {
+        transactionDetails = _tdDao.FindByTransactionId(t.Id);
+      } 
+      else
+      {
+        transactionDetails = new List<TransactionDetail>();
+      }
+      return t;
+    }
 
     public void SaveCompleteTransaction(Transaction transaction, List<TransactionDetail> transactionDetails)
     {
@@ -34,6 +47,7 @@ namespace InventoryAndSales.Database.Manager
       catch(Exception e)
       {
         DBFactory.GetInstance().RollbackTransaction();
+        throw;
       }
     }
   }

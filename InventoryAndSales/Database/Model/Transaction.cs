@@ -6,7 +6,7 @@ namespace InventoryAndSales.Database.Model
 {
   public class Transaction : BaseObject
   {
-    public int Id { get; set; }
+    public long Id { get; set; }
     public string Factur { get; set; }
     public DateTime Time { get; set; }
     public decimal TotalPrice { get; set; }
@@ -57,7 +57,7 @@ namespace InventoryAndSales.Database.Model
         {
 
           case "Id":
-            Id = (int) value;
+            Id = long.Parse(value.ToString());
             break;
           case "Factur":
             Factur = (string)value;

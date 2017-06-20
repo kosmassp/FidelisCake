@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using InventoryAndSales.Business.Enum;
+using InventoryAndSales.Enumeration;
 
 namespace InventoryAndSales.Database.Model
 {

@@ -13,5 +13,10 @@ namespace InventoryAndSales.Database.DataAccess
       : base()
     {
     }
+
+    public List<TransactionDetail> FindByTransactionId(long id)
+    {
+      return FindByQuery(string.Format("Where TransactionId = '{0}'", id));
+    }
   }
 }

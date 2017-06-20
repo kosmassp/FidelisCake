@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using InventoryAndSales.Database.DataTable;
 using InventoryAndSales.Database.Model;
 
@@ -30,6 +31,10 @@ namespace InventoryAndSales.Database.DataAccess
     private const string FIND_BY_QUERY = "SELECT * FROM {0} {1}";
     public virtual List<T> FindByQuery(string whereClause)
     {
+      return FindByQuery(whereClause, string.Empty);
+    }
+    public virtual List<T> FindByQuery(string whereClause, string orderbyClause)
+    {
       //TODO execute sql FIND_BY_ID_SQL, WE don't not to describe this everytime
       if (!string.IsNullOrEmpty(whereClause))
       {
@@ -37,7 +42,13 @@ namespace InventoryAndSales.Database.DataAccess
         if (!whereClause.StartsWith("WHERE", true, CultureInfo.InvariantCulture))
           whereClause = "WHERE " + whereClause;
       }
-      string preparedSql = string.Format(FIND_BY_QUERY, _dataTable.TableName, whereClause);
+      if (!string.IsNullOrEmpty(orderbyClause))
+      {
+        orderbyClause = orderbyClause.Trim();
+        if (!orderbyClause.StartsWith("ORDER BY", true, CultureInfo.InvariantCulture))
+          orderbyClause = "ORDER BY " + orderbyClause;
+      }
+      string preparedSql = string.Format(FIND_BY_QUERY, _dataTable.TableName, whereClause + orderbyClause);
       return ExecuteReader(preparedSql);
     }
 

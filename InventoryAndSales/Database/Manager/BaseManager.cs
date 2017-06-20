@@ -33,6 +33,8 @@ namespace InventoryAndSales.Database.Manager
       catch (Exception e)
       {
         DBFactory.GetInstance().RollbackTransaction();
+        success = false;
+        throw e;
       }
       return success;
     }

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
-using InventoryAndSales.Business.Enum;
 using InventoryAndSales.Database.Model;
-using InventoryAndSales.GUI.Model;
+using InventoryAndSales.Enumeration;
 using InventoryAndSales.GUI.Utility;
 using SimpleCommon.Utility;
 
@@ -19,10 +21,13 @@ namespace InventoryAndSales.GUI
 
     public MainForm()
     {
+      Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+      Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
       InitializeComponent();
       ControlUtility.HideTabHeader(tabControlPage);
       controller = new MainFormController(this);
       comboBoxRoleMaster.DataSource = Enum.GetValues(typeof(RoleOptions));
+      KeyPreview = true;
     }
 
     private void buttonCheckout_Click(object sender, System.EventArgs e)
@@ -44,6 +49,7 @@ namespace InventoryAndSales.GUI
       
       {
         MessageBox.Show(successMessage);
+        textBoxFilter.Focus();
       }
     }
 
@@ -138,6 +144,7 @@ namespace InventoryAndSales.GUI
       if (dr == DialogResult.Yes)
       {
         controller.NewCart();
+        textBoxFilter.Focus();
       }
     }
 
@@ -159,10 +166,15 @@ namespace InventoryAndSales.GUI
       {
         OnUserMasterActivated();
       }
+      else if (tabControlPage.SelectedTab == tabPageReport)
+      {
+        OnUserMasterActivated();
+      }
     }
 
     private void OnLoginActivated()
     {
+      currentPage = DisplayPage.Login;
       controller.Logout();
       textBoxUsername.Text = string.Empty;
       textBoxPassword.Text = string.Empty;
@@ -198,8 +210,10 @@ namespace InventoryAndSales.GUI
       textBoxPassword.SelectAll();
     }
 
+    private DisplayPage currentPage;
     private void OnCashierActivated()
     {
+      currentPage = DisplayPage.Cashier;
       textBoxFilter.Text = string.Empty;
 
       ReloadItemList();
@@ -294,11 +308,13 @@ namespace InventoryAndSales.GUI
 
     private void OnProductMasterActivated()
     {
+      currentPage = DisplayPage.MasterProduct;
       OnEditMasterItem(false);
     }
 
     private void OnUserMasterActivated()
     {
+      currentPage = DisplayPage.MasterUser;
       OnEditMasterUser(false);
     }
 
@@ -331,6 +347,7 @@ namespace InventoryAndSales.GUI
       _currentProductSelection = product;
       textBoxDetailItemName.Text = product.Name;
       textBoxDetailItemCode.Text = product.Code;
+      //checkBoxAutoGenerate.Checked = IsCodeFromName(product.Name, product.Code);
       textBoxDetailItemBarcode.Text = product.Barcode;
       textBoxDetailItemPrice.Text = product.Price.ToString("#.##");
       textBoxDetailItemDiscountAmount.Text = string.Empty;
@@ -350,6 +367,22 @@ namespace InventoryAndSales.GUI
       }
     }
 
+    private bool IsCodeFromName(string name, string code)
+    {
+      string prefix = GeneratePrefix(name);
+      if(prefix.Length <= code.Length)
+      {
+        int num;
+        string codePrefix = code.Substring(0, prefix.Length);
+        string numeric = code.Substring(prefix.Length, code.Length - prefix.Length);
+        if (codePrefix == prefix && int.TryParse(numeric, out num))
+          return true;
+        else
+          return false;
+      }
+      return code.StartsWith(prefix) || prefix.StartsWith(code);
+    }
+
     private void buttonAddProduct_Click(object sender, EventArgs e)
     {
       if (!isOnProductAddEditMode)
@@ -366,6 +399,7 @@ namespace InventoryAndSales.GUI
     {
       textBoxDetailItemName.Text = string.Empty;
       textBoxDetailItemCode.Text = string.Empty;
+      //checkBoxAutoGenerate.Checked = true;
       textBoxDetailItemBarcode.Text = string.Empty;
       textBoxDetailItemPrice.Text = string.Empty;
       textBoxDetailItemDiscountPercent.Text = string.Empty;
@@ -421,7 +455,7 @@ namespace InventoryAndSales.GUI
       }
 
       if (barcodeExist)
-        return "Kode barang sudah ada.";
+        return "Barcode barang sudah ada.";
       if (codeExist)
         return "Kode barang sudah ada.";
       if (nameExist)
@@ -453,6 +487,7 @@ namespace InventoryAndSales.GUI
       buttonCancelEdit.Visible = edit;
       textBoxDetailItemName.Enabled = edit;
       textBoxDetailItemCode.Enabled = edit;
+      //checkBoxAutoGenerate.Enabled = edit;
       textBoxDetailItemBarcode.Enabled = edit;
       textBoxDetailItemPrice.Enabled = edit;
       radioButtonDiscountAmount.Enabled = edit;
@@ -462,7 +497,7 @@ namespace InventoryAndSales.GUI
       dataGridViewMasterItemList.Enabled = !edit;
       dataGridViewMasterItemList.ForeColor = edit ? Color.Gray : Color.Black;
 
-      if (!edit)
+      if (!edit) //on edit item done
       {
         List<Product> items = controller.GetItems();
         dataGridViewMasterItemList.DataSource = null;
@@ -502,16 +537,21 @@ namespace InventoryAndSales.GUI
 
     private void textBoxPayment_KeyUp(object sender, KeyEventArgs e)
     {
-      if ((e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9) ||
-          (e.KeyCode >= Keys.NumPad0 && e.KeyCode <= Keys.NumPad9) ||
-          e.KeyCode == Keys.Decimal)
-      {
-        RecalculateChanges();
-      }
+      RecalculateChanges();
+      //if ((e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9) ||
+      //    (e.KeyCode >= Keys.NumPad0 && e.KeyCode <= Keys.NumPad9) ||
+      //    e.KeyCode == Keys.Decimal)
+      //{
+      //}
     }
 
     private void RecalculateChanges()
     {
+      if (string.IsNullOrEmpty(textBoxPayment.Text))
+      {
+        textBoxPayment.Text = "0";
+        textBoxPayment.SelectAll();
+      }
       string payment = textBoxPayment.Text;
       decimal paid;
       if (decimal.TryParse(payment, out paid))
@@ -711,19 +751,23 @@ namespace InventoryAndSales.GUI
     private void laporanTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
     {
       tabControlPage.SelectedTab = tabPageReport;
+      tabControlSummaryReport.TabPages.Clear();
     }
 
     private void buttonShowReportSummary_Click(object sender, EventArgs e)
     {
+      tabControlSummaryReport.TabPages.Clear();
+      tabControlSummaryReport.TabPages.Add(tabPageReportPerCashier);
+      tabControlSummaryReport.TabPages.Add(tabPageReportPerProduct);
+      tabControlSummaryReport.TabPages.Add(tabPageReportPerTransaction);
       controller.ShowSummaryReport(dateTimePickerStart.Value, dateTimePickerStop.Value);
+      tabControlSummaryReport.SelectedTab = tabPageReportPerCashier;
+      if(checkBox1.Checked)
+      {
+        tabControlSummaryReport.TabPages.Add(tabPageReportDetail);
+        controller.ShowDetailReport(dateTimePickerStart.Value, dateTimePickerStop.Value);
+      }
     }
-    private void buttonShowDetailTransaction_Click(object sender, EventArgs e)
-    {
-      controller.ShowDetailReport(dateTimePickerStart.Value, dateTimePickerStop.Value);
-    }
-
-
-
     public void UpdateReportDataGridView(DataTable[] dataTables)
     {
       if(InvokeRequired)
@@ -763,6 +807,7 @@ namespace InventoryAndSales.GUI
       textBoxNameMaster.Enabled = edit;
       textBoxPasswordMaster.Enabled = edit;
       textBoxRePasswordMaster.Enabled = edit;
+      comboBoxRoleMaster.Enabled = edit;
 
       dataGridViewUserMaster.Enabled = !edit;
       dataGridViewUserMaster.ForeColor = edit ? Color.Gray : Color.Black;
@@ -932,6 +977,96 @@ namespace InventoryAndSales.GUI
       Close();
     }
 
+    private void textBoxDetailItemBarcode_KeyPress(object sender, KeyPressEventArgs e)
+    {
+      //e.Handled = !char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar);
+    }
+
+    //private void checkBoxAutoGenerate_CheckedChanged(object sender, EventArgs e)
+    //{
+    //  textBoxDetailItemCode.Enabled = !checkBoxAutoGenerate.Checked;
+    //  if (checkBoxAutoGenerate.Checked)
+    //  {
+    //    textBoxDetailItemCode.Text = GenerateCode(textBoxDetailItemName.Text);
+    //  }
+    //}
+
+    private string GenerateCode(string name)
+    {
+      string prefix = GeneratePrefix(name);
+      int i = 0;
+      string codeGenerated = prefix;
+      while(i++ < 99999 && prefix.Length < 5)
+      {
+        codeGenerated = prefix + i.ToString().PadLeft(5-prefix.Length, '0');
+        //check if exitst
+        bool exists = _itemDictRowIdToItem.Values.Any(product => product.Code.Equals(codeGenerated, StringComparison.InvariantCultureIgnoreCase));
+        if(!exists) break;
+      }
+      return codeGenerated;
+    }
+
+    private string GeneratePrefix(string name)
+    {
+      string[] names = name.Split(' ');
+      string prefix = string.Empty;
+      foreach (string n in names)
+      {
+        string trim = n.Trim();
+        if (trim.Length > 0 && char.IsLetter(trim[0]))
+          prefix += trim[0];
+      }
+      return prefix.ToUpper();
+    }
+
+    private void textBoxPayment_KeyPress(object sender, KeyPressEventArgs e)
+    {
+      e.Handled = !char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar);
+    }
+
+    private void buttonGenerateCode_Click(object sender, EventArgs e)
+    {
+      textBoxDetailItemCode.Text = GenerateCode(textBoxDetailItemName.Text);
+    }
+
+    private void printUlangTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      ReprintReceipt rr = new ReprintReceipt();
+      rr.ShowDialog(this);
+      if (rr.IsPrintPressed)
+      {
+        if (string.IsNullOrEmpty(rr.FacturNumber))
+          MessageBox.Show("No Faktur kosong");
+        else
+          if(!controller.PrintReceipt(rr.FacturNumber))
+          {
+            MessageBox.Show("No Faktur tidak ditemukan");
+          }
+      }
+    }
+
+    private void printLastReceiptToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      if(!controller.PrintLastReceipt())
+        MessageBox.Show("Transaksi terakhir tidak ada", "Gagal Print", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+    }
+
+    private void MainForm_KeyUp(object sender, KeyEventArgs e)
+    {
+      if (currentPage == DisplayPage.Cashier)
+      {
+        Keys keyCode = e.KeyCode;
+        switch( keyCode )
+        {
+          case Keys.F5: textBoxFilter.Focus();
+            break;
+          case Keys.F6: textBoxPayment.Focus();
+            break;
+          case Keys.F7: buttonCheckout.PerformClick();
+            break;
+        }
+      }
+    }
   }
 
 }

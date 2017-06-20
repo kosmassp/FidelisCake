@@ -29,7 +29,7 @@ namespace InventoryAndSales.Database.Model
       Subtotal = SubtotalPrice - SubtotalDiscount;
     }
 
-    public int Id { get; set; }
+    public long Id { get; set; }
     public int ProductId { get; set; }
     public decimal ProductDiscount { get; set; }
     public decimal ProductPrice { get; set; }
@@ -40,7 +40,7 @@ namespace InventoryAndSales.Database.Model
     public decimal SubtotalDiscount { get; set; }
     public decimal SubtotalPrice { get; set; }
     public decimal Subtotal { get; set; }
-    public int TransactionId { get; set; }
+    public long TransactionId { get; set; }
 
     [Browsable(false)]
     public override object this[string columnName]
@@ -76,7 +76,7 @@ namespace InventoryAndSales.Database.Model
         switch (columnName)
         {
           case "Id":
-            Id = (int) value;
+            Id = long.Parse(value.ToString());
             break;
           case "ProductId":
             ProductId = (int) value;
@@ -100,7 +100,7 @@ namespace InventoryAndSales.Database.Model
             Subtotal = (decimal)value;
             break;
           case "TransactionId":
-            TransactionId = (int) value;
+            TransactionId = long.Parse(value.ToString());
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

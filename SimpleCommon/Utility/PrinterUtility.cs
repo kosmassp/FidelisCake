@@ -62,6 +62,9 @@ namespace SimpleCommon.Utility
       string printerName = ConfigurationManager.AppSettings["PrinterName"];
       PrintDocument printDoc = new PrintDocument();
       printDoc.PrinterSettings.PrinterName = printerName;
+      Margins margins = new Margins(0, 0, 0, 0);
+      printDoc.DefaultPageSettings.PaperSize = new PaperSize("Receipt",265,10000);
+      printDoc.DefaultPageSettings.Margins = margins;
       printDoc.PrintPage += new PrintPageEventHandler(pd_PrintPage);
       printDoc.Print();
     }
@@ -75,6 +78,7 @@ namespace SimpleCommon.Utility
       int count = 0;
       float leftMargin = ev.MarginBounds.Left;
       float topMargin = ev.MarginBounds.Top;
+      var page= ev.PageSettings;
       String line = null;
 
       // Calculate the number of lines per page.
@@ -91,7 +95,9 @@ namespace SimpleCommon.Utility
         StringPrint sp = enumerator.Current;
         line = sp.Text;
         yPos = topMargin + (count*_printFont.GetHeight(ev.Graphics));
-        ev.Graphics.DrawString(line, _printFont, Brushes.Black, leftMargin, yPos, sp.Format);
+        RectangleF rect = new RectangleF(leftMargin, yPos, page.PaperSize.Width, page.PaperSize.Height);
+        ev.Graphics.DrawString(line, _printFont, Brushes.Black, rect, sp.Format);
+        //ev.Graphics.DrawString(line, _printFont, Brushes.Black, leftMargin, yPos, sp.Format);
         count++;
       }
 

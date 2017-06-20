@@ -13,5 +13,15 @@ namespace InventoryAndSales.Database.DataAccess
       : base()
     {
     }
+
+    public Transaction FindByFactur(string factur)
+    {
+      List<Transaction> trx = this.FindByQuery(string.Format("WHERE Factur = '{0}'", factur));
+      if(trx.Count > 0)
+      {
+        return trx[0];
+      }
+      return null;
+    }
   }
 }

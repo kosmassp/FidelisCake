@@ -29,16 +29,18 @@
     private void InitializeComponent()
     {
       this.components = new System.ComponentModel.Container();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle17 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle18 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle19 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle20 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
       this.menuStripMain = new System.Windows.Forms.MenuStrip();
       this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.loginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.transaksiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.penjualanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.printLastReceiptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.printUlangTransaksiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.daftarBarangToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.daftarUserToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -90,6 +92,7 @@
       this.buttonImport = new System.Windows.Forms.Button();
       this.buttonExportItems = new System.Windows.Forms.Button();
       this.groupBoxMasterItemDetail = new System.Windows.Forms.GroupBox();
+      this.buttonGenerateCode = new System.Windows.Forms.Button();
       this.textBoxDetailItemBarcode = new System.Windows.Forms.TextBox();
       this.labelBarcode = new System.Windows.Forms.Label();
       this.buttonOkEdit = new System.Windows.Forms.Button();
@@ -122,7 +125,7 @@
       this.tabPageReportDetail = new System.Windows.Forms.TabPage();
       this.dataGridViewLaporanDetail = new System.Windows.Forms.DataGridView();
       this.groupBoxReportFilter = new System.Windows.Forms.GroupBox();
-      this.buttonShowDetailTransaction = new System.Windows.Forms.Button();
+      this.checkBox1 = new System.Windows.Forms.CheckBox();
       this.labelLaporanStart = new System.Windows.Forms.Label();
       this.dateTimePickerStart = new System.Windows.Forms.DateTimePicker();
       this.buttonShowReportSummary = new System.Windows.Forms.Button();
@@ -142,10 +145,10 @@
       this.textBoxRePasswordMaster = new System.Windows.Forms.TextBox();
       this.buttonOkUserMaster = new System.Windows.Forms.Button();
       this.buttonCancelUserMaster = new System.Windows.Forms.Button();
+      this.dataGridViewUserMaster = new System.Windows.Forms.DataGridView();
       this.buttonDeleteUserMaster = new System.Windows.Forms.Button();
       this.buttonEditUserMaster = new System.Windows.Forms.Button();
       this.buttonAddUserMaster = new System.Windows.Forms.Button();
-      this.dataGridViewUserMaster = new System.Windows.Forms.DataGridView();
       this.statusStripInformation = new System.Windows.Forms.StatusStrip();
       this.toolStripStatusCurrentDate = new System.Windows.Forms.ToolStripStatusLabel();
       this.toolStripStatusLabelEmpty = new System.Windows.Forms.ToolStripStatusLabel();
@@ -222,7 +225,9 @@
       // transaksiToolStripMenuItem
       // 
       this.transaksiToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.penjualanToolStripMenuItem});
+            this.penjualanToolStripMenuItem,
+            this.printLastReceiptToolStripMenuItem,
+            this.printUlangTransaksiToolStripMenuItem});
       this.transaksiToolStripMenuItem.Name = "transaksiToolStripMenuItem";
       this.transaksiToolStripMenuItem.Size = new System.Drawing.Size(67, 20);
       this.transaksiToolStripMenuItem.Text = "Transaksi";
@@ -230,9 +235,23 @@
       // penjualanToolStripMenuItem
       // 
       this.penjualanToolStripMenuItem.Name = "penjualanToolStripMenuItem";
-      this.penjualanToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+      this.penjualanToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
       this.penjualanToolStripMenuItem.Text = "Penjualan";
       this.penjualanToolStripMenuItem.Click += new System.EventHandler(this.penjualanToolStripMenuItem_Click);
+      // 
+      // printLastReceiptToolStripMenuItem
+      // 
+      this.printLastReceiptToolStripMenuItem.Name = "printLastReceiptToolStripMenuItem";
+      this.printLastReceiptToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
+      this.printLastReceiptToolStripMenuItem.Text = "Print ulang transaksi terakhir";
+      this.printLastReceiptToolStripMenuItem.Click += new System.EventHandler(this.printLastReceiptToolStripMenuItem_Click);
+      // 
+      // printUlangTransaksiToolStripMenuItem
+      // 
+      this.printUlangTransaksiToolStripMenuItem.Name = "printUlangTransaksiToolStripMenuItem";
+      this.printUlangTransaksiToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
+      this.printUlangTransaksiToolStripMenuItem.Text = "Print ulang transaksi ...";
+      this.printUlangTransaksiToolStripMenuItem.Click += new System.EventHandler(this.printUlangTransaksiToolStripMenuItem_Click);
       // 
       // editToolStripMenuItem
       // 
@@ -441,8 +460,8 @@
       // 
       // CartItemPrice
       // 
-      dataGridViewCellStyle17.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemPrice.DefaultCellStyle = dataGridViewCellStyle17;
+      dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemPrice.DefaultCellStyle = dataGridViewCellStyle1;
       this.CartItemPrice.FillWeight = 120F;
       this.CartItemPrice.HeaderText = "Harga Barang";
       this.CartItemPrice.Name = "CartItemPrice";
@@ -452,8 +471,8 @@
       // 
       // CartItemDiscount
       // 
-      dataGridViewCellStyle18.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemDiscount.DefaultCellStyle = dataGridViewCellStyle18;
+      dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemDiscount.DefaultCellStyle = dataGridViewCellStyle2;
       this.CartItemDiscount.FillWeight = 120F;
       this.CartItemDiscount.HeaderText = "Diskon";
       this.CartItemDiscount.Name = "CartItemDiscount";
@@ -463,8 +482,8 @@
       // 
       // CartItemSubtotal
       // 
-      dataGridViewCellStyle19.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemSubtotal.DefaultCellStyle = dataGridViewCellStyle19;
+      dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemSubtotal.DefaultCellStyle = dataGridViewCellStyle3;
       this.CartItemSubtotal.FillWeight = 120F;
       this.CartItemSubtotal.HeaderText = "Total";
       this.CartItemSubtotal.Name = "CartItemSubtotal";
@@ -541,6 +560,7 @@
       this.textBoxPayment.TabIndex = 1;
       this.textBoxPayment.Click += new System.EventHandler(this.textBoxPayment_Click);
       this.textBoxPayment.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBoxPayment_KeyUp);
+      this.textBoxPayment.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxPayment_KeyPress);
       // 
       // textBoxTotal
       // 
@@ -647,8 +667,8 @@
       // 
       // ItemPrice
       // 
-      dataGridViewCellStyle20.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.ItemPrice.DefaultCellStyle = dataGridViewCellStyle20;
+      dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.ItemPrice.DefaultCellStyle = dataGridViewCellStyle4;
       this.ItemPrice.FillWeight = 20F;
       this.ItemPrice.HeaderText = "Harga";
       this.ItemPrice.Name = "ItemPrice";
@@ -777,6 +797,7 @@
       // groupBoxMasterItemDetail
       // 
       this.groupBoxMasterItemDetail.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.groupBoxMasterItemDetail.Controls.Add(this.buttonGenerateCode);
       this.groupBoxMasterItemDetail.Controls.Add(this.textBoxDetailItemBarcode);
       this.groupBoxMasterItemDetail.Controls.Add(this.labelBarcode);
       this.groupBoxMasterItemDetail.Controls.Add(this.buttonOkEdit);
@@ -802,18 +823,29 @@
       this.groupBoxMasterItemDetail.TabStop = false;
       this.groupBoxMasterItemDetail.Text = "Detail Barang";
       // 
+      // buttonGenerateCode
+      // 
+      this.buttonGenerateCode.Location = new System.Drawing.Point(186, 89);
+      this.buttonGenerateCode.Name = "buttonGenerateCode";
+      this.buttonGenerateCode.Size = new System.Drawing.Size(92, 23);
+      this.buttonGenerateCode.TabIndex = 20;
+      this.buttonGenerateCode.Text = "Generate Code";
+      this.buttonGenerateCode.UseVisualStyleBackColor = true;
+      this.buttonGenerateCode.Click += new System.EventHandler(this.buttonGenerateCode_Click);
+      // 
       // textBoxDetailItemBarcode
       // 
       this.textBoxDetailItemBarcode.Enabled = false;
-      this.textBoxDetailItemBarcode.Location = new System.Drawing.Point(76, 78);
+      this.textBoxDetailItemBarcode.Location = new System.Drawing.Point(76, 58);
       this.textBoxDetailItemBarcode.Name = "textBoxDetailItemBarcode";
       this.textBoxDetailItemBarcode.Size = new System.Drawing.Size(100, 20);
       this.textBoxDetailItemBarcode.TabIndex = 2;
+      this.textBoxDetailItemBarcode.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxDetailItemBarcode_KeyPress);
       // 
       // labelBarcode
       // 
       this.labelBarcode.AutoSize = true;
-      this.labelBarcode.Location = new System.Drawing.Point(19, 81);
+      this.labelBarcode.Location = new System.Drawing.Point(19, 61);
       this.labelBarcode.Name = "labelBarcode";
       this.labelBarcode.Size = new System.Drawing.Size(47, 13);
       this.labelBarcode.TabIndex = 19;
@@ -844,7 +876,7 @@
       // labelDiscountRupiah
       // 
       this.labelDiscountRupiah.AutoSize = true;
-      this.labelDiscountRupiah.Location = new System.Drawing.Point(182, 137);
+      this.labelDiscountRupiah.Location = new System.Drawing.Point(182, 160);
       this.labelDiscountRupiah.Name = "labelDiscountRupiah";
       this.labelDiscountRupiah.Size = new System.Drawing.Size(41, 13);
       this.labelDiscountRupiah.TabIndex = 15;
@@ -853,7 +885,7 @@
       // labelPriceRupiah
       // 
       this.labelPriceRupiah.AutoSize = true;
-      this.labelPriceRupiah.Location = new System.Drawing.Point(182, 109);
+      this.labelPriceRupiah.Location = new System.Drawing.Point(182, 127);
       this.labelPriceRupiah.Name = "labelPriceRupiah";
       this.labelPriceRupiah.Size = new System.Drawing.Size(41, 13);
       this.labelPriceRupiah.TabIndex = 14;
@@ -862,7 +894,7 @@
       // labelDiscountPercent
       // 
       this.labelDiscountPercent.AutoSize = true;
-      this.labelDiscountPercent.Location = new System.Drawing.Point(182, 165);
+      this.labelDiscountPercent.Location = new System.Drawing.Point(182, 194);
       this.labelDiscountPercent.Name = "labelDiscountPercent";
       this.labelDiscountPercent.Size = new System.Drawing.Size(15, 13);
       this.labelDiscountPercent.TabIndex = 13;
@@ -872,7 +904,7 @@
       // 
       this.radioButtonDiscountPercent.AutoSize = true;
       this.radioButtonDiscountPercent.Enabled = false;
-      this.radioButtonDiscountPercent.Location = new System.Drawing.Point(76, 166);
+      this.radioButtonDiscountPercent.Location = new System.Drawing.Point(76, 193);
       this.radioButtonDiscountPercent.Name = "radioButtonDiscountPercent";
       this.radioButtonDiscountPercent.Size = new System.Drawing.Size(14, 13);
       this.radioButtonDiscountPercent.TabIndex = 12;
@@ -883,7 +915,7 @@
       // 
       this.radioButtonDiscountAmount.AutoSize = true;
       this.radioButtonDiscountAmount.Enabled = false;
-      this.radioButtonDiscountAmount.Location = new System.Drawing.Point(76, 137);
+      this.radioButtonDiscountAmount.Location = new System.Drawing.Point(76, 160);
       this.radioButtonDiscountAmount.Name = "radioButtonDiscountAmount";
       this.radioButtonDiscountAmount.Size = new System.Drawing.Size(14, 13);
       this.radioButtonDiscountAmount.TabIndex = 11;
@@ -893,7 +925,7 @@
       // textBoxDetailItemDiscountPercent
       // 
       this.textBoxDetailItemDiscountPercent.Enabled = false;
-      this.textBoxDetailItemDiscountPercent.Location = new System.Drawing.Point(97, 162);
+      this.textBoxDetailItemDiscountPercent.Location = new System.Drawing.Point(97, 190);
       this.textBoxDetailItemDiscountPercent.Name = "textBoxDetailItemDiscountPercent";
       this.textBoxDetailItemDiscountPercent.Size = new System.Drawing.Size(79, 20);
       this.textBoxDetailItemDiscountPercent.TabIndex = 5;
@@ -902,7 +934,7 @@
       // labelDiscount
       // 
       this.labelDiscount.AutoSize = true;
-      this.labelDiscount.Location = new System.Drawing.Point(19, 137);
+      this.labelDiscount.Location = new System.Drawing.Point(19, 160);
       this.labelDiscount.Name = "labelDiscount";
       this.labelDiscount.Size = new System.Drawing.Size(40, 13);
       this.labelDiscount.TabIndex = 9;
@@ -911,7 +943,7 @@
       // textBoxDetailItemCode
       // 
       this.textBoxDetailItemCode.Enabled = false;
-      this.textBoxDetailItemCode.Location = new System.Drawing.Point(76, 23);
+      this.textBoxDetailItemCode.Location = new System.Drawing.Point(76, 91);
       this.textBoxDetailItemCode.Name = "textBoxDetailItemCode";
       this.textBoxDetailItemCode.Size = new System.Drawing.Size(100, 20);
       this.textBoxDetailItemCode.TabIndex = 0;
@@ -919,7 +951,7 @@
       // labelPrice
       // 
       this.labelPrice.AutoSize = true;
-      this.labelPrice.Location = new System.Drawing.Point(19, 109);
+      this.labelPrice.Location = new System.Drawing.Point(19, 127);
       this.labelPrice.Name = "labelPrice";
       this.labelPrice.Size = new System.Drawing.Size(36, 13);
       this.labelPrice.TabIndex = 8;
@@ -928,7 +960,7 @@
       // labelName
       // 
       this.labelName.AutoSize = true;
-      this.labelName.Location = new System.Drawing.Point(19, 54);
+      this.labelName.Location = new System.Drawing.Point(19, 28);
       this.labelName.Name = "labelName";
       this.labelName.Size = new System.Drawing.Size(35, 13);
       this.labelName.TabIndex = 7;
@@ -937,7 +969,7 @@
       // labelCode
       // 
       this.labelCode.AutoSize = true;
-      this.labelCode.Location = new System.Drawing.Point(19, 26);
+      this.labelCode.Location = new System.Drawing.Point(19, 94);
       this.labelCode.Name = "labelCode";
       this.labelCode.Size = new System.Drawing.Size(32, 13);
       this.labelCode.TabIndex = 6;
@@ -946,7 +978,7 @@
       // textBoxDetailItemDiscountAmount
       // 
       this.textBoxDetailItemDiscountAmount.Enabled = false;
-      this.textBoxDetailItemDiscountAmount.Location = new System.Drawing.Point(97, 134);
+      this.textBoxDetailItemDiscountAmount.Location = new System.Drawing.Point(97, 157);
       this.textBoxDetailItemDiscountAmount.Name = "textBoxDetailItemDiscountAmount";
       this.textBoxDetailItemDiscountAmount.Size = new System.Drawing.Size(79, 20);
       this.textBoxDetailItemDiscountAmount.TabIndex = 4;
@@ -955,7 +987,7 @@
       // textBoxDetailItemName
       // 
       this.textBoxDetailItemName.Enabled = false;
-      this.textBoxDetailItemName.Location = new System.Drawing.Point(76, 51);
+      this.textBoxDetailItemName.Location = new System.Drawing.Point(76, 25);
       this.textBoxDetailItemName.Name = "textBoxDetailItemName";
       this.textBoxDetailItemName.Size = new System.Drawing.Size(285, 20);
       this.textBoxDetailItemName.TabIndex = 1;
@@ -963,7 +995,7 @@
       // textBoxDetailItemPrice
       // 
       this.textBoxDetailItemPrice.Enabled = false;
-      this.textBoxDetailItemPrice.Location = new System.Drawing.Point(76, 106);
+      this.textBoxDetailItemPrice.Location = new System.Drawing.Point(76, 124);
       this.textBoxDetailItemPrice.Name = "textBoxDetailItemPrice";
       this.textBoxDetailItemPrice.Size = new System.Drawing.Size(100, 20);
       this.textBoxDetailItemPrice.TabIndex = 3;
@@ -1069,7 +1101,7 @@
       this.tabPageReportPerProduct.Location = new System.Drawing.Point(4, 22);
       this.tabPageReportPerProduct.Name = "tabPageReportPerProduct";
       this.tabPageReportPerProduct.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPageReportPerProduct.Size = new System.Drawing.Size(462, 419);
+      this.tabPageReportPerProduct.Size = new System.Drawing.Size(1067, 428);
       this.tabPageReportPerProduct.TabIndex = 1;
       this.tabPageReportPerProduct.Text = "Per Product";
       this.tabPageReportPerProduct.UseVisualStyleBackColor = true;
@@ -1087,7 +1119,7 @@
       this.dataGridViewLaporanProduct.Name = "dataGridViewLaporanProduct";
       this.dataGridViewLaporanProduct.ReadOnly = true;
       this.dataGridViewLaporanProduct.RowHeadersVisible = false;
-      this.dataGridViewLaporanProduct.Size = new System.Drawing.Size(456, 413);
+      this.dataGridViewLaporanProduct.Size = new System.Drawing.Size(1061, 422);
       this.dataGridViewLaporanProduct.TabIndex = 7;
       // 
       // tabPageReportPerTransaction
@@ -1096,7 +1128,7 @@
       this.tabPageReportPerTransaction.Location = new System.Drawing.Point(4, 22);
       this.tabPageReportPerTransaction.Name = "tabPageReportPerTransaction";
       this.tabPageReportPerTransaction.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPageReportPerTransaction.Size = new System.Drawing.Size(462, 419);
+      this.tabPageReportPerTransaction.Size = new System.Drawing.Size(1067, 428);
       this.tabPageReportPerTransaction.TabIndex = 2;
       this.tabPageReportPerTransaction.Text = "Per Transaksi";
       this.tabPageReportPerTransaction.UseVisualStyleBackColor = true;
@@ -1114,7 +1146,7 @@
       this.dataGridViewLaporanTransaksi.Name = "dataGridViewLaporanTransaksi";
       this.dataGridViewLaporanTransaksi.ReadOnly = true;
       this.dataGridViewLaporanTransaksi.RowHeadersVisible = false;
-      this.dataGridViewLaporanTransaksi.Size = new System.Drawing.Size(456, 413);
+      this.dataGridViewLaporanTransaksi.Size = new System.Drawing.Size(1061, 422);
       this.dataGridViewLaporanTransaksi.TabIndex = 14;
       // 
       // tabPageReportDetail
@@ -1123,7 +1155,7 @@
       this.tabPageReportDetail.Location = new System.Drawing.Point(4, 22);
       this.tabPageReportDetail.Name = "tabPageReportDetail";
       this.tabPageReportDetail.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPageReportDetail.Size = new System.Drawing.Size(462, 419);
+      this.tabPageReportDetail.Size = new System.Drawing.Size(1067, 428);
       this.tabPageReportDetail.TabIndex = 3;
       this.tabPageReportDetail.Text = "Detail Laporan";
       this.tabPageReportDetail.UseVisualStyleBackColor = true;
@@ -1141,12 +1173,12 @@
       this.dataGridViewLaporanDetail.Name = "dataGridViewLaporanDetail";
       this.dataGridViewLaporanDetail.ReadOnly = true;
       this.dataGridViewLaporanDetail.RowHeadersVisible = false;
-      this.dataGridViewLaporanDetail.Size = new System.Drawing.Size(456, 413);
+      this.dataGridViewLaporanDetail.Size = new System.Drawing.Size(1061, 422);
       this.dataGridViewLaporanDetail.TabIndex = 13;
       // 
       // groupBoxReportFilter
       // 
-      this.groupBoxReportFilter.Controls.Add(this.buttonShowDetailTransaction);
+      this.groupBoxReportFilter.Controls.Add(this.checkBox1);
       this.groupBoxReportFilter.Controls.Add(this.labelLaporanStart);
       this.groupBoxReportFilter.Controls.Add(this.dateTimePickerStart);
       this.groupBoxReportFilter.Controls.Add(this.buttonShowReportSummary);
@@ -1159,15 +1191,15 @@
       this.groupBoxReportFilter.TabStop = false;
       this.groupBoxReportFilter.Text = "Laporan Periode";
       // 
-      // buttonShowDetailTransaction
+      // checkBox1
       // 
-      this.buttonShowDetailTransaction.Location = new System.Drawing.Point(131, 130);
-      this.buttonShowDetailTransaction.Name = "buttonShowDetailTransaction";
-      this.buttonShowDetailTransaction.Size = new System.Drawing.Size(175, 23);
-      this.buttonShowDetailTransaction.TabIndex = 5;
-      this.buttonShowDetailTransaction.Text = "Lihat Semua Detail";
-      this.buttonShowDetailTransaction.UseVisualStyleBackColor = true;
-      this.buttonShowDetailTransaction.Click += new System.EventHandler(this.buttonShowDetailTransaction_Click);
+      this.checkBox1.AutoSize = true;
+      this.checkBox1.Location = new System.Drawing.Point(12, 132);
+      this.checkBox1.Name = "checkBox1";
+      this.checkBox1.Size = new System.Drawing.Size(102, 17);
+      this.checkBox1.TabIndex = 6;
+      this.checkBox1.Text = "Detail Transaksi";
+      this.checkBox1.UseVisualStyleBackColor = true;
       // 
       // labelLaporanStart
       // 
@@ -1191,7 +1223,7 @@
       // 
       // buttonShowReportSummary
       // 
-      this.buttonShowReportSummary.Location = new System.Drawing.Point(130, 96);
+      this.buttonShowReportSummary.Location = new System.Drawing.Point(131, 128);
       this.buttonShowReportSummary.Name = "buttonShowReportSummary";
       this.buttonShowReportSummary.Size = new System.Drawing.Size(175, 23);
       this.buttonShowReportSummary.TabIndex = 4;
@@ -1222,10 +1254,10 @@
       // tabPageUserMaster
       // 
       this.tabPageUserMaster.Controls.Add(this.groupBoxUserMaster);
+      this.tabPageUserMaster.Controls.Add(this.dataGridViewUserMaster);
       this.tabPageUserMaster.Controls.Add(this.buttonDeleteUserMaster);
       this.tabPageUserMaster.Controls.Add(this.buttonEditUserMaster);
       this.tabPageUserMaster.Controls.Add(this.buttonAddUserMaster);
-      this.tabPageUserMaster.Controls.Add(this.dataGridViewUserMaster);
       this.tabPageUserMaster.Location = new System.Drawing.Point(4, 22);
       this.tabPageUserMaster.Name = "tabPageUserMaster";
       this.tabPageUserMaster.Padding = new System.Windows.Forms.Padding(3);
@@ -1360,6 +1392,22 @@
       this.buttonCancelUserMaster.UseVisualStyleBackColor = true;
       this.buttonCancelUserMaster.Click += new System.EventHandler(this.buttonCancelUserMaster_Click);
       // 
+      // dataGridViewUserMaster
+      // 
+      this.dataGridViewUserMaster.AllowUserToAddRows = false;
+      this.dataGridViewUserMaster.AllowUserToDeleteRows = false;
+      this.dataGridViewUserMaster.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                  | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.dataGridViewUserMaster.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.dataGridViewUserMaster.Location = new System.Drawing.Point(20, 22);
+      this.dataGridViewUserMaster.Name = "dataGridViewUserMaster";
+      this.dataGridViewUserMaster.ReadOnly = true;
+      this.dataGridViewUserMaster.RowHeadersVisible = false;
+      this.dataGridViewUserMaster.Size = new System.Drawing.Size(398, 617);
+      this.dataGridViewUserMaster.TabIndex = 8;
+      this.dataGridViewUserMaster.SelectionChanged += new System.EventHandler(this.dataGridViewUserMaster_SelectionChanged);
+      // 
       // buttonDeleteUserMaster
       // 
       this.buttonDeleteUserMaster.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -1395,22 +1443,6 @@
       this.buttonAddUserMaster.TabIndex = 0;
       this.buttonAddUserMaster.UseVisualStyleBackColor = true;
       this.buttonAddUserMaster.Click += new System.EventHandler(this.buttonAddUserMaster_Click);
-      // 
-      // dataGridViewUserMaster
-      // 
-      this.dataGridViewUserMaster.AllowUserToAddRows = false;
-      this.dataGridViewUserMaster.AllowUserToDeleteRows = false;
-      this.dataGridViewUserMaster.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                  | System.Windows.Forms.AnchorStyles.Left)
-                  | System.Windows.Forms.AnchorStyles.Right)));
-      this.dataGridViewUserMaster.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-      this.dataGridViewUserMaster.Location = new System.Drawing.Point(20, 22);
-      this.dataGridViewUserMaster.Name = "dataGridViewUserMaster";
-      this.dataGridViewUserMaster.ReadOnly = true;
-      this.dataGridViewUserMaster.RowHeadersVisible = false;
-      this.dataGridViewUserMaster.Size = new System.Drawing.Size(398, 617);
-      this.dataGridViewUserMaster.TabIndex = 8;
-      this.dataGridViewUserMaster.SelectionChanged += new System.EventHandler(this.dataGridViewUserMaster_SelectionChanged);
       // 
       // statusStripInformation
       // 
@@ -1461,6 +1493,7 @@
       this.Name = "MainForm";
       this.Text = "Fidelis Cake and Bakery";
       this.Load += new System.EventHandler(this.MainForm_Load);
+      this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyUp);
       this.menuStripMain.ResumeLayout(false);
       this.menuStripMain.PerformLayout();
       this.tabControlPage.ResumeLayout(false);
@@ -1623,7 +1656,10 @@
     private System.Windows.Forms.TabPage tabPageReportPerTransaction;
     private System.Windows.Forms.TabPage tabPageReportDetail;
     private System.Windows.Forms.DataGridView dataGridViewLaporanTransaksi;
-    private System.Windows.Forms.Button buttonShowDetailTransaction;
+    private System.Windows.Forms.Button buttonGenerateCode;
+    private System.Windows.Forms.ToolStripMenuItem printLastReceiptToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem printUlangTransaksiToolStripMenuItem;
+    private System.Windows.Forms.CheckBox checkBox1;
   }
 }
 

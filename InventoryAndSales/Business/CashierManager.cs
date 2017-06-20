@@ -221,6 +221,11 @@ namespace InventoryAndSales.Business
                                         "y",
                                         "z"
                                       };
+
+    public Transaction GetTransaction(string facturNumber, out List<TransactionDetail> details)
+    {
+      return _transactionManager.GetTransaction(facturNumber, out details);
+    }
   }
 
 }

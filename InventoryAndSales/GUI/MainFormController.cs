@@ -43,6 +43,8 @@ namespace InventoryAndSales.GUI
       _mainForm.UpdateTotal(total);
     }
 
+    Transaction lastTransaction;
+    List<TransactionDetail> lastTransactionDetails;
     public string Checkout(decimal payment, string notes, out string successMessage)
     {
       successMessage = string.Empty;
@@ -60,22 +62,23 @@ namespace InventoryAndSales.GUI
 
       try
       {
-        Transaction transaction;
-        List<TransactionDetail> transactionDetails;
-        _cashierManager.Checkout(payment, notes, _loginManager.ActiveUser.Id, 1, out transaction, out transactionDetails );
-        PrintPaymentNote(transaction, transactionDetails);
+        lastTransaction = null;
+        lastTransactionDetails = null;
+        _cashierManager.Checkout(payment, notes, _loginManager.ActiveUser.Id, 1, out lastTransaction, out lastTransactionDetails );
+        PrintPaymentNote(lastTransaction, lastTransactionDetails);
         successMessage = string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ", changes.ToString(Constant.DISPLAY_CURRENCY));
         NewCart();
       }
       catch(Exception e)
       {
-        return e.Message;
+        return e.Message + Environment.NewLine + e.StackTrace;
       }
       return string.Empty;
     }
 
     public bool Login(string username, string password)
     {
+      //TestPrint();
       bool loginSuccess = _loginManager.Login(username, password);
       if (loginSuccess)
       {
@@ -87,6 +90,18 @@ namespace InventoryAndSales.GUI
       return loginSuccess;
     }
 
+    private void TestPrint()
+    {
+      List<StringPrint> sp = new List<StringPrint>();
+      StringFormat sf = new StringFormat();
+      sf.Alignment = StringAlignment.Center;
+      sp.Add(new StringPrint("FIDELIS CAKE AND BAKERY", sf));
+      StringFormat sfl = new StringFormat();
+      sfl.Alignment = StringAlignment.Center;
+      sp.Add(new StringPrint(lineSeparator, sfl));
+      PrinterUtility.Print(sp, new Font("Courier New", 9));
+    }
+
     List<Product> _items;
     public List<Product> GetItems()
     {
@@ -95,23 +110,24 @@ namespace InventoryAndSales.GUI
       return _items;
     }
 
-    private Font _printFont = new Font("Arial", 10);
-    private const string lineSeparator = "======================================"; 
+    private Font _printFont = new Font("Courier New", 9);
+    private const string lineSeparator = "================================="; 
     public void PrintPaymentNote(Transaction transaction, List<TransactionDetail> transactionDetails)
     {
       List<StringPrint> stringToPrint = new List<StringPrint>();
       StringFormat centerString = new StringFormat();
       centerString.Alignment = StringAlignment.Center;
       StringFormat leftString = new StringFormat();
-      centerString.Alignment = StringAlignment.Near;
+      leftString.Alignment = StringAlignment.Near;
       //Todo customize this
       stringToPrint.Add(new StringPrint("FIDELIS CAKE AND BAKERY", centerString));
-      stringToPrint.Add(new StringPrint("JL MAYJEND SUTOYO", centerString));
+      stringToPrint.Add(new StringPrint("JL MAYJEND SUTOYO NO 1", centerString));
       stringToPrint.Add(new StringPrint("BANJARNEGARA", centerString));
-      stringToPrint.Add(new StringPrint("(0286) 595180", centerString));
-      stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
-      stringToPrint.Add(new StringPrint("TRX:" + transaction.Factur, centerString));
-      stringToPrint.Add(new StringPrint(lineSeparator, centerString));
+      stringToPrint.Add(new StringPrint("(0286) 594573", centerString));
+      stringToPrint.Add(new StringPrint(lineSeparator, leftString));
+      stringToPrint.Add(new StringPrint(transaction.Time.ToString("dd-MM-yyyy HH:mm") + "  ID:" + transaction.Factur));
+      stringToPrint.Add(new StringPrint("KASIR:" + _loginManager.ActiveUser.Name));
+      stringToPrint.Add(new StringPrint(lineSeparator, leftString));
 
       foreach (TransactionDetail tDetail in transactionDetails)
       {
@@ -120,16 +136,16 @@ namespace InventoryAndSales.GUI
         if(tDetail.ProductDiscount > 0)
           stringToPrint.Add(new StringPrint("Discount: "+tDetail.SubtotalDiscount, leftString));
       }
-      stringToPrint.Add(new StringPrint(lineSeparator, centerString));
-      stringToPrint.Add(new StringPrint("TOTAL BELANJA :     " + transaction.TotalPrice, leftString));
-      stringToPrint.Add(new StringPrint("TOTAL DISCOUNT:     " + transaction.TotalDiscount, leftString));
-      stringToPrint.Add(new StringPrint("TOTAL         :     " + transaction.Total, leftString));
+      stringToPrint.Add(new StringPrint(lineSeparator, leftString));
+      stringToPrint.Add(new StringPrint("TOTAL BELANJA : Rp. " + transaction.TotalPrice, leftString));
+      stringToPrint.Add(new StringPrint("TOTAL DISCOUNT: Rp. " + transaction.TotalDiscount, leftString));
+      stringToPrint.Add(new StringPrint("TOTAL         : Rp. " + transaction.Total, leftString));
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
-      stringToPrint.Add(new StringPrint("PEMBAYARAN    :     " + transaction.Payment, leftString));
-      stringToPrint.Add(new StringPrint("KEMBALI       :     " + transaction.Exchange, leftString));
+      stringToPrint.Add(new StringPrint("PEMBAYARAN    : Rp. " + transaction.Payment, leftString));
+      stringToPrint.Add(new StringPrint("KEMBALI       : Rp. " + transaction.Exchange, leftString));
       //Todo customize this
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
-      stringToPrint.Add(new StringPrint(lineSeparator, centerString));
+      stringToPrint.Add(new StringPrint(lineSeparator, leftString));
       stringToPrint.Add(new StringPrint("TERIMA KASIH", centerString));
 
       PrinterUtility.Print(stringToPrint, _printFont);
@@ -252,6 +268,29 @@ namespace InventoryAndSales.GUI
     public void AddUser(string username, string name, string password, int role)
     {
       _masterManager.AddUser(new User(username, HashUtility.GetEncryptedPass(password), name, role, false));
+    }
+
+    public bool PrintLastReceipt()
+    {
+      if (lastTransaction != null && lastTransactionDetails != null)
+      {
+        PrintPaymentNote(lastTransaction, lastTransactionDetails);
+        return true;
+      }
+      return false;
+
+    }
+
+    public bool PrintReceipt(string facturNumber)
+    {
+      List<TransactionDetail> details;
+      Transaction t = _cashierManager.GetTransaction(facturNumber, out details);
+      if (t != null && details != null)
+      {
+        PrintPaymentNote(t, details);
+        return true;
+      }
+      return false;
     }
   }
 }
