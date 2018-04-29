@@ -53,7 +53,7 @@ namespace InventoryAndSales.Database.DataAccess
       " left join T_TRANSACTIONS t on (t.Id = td.TransactionId)" +
       " left join M_PRODUCTS p on (p.Id = td.ProductId)" +
       " left join M_USERS u on (u.Id = t.UserId)" +
-      " where CAST(TransactionTime as date) between '{0}' and '{1}'" +
+      " where t.Revision = 0 and CAST(TransactionTime as date) between '{0}' and '{1}'" +
       " order by t.TransactionTime ";
 
 
@@ -69,7 +69,7 @@ namespace InventoryAndSales.Database.DataAccess
       " from T_TRANSACTION_DETAILS td" +
       " left join T_TRANSACTIONS t on (t.Id = td.TransactionId)" +
       " left join M_PRODUCTS p on (p.Id = td.ProductId)" +
-      " where CAST(TransactionTime as date) between '{0}' and '{1}'" +
+      " where t.Revision = 0 and CAST(TransactionTime as date) between '{0}' and '{1}'" +
       " group by COALESCE(p.Name,'Telah Dihapus'),CAST(t.TransactionTime as date)" +
       " order by CAST(t.TransactionTime as date)";
 
@@ -77,7 +77,7 @@ namespace InventoryAndSales.Database.DataAccess
       " select"+
       " COALESCE(u.Name,'ADMIN') as Kasir,"+
       " CAST(t.TransactionTime as date) as 'Tanggal Transaksi'," +
-      " count(t.Id) as 'Jumlah Transaksi'," +
+      " count(distinct t.Id) as 'Jumlah Transaksi'," +
       " sum(Quantity) as 'Jumlah Barang Terjual'," +
       " sum(SubtotalPrice) as 'Total Sebelum Diskon'," +
       " sum(SubtotalDiscount) as 'Total Diskon'," +
@@ -86,7 +86,7 @@ namespace InventoryAndSales.Database.DataAccess
       " left join T_TRANSACTIONS t on (t.Id = td.TransactionId)" +
       " left join M_PRODUCTS p on (p.Id = td.ProductId)" +
       " left join M_USERS u on (u.Id = t.UserId)" +
-      " where CAST(TransactionTime as date) between '{0}' and '{1}'" +
+      " where t.Revision = 0 and CAST(TransactionTime as date) between '{0}' and '{1}'" +
       " group by COALESCE(u.Name,'ADMIN'),CAST(t.TransactionTime as date)" +
       " order by CAST(t.TransactionTime as date)";
 
@@ -102,7 +102,20 @@ namespace InventoryAndSales.Database.DataAccess
       " t.Exchange as 'Kembalian'" +
       " from T_TRANSACTIONS t" +
       " left join M_USERS u on (u.Id = t.UserId)" +
-      " where CAST(TransactionTime as date) between '{0}' and '{1}'" +
+      " where t.Revision = 0 and CAST(TransactionTime as date) between '{0}' and '{1}'" +
+      " order by t.TransactionTime";
+
+    private const string QUERY_VIEW_TRANSACTION =
+      " select"+
+      " COALESCE(u.Name,'ADMIN') as Kasir,"+
+      " t.Id," +
+      " t.Factur," +
+      " t.TransactionTime as 'Tanggal Transaksi'," +
+      " t.Total as 'Total'," +
+      " t.Notes as 'Catatan'" +
+      " from T_TRANSACTIONS t" +
+      " left join M_USERS u on (u.Id = t.UserId)" +
+      " where t.Revision = 0 and CAST(TransactionTime as date) between '{0}' and '{1}'" +
       " order by t.TransactionTime";
 
 
@@ -115,6 +128,11 @@ namespace InventoryAndSales.Database.DataAccess
     public List<CustomQuery> GetReportSummaryByTransaction(DateTime start, DateTime stop)
     {
       return ExecuteReader(string.Format(QUERY_REPORT_SUMMARY_BY_TRANSACTION, start.ToShortDateString(), stop.ToShortDateString()));
+    }
+
+    public List<CustomQuery> GetTransaction(DateTime start, DateTime stop)
+    {
+      return ExecuteReader(string.Format(QUERY_VIEW_TRANSACTION, start.ToShortDateString(), stop.ToShortDateString()));
     }
 
     public List<CustomQuery> GetReportDetailByTime(DateTime start, DateTime stop)

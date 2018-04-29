@@ -25,7 +25,7 @@ namespace InventoryAndSales.Database.DataTable
 
     private static readonly IDataTable ItemDataTable = new DataTable("M_PRODUCTS", "Id", "Code", "Barcode", "Name", "Price", "Discount", "Deleted");
     private static readonly IDataTable UserDataTable = new DataTable("M_USERS", "Id", "Username", "Password", "Name", "Role", "Deleted");
-    private static readonly IDataTable TransactionDataTable = new DataTable("T_TRANSACTIONS", "Id", "Factur", "TotalPrice", "TotalDiscount", "Total", "Notes", "UserId", "TransactionTime", "Payment", "Exchange", "CustomerId");
+    private static readonly IDataTable TransactionDataTable = new DataTable("T_TRANSACTIONS", "Id", "Factur", "TotalPrice", "TotalDiscount", "Total", "Notes", "UserId", "TransactionTime", "Payment", "Exchange", "CustomerId", "Revision");
     private static readonly IDataTable TransactionDetailDataTable = new DataTable("T_TRANSACTION_DETAILS", "Id", "ProductId", "Quantity", "ProductDiscount", "ProductPrice", "SubtotalDiscount", "SubtotalPrice", "Subtotal", "TransactionId");
     private static readonly IDataTable CustomerDataTable = new DataTable("M_CUSTOMERS", "Id", "Name",  "Address", "Phone", "MemberType");
 
@@ -98,7 +98,8 @@ CREATE TABLE [dbo].[T_TRANSACTIONS](
 	[Exchange] [decimal](18, 0) NULL,
 	[UserId] [int] NULL,
 	[CustomerId] [int] NULL,
-	[Factur] [varchar](18) NULL
+	[Factur] [varchar](18) NULL,
+  [CustomerId] [bigint] NULL
 ) 
 
 

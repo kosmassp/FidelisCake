@@ -51,13 +51,15 @@
   <ItemGroup>
     <Compile Include="Business\BusinessFactory.cs" />
     <Compile Include="Business\CashierManager.cs" />
+    <Compile Include="Business\ViewManager.cs" />
     <Compile Include="Business\ReportManager.cs" />
     <Compile Include="Business\MasterManager.cs" />
     <Compile Include="Database\DataAccess\CustomDao.cs" />
+    <Compile Include="Database\DBUtility.cs" />
     <Compile Include="Database\Manager\CustomManager.cs" />
     <Compile Include="Database\Model\CustomQuery.cs" />
     <Compile Include="Enumeration\DisplayPage.cs" />
-    <Compile Include="Enumeration\MenuAccess.cs" />
+    <Compile Include="Enumeration\AccessOption.cs" />
     <Compile Include="Business\LoginManager.cs" />
     <Compile Include="Database\DataAccess\BaseDao.cs" />
     <Compile Include="Database\DataAccess\CustomerDao.cs" />
@@ -81,6 +83,36 @@
     <Compile Include="Database\Model\Transaction.cs" />
     <Compile Include="Database\Model\TransactionDetail.cs" />
     <Compile Include="Database\Model\User.cs" />
+    <Compile Include="GUI\Controller\CashierController.cs" />
+    <Compile Include="GUI\Controller\TransactionUpdateController.cs" />
+    <Compile Include="GUI\Controller\LoginController.cs" />
+    <Compile Include="GUI\Controller\MasterProductController.cs" />
+    <Compile Include="GUI\Page\TransactionUpdatePage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Page\TransactionUpdatePage.Designer.cs">
+      <DependentUpon>TransactionUpdatePage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Popup\AuthenticationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\AuthenticationForm.Designer.cs">
+      <DependentUpon>AuthenticationForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Popup\TransactionUpdateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\TransactionUpdateForm.Designer.cs">
+      <DependentUpon>TransactionUpdateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Util\BusinessUtil.cs" />
+    <Compile Include="GUI\Util\DataTableUtil.cs" />
+    <Compile Include="GUI\Popup\TransactionHistory.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\TransactionHistory.Designer.cs">
+      <DependentUpon>TransactionHistory.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -89,10 +121,42 @@
     </Compile>
     <Compile Include="GUI\MainFormController.cs" />
     <Compile Include="GUI\Model\ViewCartModel.cs" />
-    <Compile Include="GUI\ReprintReceipt.cs">
+    <Compile Include="GUI\Page\CashierPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Page\CashierPage.Designer.cs">
+      <DependentUpon>CashierPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Page\LoginPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Page\LoginPage.Designer.cs">
+      <DependentUpon>LoginPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Controller\MasterUserController.cs" />
+    <Compile Include="GUI\Page\MasterUserPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Page\MasterUserPage.Designer.cs">
+      <DependentUpon>MasterUserPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Page\MasterProductPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Page\MasterProductPage.Designer.cs">
+      <DependentUpon>MasterProductPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Controller\ReportDisplayController.cs" />
+    <Compile Include="GUI\Page\ReportDisplayPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Page\ReportDisplayPage.Designer.cs">
+      <DependentUpon>ReportDisplayPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Popup\ReprintReceipt.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GUI\ReprintReceipt.Designer.cs">
+    <Compile Include="GUI\Popup\ReprintReceipt.Designer.cs">
       <DependentUpon>ReprintReceipt.cs</DependentUpon>
     </Compile>
     <Compile Include="Utility\Constant.cs" />
@@ -129,8 +193,35 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="GUI\ReprintReceipt.resx">
+    <EmbeddedResource Include="GUI\Page\TransactionUpdatePage.resx">
+      <DependentUpon>TransactionUpdatePage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Popup\AuthenticationForm.resx">
+      <DependentUpon>AuthenticationForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Popup\TransactionHistory.resx">
+      <DependentUpon>TransactionHistory.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Page\CashierPage.resx">
+      <DependentUpon>CashierPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Page\LoginPage.resx">
+      <DependentUpon>LoginPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Page\MasterUserPage.resx">
+      <DependentUpon>MasterUserPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Page\MasterProductPage.resx">
+      <DependentUpon>MasterProductPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Page\ReportDisplayPage.resx">
+      <DependentUpon>ReportDisplayPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Popup\ReprintReceipt.resx">
       <DependentUpon>ReprintReceipt.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Popup\TransactionUpdateForm.resx">
+      <DependentUpon>TransactionUpdateForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Icon\Add.png" />
     <EmbeddedResource Include="Icon\Edit.png" />

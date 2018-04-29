@@ -17,6 +17,7 @@ namespace InventoryAndSales.Database.Model
     public string Notes { get; set; }
     public int UserId { get; set; }
     public int CustomerId { get; set; }
+    public long Revision { get; set; }
 
     [Browsable(false)]
     public override object this[string columnName]
@@ -47,6 +48,8 @@ namespace InventoryAndSales.Database.Model
             return UserId;
           case "CustomerId":
             return CustomerId;
+          case "Revision":
+            return Revision;
         }
         throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));
       }
@@ -88,6 +91,9 @@ namespace InventoryAndSales.Database.Model
             break;
           case "CustomerId":
             CustomerId = (int)value;
+            break;
+          case "Revision":
+            Revision = long.Parse(value.ToString());
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

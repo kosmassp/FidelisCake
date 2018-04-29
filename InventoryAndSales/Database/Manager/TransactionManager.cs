@@ -50,5 +50,28 @@ namespace InventoryAndSales.Database.Manager
         throw;
       }
     }
+    public void UpdateCompleteTransaction(
+      Transaction originalTransaction, 
+      Transaction transaction, List<TransactionDetail> transactionDetails)
+    {
+      DBFactory.GetInstance().BeginTransaction();
+      try
+      {
+        _trxDao.Save(transaction);
+        originalTransaction.Revision = transaction.Id;
+        _trxDao.Update(originalTransaction);
+        foreach (TransactionDetail tDetail in transactionDetails)
+        {
+          tDetail.TransactionId = transaction.Id;
+          _tdDao.Save(tDetail);
+        }
+        DBFactory.GetInstance().CommitTransaction();
+      }
+      catch(Exception e)
+      {
+        DBFactory.GetInstance().RollbackTransaction();
+        throw;
+      }
+    }
   }
 }

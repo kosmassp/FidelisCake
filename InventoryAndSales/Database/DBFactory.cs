@@ -18,6 +18,8 @@ namespace InventoryAndSales.Database
     private static DBFactory _instance;
     public static DBFactory GetInstance()
     {
+      if (_instance != null)
+        return _instance;
       lock (InstanceLock)
       {
         if (_instance == null)
@@ -68,7 +70,7 @@ namespace InventoryAndSales.Database
     private readonly object _lockTransaction = new object();
     public void BeginTransaction()
     {
-      while(_activeTransaction != null )
+      while(_activeTransaction != null ) //TODO What if a transaction want to be inside another transaction.
       {
         //Todo look after this
         Thread.Sleep(50);

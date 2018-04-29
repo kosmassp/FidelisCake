@@ -18,6 +18,13 @@ namespace InventoryAndSales.Database.DataAccess
     public BaseDao()
     {
       _dataTable = DataTableList.Instance.GetDataTable(typeof(T));
+      CheckUpdateTable();
+    }
+
+    private void CheckUpdateTable()
+    {
+      if(_dataTable == null)
+        return;
     }
 
     public virtual T FindById(int id)
@@ -77,11 +84,11 @@ namespace InventoryAndSales.Database.DataAccess
 
 
       string insertSql = string.Format(INSERT_SQL, _dataTable.TableName, columns, values);
-      int insert = ExecuteNonQuery(insertSql);
+      int insert = DBUtility.ExecuteNonQuery(insertSql);
       if (insert > 0)
       {
         //SqlServer
-        var lastId = ExecuteScalar("SELECT SCOPE_IDENTITY()");
+        var lastId = DBUtility.ExecuteScalar("SELECT SCOPE_IDENTITY()");
         //Mysql
         //dataObject[_dataTable.PrimaryKeyColumn] = ExecuteScalar("SELECT LAST_INSERT_ID();"); 
         dataObject[_dataTable.PrimaryKeyColumn] = int.Parse(lastId.ToString());
@@ -112,7 +119,7 @@ namespace InventoryAndSales.Database.DataAccess
 
 
       string updateSql = string.Format(UPDATE_SQL, _dataTable.TableName, columnValuePair, _dataTable.PrimaryKeyColumn, dataObject[_dataTable.PrimaryKeyColumn]);
-      return ExecuteNonQuery(updateSql);
+      return DBUtility.ExecuteNonQuery(updateSql);
     }
 
     public virtual bool Delete(T dataObject)
@@ -125,10 +132,11 @@ namespace InventoryAndSales.Database.DataAccess
     {
       //TODO execute sql FIND_BY_ID_SQL, WE don't not to describe this everytime
       string preparedSql = string.Format(DELETE_SQL, _dataTable.TableName, _dataTable.PrimaryKeyColumn, id);
-      int delete = ExecuteNonQuery(preparedSql);
+      int delete = DBUtility.ExecuteNonQuery(preparedSql);
       return delete > 0;
     }
 
+    //TODO: This might need to be moved to DBUtil. Need to rethink about it.
     protected virtual List<T> ExecuteReader(String commandText, params SqlParameter[] parameters)
     {
       List<T> returnList = new List<T>();
@@ -157,77 +165,5 @@ namespace InventoryAndSales.Database.DataAccess
       reader.Close();
       return returnList;
     }
-
-
-    protected int ExecuteNonQuery(string nonQueryCommand)
-    {
-      SqlConnection connection = DBFactory.GetInstance().GetConnection();
-      SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      if (activeTransaction == null)
-        connection.Open();
-      SqlCommand command = connection.CreateCommand();
-      command.CommandText = nonQueryCommand;
-      command.Transaction = activeTransaction;
-      int result = command.ExecuteNonQuery();
-      if (activeTransaction == null)
-        connection.Close();
-      return result;
-    }
-
-    protected object ExecuteScalar(string scalarCommand)
-    {
-      SqlConnection connection = DBFactory.GetInstance().GetConnection();
-      SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      if (activeTransaction == null)
-        connection.Open();
-      SqlCommand command = connection.CreateCommand();
-      command.CommandText = scalarCommand;
-      command.Transaction = activeTransaction;
-      var obj = command.ExecuteScalar();
-      if (activeTransaction == null)
-        connection.Close();
-      return obj;
-    }
-
-    /*
-    protected bool ExecuteNonQueries(string[] nonQueryCommands)
-    {
-      return ExecuteNonQueries(IsolationLevel.ReadCommitted, nonQueryCommands);
-    }
-    protected bool ExecuteNonQueries(IsolationLevel isolationLevel, string[] nonQueryCommands)
-    {
-      bool commandSuccess = false;
-      using (SqlConnection connection = DBFactory.GetInstance().GetConnection())
-      {
-        connection.Open();
-        SqlCommand command = connection.CreateCommand();
-        SqlTransaction transaction = connection.BeginTransaction(isolationLevel);
-        command.Transaction = transaction;
-        try
-        {
-          foreach (string nonQueryCommand in nonQueryCommands)
-          {
-            command.CommandText = nonQueryCommand;
-            command.ExecuteNonQuery();
-          }
-          transaction.Commit();
-          commandSuccess = true;
-        }
-        catch (Exception e)
-        {
-          try
-          {
-            transaction.Rollback();
-          }
-          catch (SqlException ex)
-          {
-            throw;
-          }
-        }
-      }
-      return commandSuccess;
-    }
-    */
-
   }
 }

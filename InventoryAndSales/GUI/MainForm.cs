@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows.Forms;
 using InventoryAndSales.Database.Model;
 using InventoryAndSales.Enumeration;
+using InventoryAndSales.GUI.Util;
 using InventoryAndSales.GUI.Utility;
 using SimpleCommon.Utility;
 
@@ -26,616 +27,85 @@ namespace InventoryAndSales.GUI
       InitializeComponent();
       ControlUtility.HideTabHeader(tabControlPage);
       controller = new MainFormController(this);
-      comboBoxRoleMaster.DataSource = Enum.GetValues(typeof(RoleOptions));
       KeyPreview = true;
-    }
-
-    private void buttonCheckout_Click(object sender, System.EventArgs e)
-    {
-      string validationMsg = ValidateInput( textBoxPayment, "Pembayaran Tidak Valid");
-      if (!string.IsNullOrEmpty(validationMsg))
-      {
-        MessageBox.Show(validationMsg);
-        return;
-      }
-      string successMessage;
-      string errorMessage = controller.Checkout(decimal.Parse(textBoxPayment.Text), textBoxNotes.Text, out successMessage);
-      if (!string.IsNullOrEmpty(errorMessage))
-      {
-        MessageBox.Show(string.Format("Transaksi Gagal.\n{0}\n\n\n{1}", errorMessage, "Silahkan Coba Lagi"));
-      }
-      else
-        if (!string.IsNullOrEmpty(successMessage))
-      
-      {
-        MessageBox.Show(successMessage);
-        textBoxFilter.Focus();
-      }
-    }
-
-    private string ValidateInput(TextBox textBox, string errorMessage)
-    {
-      decimal result;
-      string payment = textBox.Text;
-      if (!decimal.TryParse(payment, out result))
-      {
-        return errorMessage;
-      }
-      return string.Empty;
     }
 
     private void MainForm_Load(object sender, EventArgs e)
     {
-      tabControlPage.SelectedTab = tabPageLogin;
-      OnLoginActivated();
+      LoadLoginPage();
     }
 
     private void daftarBarangToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      tabControlPage.SelectedTab = tabPageProductMaster;
+      LoadProductMasterPage();
     }
 
     private void penjualanToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      tabControlPage.SelectedTab = tabPageCashier;
+      LoadCashierPage();
     }
 
     private void loginToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      tabControlPage.SelectedTab = tabPageLogin;
+      LoadLoginPage();
     }
 
-    private void buttonLogin_Click(object sender, EventArgs e)
+    private void daftarUserToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      bool success = controller.Login(textBoxUsername.Text, textBoxPassword.Text);
-      if (success)
-      {
-        tabControlPage.SelectedTab = tabPageCashier;
-      }
-      else
-      {
-        labelCannotLogin.Text = "Username atau password tidak benar";
-      }
-    }
-
-    private void textBoxDiscountPercent_TextChanged(object sender, EventArgs e)
-    {
-      if (!string.IsNullOrEmpty(textBoxDetailItemDiscountPercent.Text))
-        radioButtonDiscountPercent.Checked = true;
-    }
-
-    private void textBoxDiscountAmount_TextChanged(object sender, EventArgs e)
-    {
-      if (!string.IsNullOrEmpty(textBoxDetailItemDiscountAmount.Text))
-        radioButtonDiscountAmount.Checked = true;
-    }
-
-    private void dataGridViewItemList_CellContentClick(object sender, DataGridViewCellEventArgs e)
-    {
-      var senderGrid = (DataGridView)sender;
-      if (senderGrid.Columns[e.ColumnIndex] is DataGridViewButtonColumn && e.RowIndex >= 0)
-      {
-        var itemsView = _itemDictRowIdToItem[e.RowIndex];
-        AddToCart(itemsView);
-      }
-
-    }
-
-    public void RefreshDataGridViewCart()
-    {
-      if (InvokeRequired)
-      {
-        this.BeginInvoke(new DelegateUtility.VoidHandler(RefreshDataGridViewCart));
-        return;
-      }
-
-    }
-
-    private void AddToCart(Product productView)
-    {
-      controller.AddToCart(productView);
-
-    }
-
-    private void buttonClearCart_Click(object sender, EventArgs e)
-    {
-      DialogResult dr = MessageBox.Show("Apakah Anda Yakin akan membersihkan Keranjang ? Semua barang akan terhapus dari layar ?",
-                      "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
-      if (dr == DialogResult.Yes)
-      {
-        controller.NewCart();
-        textBoxFilter.Focus();
-      }
-    }
-
-    private void tabControlPage_SelectedIndexChanged(object sender, EventArgs e)
-    {
-      if (tabControlPage.SelectedTab == tabPageLogin)
-      {
-        OnLoginActivated();
-      }
-      else if (tabControlPage.SelectedTab == tabPageCashier)
-      {
-        OnCashierActivated();
-      }
-      else if (tabControlPage.SelectedTab == tabPageProductMaster)
-      {
-        OnProductMasterActivated();
-      } 
-      else if (tabControlPage.SelectedTab == tabPageUserMaster)
-      {
-        OnUserMasterActivated();
-      }
-      else if (tabControlPage.SelectedTab == tabPageReport)
-      {
-        OnUserMasterActivated();
-      }
-    }
-
-    private void OnLoginActivated()
-    {
-      currentPage = DisplayPage.Login;
-      controller.Logout();
-      textBoxUsername.Text = string.Empty;
-      textBoxPassword.Text = string.Empty;
-      labelCannotLogin.Text = string.Empty;
-      textBoxUsername.Focus();
-    }
-
-    private void textBoxUsername_KeyPress(object sender, KeyPressEventArgs e)
-    {
-      if (e.KeyChar == '\r')
-      {
-        e.Handled = true;
-        textBoxPassword.Focus();
-      }
-    }
-
-    private void textBoxPassword_KeyPress(object sender, KeyPressEventArgs e)
-    {
-      if (e.KeyChar == '\r')
-      {
-        e.Handled = true;
-        buttonLogin_Click(sender, null);
-      }
-    }
-
-    private void textBoxUsername_Enter(object sender, EventArgs e)
-    {
-      textBoxUsername.SelectAll();
-    }
-
-    private void textBoxPassword_Enter(object sender, EventArgs e)
-    {
-      textBoxPassword.SelectAll();
+      LoadUserMasterPage();
     }
 
     private DisplayPage currentPage;
-    private void OnCashierActivated()
+
+    public void LoadLoginPage()
     {
+      if (InvokeRequired)
+      {
+        this.BeginInvoke(new DelegateUtility.VoidHandler(LoadLoginPage));
+        return;
+      }
+      tabControlPage.SelectedTab = tabPageLogin;
+      currentPage = DisplayPage.Login;
+      controller.Logout();
+      loginPage1.Reset();
+    }
+
+    public void LoadCashierPage()
+    {
+      if (InvokeRequired)
+      {
+        this.BeginInvoke(new DelegateUtility.VoidHandler(LoadCashierPage));
+        return;
+      }
+      tabControlPage.SelectedTab = tabPageCashier;
       currentPage = DisplayPage.Cashier;
-      textBoxFilter.Text = string.Empty;
-
-      ReloadItemList();
-      bool byBarcode;
-      FilterItemView(string.Empty, out byBarcode);
-      controller.NewCart();
-      textBoxFilter.Focus();
+      cashierPage1.Reset();
     }
 
-    private Dictionary<int, Product> _itemDictRowIdToItem = new Dictionary<int, Product>();
-    private void ReloadItemList()
-    {
-      List<Product> items = controller.GetItems();
-      dataGridViewItemList.Rows.Clear();
-      _itemDictRowIdToItem.Clear();
-      foreach (Product item in items)
-      {
-        int rowId = dataGridViewItemList.Rows.Add(item.Code, item.Name, item.NetPrice.ToString(Constant.DISPLAY_CURRENCY), "+");
-        _itemDictRowIdToItem[rowId] = item;
-      }
-    }
-
-    public void ResetCart()
+    public void LoadProductMasterPage()
     {
       if (InvokeRequired)
       {
-        this.BeginInvoke(new DelegateUtility.VoidHandler(ResetCart));
+        this.BeginInvoke(new DelegateUtility.VoidHandler(LoadProductMasterPage));
         return;
       }
-      dataGridViewCart.Rows.Clear();
-      _cartDictItemToRow.Clear();
-      _cartDictRowToItem.Clear();
-
-      textBoxPayment.Text = 0.ToString();
-      textBoxTotal.Text = 0.ToString();
-      textBoxChanges.Text = 0.ToString();
-      textBoxNotes.Text = string.Empty;
-      textBoxFilter.Text = string.Empty;
-
-    }
-
-    private Dictionary<int, int> _cartDictItemToRow = new Dictionary<int, int>();
-    private Dictionary<int, Product> _cartDictRowToItem = new Dictionary<int, Product>();
-    public void UpdateDataGridViewCart(Product product, int quantity)
-    {
-      if (InvokeRequired)
-      {
-        this.BeginInvoke(new DelegateUtility.TwoValueHandler<Product, int>(UpdateDataGridViewCart), product, quantity);
-        return;
-      }
-      if (_cartDictItemToRow.ContainsKey(product.Id))
-      {
-        _isUpdatingItemQuantity = true;
-        dataGridViewCart.Rows[_cartDictItemToRow[product.Id]].Visible = quantity > 0;
-        dataGridViewCart.Rows[_cartDictItemToRow[product.Id]].Cells["CartItemQuantity"].Value = quantity;
-        dataGridViewCart.Rows[_cartDictItemToRow[product.Id]].Cells["CartItemSubtotal"].Value = (quantity * product.NetPrice).ToString(Constant.DISPLAY_CURRENCY);
-        _isUpdatingItemQuantity = false;
-      }
-      else
-      {
-        int rowId = dataGridViewCart.Rows.Add(product.Code, product.Name, quantity, product.Price.ToString(Constant.DISPLAY_CURRENCY), product.DiscountAmount.ToString(Constant.DISPLAY_CURRENCY), (quantity * (product.Price - product.DiscountAmount)).ToString(Constant.DISPLAY_CURRENCY));
-        _cartDictItemToRow.Add(product.Id, rowId);
-        _cartDictRowToItem.Add(rowId, product);
-      }
-    }
-    public void UpdateTotal(decimal total)
-    {
-      if (InvokeRequired)
-      {
-        this.BeginInvoke(new DelegateUtility.OneValueHandler<decimal>(UpdateTotal), total);
-        return;
-      }
-      textBoxTotal.Text = total.ToString(Constant.DISPLAY_CURRENCY);
-    }
-
-    private bool _isUpdatingItemQuantity;
-    private void dataGridViewCart_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-    {
-      if (e.RowIndex < 0 || e.ColumnIndex < 0)
-        return;
-      if (e.ColumnIndex == dataGridViewCart.Columns["CartItemQuantity"].Index)
-      {
-        if (_isUpdatingItemQuantity)
-          return;
-        object value = dataGridViewCart.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
-        string stringValue = value as string;
-        int intValue = string.IsNullOrEmpty(stringValue) ? (int)value : int.Parse(stringValue);
-        Product product = _cartDictRowToItem[e.RowIndex];
-        controller.UpdateCart(product, intValue);
-      }
-    }
-
-    private void OnProductMasterActivated()
-    {
+      tabControlPage.SelectedTab = tabPageProductMaster;
       currentPage = DisplayPage.MasterProduct;
-      OnEditMasterItem(false);
+      masterProductPage1.Reset();
     }
 
-    private void OnUserMasterActivated()
+    public void LoadUserMasterPage()
     {
+      if (InvokeRequired)
+      {
+        this.BeginInvoke(new DelegateUtility.VoidHandler(LoadUserMasterPage));
+        return;
+      }
+      tabControlPage.SelectedTab = tabPageUserMaster;
       currentPage = DisplayPage.MasterUser;
-      OnEditMasterUser(false);
+      masterUserPage1.Reset();
     }
 
-
-
-    private void dataGridViewMasterItemList_SelectionChanged(object sender, EventArgs e)
-    {
-      DataGridViewSelectedCellCollection selectedCells = dataGridViewMasterItemList.SelectedCells;
-      if (selectedCells.Count > 0)
-      {
-        DataGridViewCell viewCell = selectedCells[0];
-        DataGridViewRow viewRow = dataGridViewMasterItemList.Rows[viewCell.RowIndex];
-        var item = viewRow.DataBoundItem as Product;
-        if (item != null)
-        {
-          UpdateDetailBarang(item);
-        }
-      }
-      else
-      {
-        ClearFieldItemDetail();
-      }
-    }
-
-    private Product _currentProductSelection;
-    private void UpdateDetailBarang(Product product)
-    {
-      if (_currentProductSelection == product)
-        return;
-      _currentProductSelection = product;
-      textBoxDetailItemName.Text = product.Name;
-      textBoxDetailItemCode.Text = product.Code;
-      //checkBoxAutoGenerate.Checked = IsCodeFromName(product.Name, product.Code);
-      textBoxDetailItemBarcode.Text = product.Barcode;
-      textBoxDetailItemPrice.Text = product.Price.ToString("#.##");
-      textBoxDetailItemDiscountAmount.Text = string.Empty;
-      textBoxDetailItemDiscountPercent.Text = string.Empty;
-      if (product.Discount > 0)
-      {
-        textBoxDetailItemDiscountAmount.Text = product.Discount.ToString("#.##"); ;
-      }
-      else if (product.Discount < 0)
-      {
-        textBoxDetailItemDiscountPercent.Text = (-product.Discount).ToString("#.##");
-      }
-      else
-      {
-        radioButtonDiscountAmount.Checked = false;
-        radioButtonDiscountPercent.Checked = false;
-      }
-    }
-
-    private bool IsCodeFromName(string name, string code)
-    {
-      string prefix = GeneratePrefix(name);
-      if(prefix.Length <= code.Length)
-      {
-        int num;
-        string codePrefix = code.Substring(0, prefix.Length);
-        string numeric = code.Substring(prefix.Length, code.Length - prefix.Length);
-        if (codePrefix == prefix && int.TryParse(numeric, out num))
-          return true;
-        else
-          return false;
-      }
-      return code.StartsWith(prefix) || prefix.StartsWith(code);
-    }
-
-    private void buttonAddProduct_Click(object sender, EventArgs e)
-    {
-      if (!isOnProductAddEditMode)
-      {
-        OnEditMasterItem(true);
-        isAddingProduct = true;
-        ClearFieldItemDetail();
-
-        return;
-      }
-    }
-
-    private void ClearFieldItemDetail()
-    {
-      textBoxDetailItemName.Text = string.Empty;
-      textBoxDetailItemCode.Text = string.Empty;
-      //checkBoxAutoGenerate.Checked = true;
-      textBoxDetailItemBarcode.Text = string.Empty;
-      textBoxDetailItemPrice.Text = string.Empty;
-      textBoxDetailItemDiscountPercent.Text = string.Empty;
-      textBoxDetailItemDiscountAmount.Text = string.Empty;
-      radioButtonDiscountAmount.Checked = false;
-      radioButtonDiscountPercent.Checked = false;
-    }
-
-    private void GetItemDetail(out string code, out string barcode, out string name, out decimal price, out decimal discount)
-    {
-      code = textBoxDetailItemCode.Text;
-      barcode = textBoxDetailItemBarcode.Text;
-      name = textBoxDetailItemName.Text;
-      price = decimal.Parse(textBoxDetailItemPrice.Text);
-      discount = 0;
-      if (radioButtonDiscountAmount.Checked && !string.IsNullOrEmpty(textBoxDetailItemDiscountAmount.Text))
-        discount = decimal.Parse(textBoxDetailItemDiscountAmount.Text);
-      if (radioButtonDiscountPercent.Checked && !string.IsNullOrEmpty(textBoxDetailItemDiscountPercent.Text))
-        discount = -decimal.Parse(textBoxDetailItemDiscountPercent.Text);
-    }
-
-    //TODO need to think if we need to move this in the controller level.
-    private string ValidateUniqueItem()
-    {
-      var code = textBoxDetailItemCode.Text;
-      var name = textBoxDetailItemName.Text;
-      var barcode = textBoxDetailItemBarcode.Text;
-      bool codeExist = false, nameExist = false, barcodeExist = false;
-      List<Product> items = controller.GetItems();
-      foreach (Product item in items)
-      {
-        if (_currentProductSelection != null 
-          && item.Code == _currentProductSelection.Code
-          && item.Name == _currentProductSelection.Name
-          && item.Barcode == _currentProductSelection.Barcode
-          )
-          continue;
-        if (item.Code == code)
-        {
-          codeExist = true;
-          break;
-        }
-        if (item.Name == name)
-        {
-          nameExist = true;
-          break;
-        }
-        if (!string.IsNullOrEmpty(item.Barcode) && !string.IsNullOrEmpty(barcode ) && item.Barcode == barcode)
-        {
-          barcodeExist = true;
-          break;
-        }
-      }
-
-      if (barcodeExist)
-        return "Barcode barang sudah ada.";
-      if (codeExist)
-        return "Kode barang sudah ada.";
-      if (nameExist)
-        return "Nama barang sudah ada.";
-
-      return string.Empty;
-    }
-
-    private bool isOnProductAddEditMode = false;
-    private bool isUpdatingProduct = false;
-    private bool isAddingProduct = false;
-    private void buttonEditProduct_Click(object sender, EventArgs e)
-    {
-      if (!isOnProductAddEditMode)
-      {
-        OnEditMasterItem(true);
-        isUpdatingProduct = true;
-        return;
-      }
-    }
-
-    private void OnEditMasterItem(bool edit)
-    {
-      isOnProductAddEditMode = edit;
-      buttonAdd.Visible = !edit;
-      buttonUpdate.Visible = !edit;
-      buttonDelete.Visible = !edit;
-      buttonOkEdit.Visible = edit;
-      buttonCancelEdit.Visible = edit;
-      textBoxDetailItemName.Enabled = edit;
-      textBoxDetailItemCode.Enabled = edit;
-      //checkBoxAutoGenerate.Enabled = edit;
-      textBoxDetailItemBarcode.Enabled = edit;
-      textBoxDetailItemPrice.Enabled = edit;
-      radioButtonDiscountAmount.Enabled = edit;
-      radioButtonDiscountPercent.Enabled = edit;
-      textBoxDetailItemDiscountPercent.Enabled = edit && radioButtonDiscountPercent.Checked;
-      textBoxDetailItemDiscountAmount.Enabled = edit && radioButtonDiscountAmount.Checked;
-      dataGridViewMasterItemList.Enabled = !edit;
-      dataGridViewMasterItemList.ForeColor = edit ? Color.Gray : Color.Black;
-
-      if (!edit) //on edit item done
-      {
-        List<Product> items = controller.GetItems();
-        dataGridViewMasterItemList.DataSource = null;
-        dataGridViewMasterItemList.DataSource = items;
-      }
-    }
-
-    private string ValidateDetailItemInput()
-    {
-      StringBuilder sb = new StringBuilder();
-      sb.AppendLine(string.IsNullOrEmpty(textBoxDetailItemCode.Text) ?  "Harap isi kode barang" : string.Empty);
-      sb.AppendLine(string.IsNullOrEmpty(textBoxDetailItemName.Text) ?  "Harap isi nama barang": string.Empty);
-      sb.AppendLine(ValidateInput(textBoxDetailItemPrice, "Harga tidak valid"));
-      if (radioButtonDiscountAmount.Checked && !string.IsNullOrEmpty(textBoxDetailItemDiscountAmount.Text))
-        sb.AppendLine(ValidateInput(textBoxDetailItemDiscountAmount, "Nilai diskon rupiah tidak valid"));
-      if (radioButtonDiscountPercent.Checked && !string.IsNullOrEmpty(textBoxDetailItemDiscountPercent.Text))
-        sb.AppendLine(ValidateInput(textBoxDetailItemDiscountPercent, "Nilai diskon persent tidak valid"));
-      sb.AppendLine(ValidateUniqueItem());
-      return sb.ToString().Trim();
-    }
-
-    private void buttonDeleteProduct_Click(object sender, EventArgs e)
-    {
-      if (_currentProductSelection != null)
-      {
-        DialogResult dr = MessageBox.Show(
-          string.Format("Apakah anda benar ingin menghapus Product {0}", _currentProductSelection.Name),
-          "Konfirmasi Hapus",
-          MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
-        if(dr == DialogResult.OK)
-        {
-          controller.RemoveItem(_currentProductSelection);
-          OnEditMasterItem(false);
-        }
-      }
-    }
-
-    private void textBoxPayment_KeyUp(object sender, KeyEventArgs e)
-    {
-      RecalculateChanges();
-      //if ((e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9) ||
-      //    (e.KeyCode >= Keys.NumPad0 && e.KeyCode <= Keys.NumPad9) ||
-      //    e.KeyCode == Keys.Decimal)
-      //{
-      //}
-    }
-
-    private void RecalculateChanges()
-    {
-      if (string.IsNullOrEmpty(textBoxPayment.Text))
-      {
-        textBoxPayment.Text = "0";
-        textBoxPayment.SelectAll();
-      }
-      string payment = textBoxPayment.Text;
-      decimal paid;
-      if (decimal.TryParse(payment, out paid))
-      {
-        decimal total;
-        if (decimal.TryParse(textBoxTotal.Text, out total))
-          textBoxChanges.Text = (paid - total).ToString(Constant.DISPLAY_CURRENCY);
-      }
-    }
-
-    private void textBoxTotal_TextChanged(object sender, EventArgs e)
-    {
-      //string payment = textBoxPayment.Text;
-      //decimal paid;
-      //if (decimal.TryParse(payment, out paid))
-      //{
-      //  decimal total;
-      //  if (decimal.TryParse(textBoxTotal.Text, out total))
-      //    if (paid < total)
-      //    {
-      //      textBoxPayment.Text = total.ToString();
-      //      RecalculateChanges();
-      //    }
-      //}
-    }
-
-    private void textBoxPayment_Click(object sender, EventArgs e)
-    {
-      textBoxPayment.SelectAll();
-    }
-
-    private void radioButtonDiscount_CheckedChanged(object sender, EventArgs e)
-    {
-      if (radioButtonDiscountAmount.Enabled)
-        textBoxDetailItemDiscountAmount.Enabled = radioButtonDiscountAmount.Checked;
-      if (radioButtonDiscountPercent.Enabled)
-        textBoxDetailItemDiscountPercent.Enabled = radioButtonDiscountPercent.Checked;
-    }
-
-    private void buttonOkEdit_Click(object sender, EventArgs e)
-    {
-      string errorMsg = ValidateDetailItemInput();
-      if (!string.IsNullOrEmpty(errorMsg))
-      {
-        MessageBox.Show(errorMsg);
-        return;
-      }
-
-      string code;
-      string name;
-      decimal price;
-      decimal discount;
-      string barcode;
-      GetItemDetail(out code, out barcode, out name, out price, out discount);
-      if (isUpdatingProduct)
-      {
-        controller.UpdateItem(_currentProductSelection, code, barcode, name, price, discount);
-        isUpdatingProduct = false;
-      }
-      else if (isAddingProduct)
-      {
-        controller.AddItem(code, barcode, name, price, discount);
-        isAddingProduct = false;
-      }
-      OnEditMasterItem(false);
-    }
-
-    private void buttonCancelEdit_Click(object sender, EventArgs e)
-    {
-      OnEditMasterItem(false);
-      _currentProductSelection = null;
-      DataGridViewSelectedCellCollection selectedCells = dataGridViewMasterItemList.SelectedCells;
-      if (selectedCells.Count > 0)
-      {
-        DataGridViewCell viewCell = selectedCells[0];
-        DataGridViewRow viewRow = dataGridViewMasterItemList.Rows[viewCell.RowIndex];
-        var item = viewRow.DataBoundItem as Product;
-        if (item != null)
-        {
-          UpdateDetailBarang(item);
-        }
-      }
-
-    }
 
     public void UpdateActiveUser(string name)
     {
@@ -644,7 +114,7 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.OneValueHandler<string>(UpdateActiveUser), name);
         return;
       }
-      toolStripStatusLabelActiveUser.Text = string.Format("ActiveUser={0}", string.IsNullOrEmpty(name) ? "<Unknown>" : name);
+      toolStripStatusLabelActiveUser.Text = string.Format("ActiveUser={0}", string.IsNullOrEmpty(name) ? "<None>" : name);
     }
 
     public void EnableMenu(int role)
@@ -654,88 +124,9 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.OneValueHandler<int>(EnableMenu), role);
         return;
       }
-      transaksiToolStripMenuItem.Visible = AllowedRole(role, MenuAccess.Cashier);
-      editToolStripMenuItem.Visible = AllowedRole(role, MenuAccess.Master);
-      laporanToolStripMenuItem.Visible = AllowedRole(role, MenuAccess.Admin);
-    }
-
-    private bool AllowedRole(int role, MenuAccess access)
-    {
-      return (((MenuAccess)role & access) == access);
-    }
-
-    private void buttonSave_Click(object sender, EventArgs e)
-    {
-    }
-
-    private void textBoxFilter_KeyUp(object sender, KeyEventArgs e)
-    {
-      bool byBarcode;
-      Product theOnlyProduct = FilterItemView(textBoxFilter.Text.Trim(), out byBarcode);
-      //Comment here if barcode needed to be keypress
-      if (theOnlyProduct != null && e.KeyData == Keys.Enter)
-      {
-        AddToCart(theOnlyProduct);
-        if (byBarcode) //clear filter search
-        {
-          textBoxFilter.Text = string.Empty;
-          FilterItemView(string.Empty, out byBarcode);
-        }
-      }
-      e.Handled = true;
-    }
-    private void textBoxFilter_KeyPress(object sender, KeyPressEventArgs e)
-    {
-      //if (e.KeyChar == (char)'\r')
-      //{
-      //  bool byBarcode;
-      //  Product theOnlyProduct = FilterItemView(textBoxFilter.Text.Trim(), out byBarcode);
-      //  AddToCart(theOnlyProduct);
-      //  if (byBarcode) //clear filter search
-      //  {
-      //    textBoxFilter.Text = string.Empty;
-      //    FilterItemView(string.Empty, out byBarcode);
-      //  }
-      //}
-    }
-
-
-    private Product FilterItemView(string filter, out bool byBarcode)
-    {
-      int filterCountResult = 0;
-      Product lastProduct = null;
-      byBarcode = false;
-      foreach (KeyValuePair<int, Product> rowIdProduct in _itemDictRowIdToItem)
-      {
-        Product product = rowIdProduct.Value;
-        if (!string.IsNullOrEmpty(filter))
-        {
-          if (!string.IsNullOrEmpty(product.Barcode) && product.Barcode.Equals(filter))
-          {
-            dataGridViewItemList.Rows[rowIdProduct.Key].Visible = true;
-            byBarcode = true;
-            filterCountResult++;
-            lastProduct = product;
-          }
-          else if (product.Name.ToLower().Contains(filter.ToLower())
-                   || product.Code.StartsWith(filter, StringComparison.InvariantCultureIgnoreCase))
-          {
-            dataGridViewItemList.Rows[rowIdProduct.Key].Visible = true;
-            filterCountResult++;
-            lastProduct = product;
-          }
-          else
-            dataGridViewItemList.Rows[rowIdProduct.Key].Visible = false;
-        }
-        else
-          dataGridViewItemList.Rows[rowIdProduct.Key].Visible = true;
-      }
-
-      if(filterCountResult == 1)
-      {
-        return lastProduct;
-      }
-      return null;
+      transaksiToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Cashier);
+      editToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Master);
+      laporanToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Admin);
     }
 
     private void timerDisplayDate_Tick(object sender, EventArgs e)
@@ -743,233 +134,9 @@ namespace InventoryAndSales.GUI
       toolStripStatusCurrentDate.Text = DateTime.Now.ToString("dd MMM yyyy HH:mm:ss");
     }
 
-    private void daftarUserToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-      tabControlPage.SelectedTab = tabPageUserMaster;
-    }
-
     private void laporanTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
     {
       tabControlPage.SelectedTab = tabPageReport;
-      tabControlSummaryReport.TabPages.Clear();
-    }
-
-    private void buttonShowReportSummary_Click(object sender, EventArgs e)
-    {
-      tabControlSummaryReport.TabPages.Clear();
-      tabControlSummaryReport.TabPages.Add(tabPageReportPerCashier);
-      tabControlSummaryReport.TabPages.Add(tabPageReportPerProduct);
-      tabControlSummaryReport.TabPages.Add(tabPageReportPerTransaction);
-      controller.ShowSummaryReport(dateTimePickerStart.Value, dateTimePickerStop.Value);
-      tabControlSummaryReport.SelectedTab = tabPageReportPerCashier;
-      if(checkBox1.Checked)
-      {
-        tabControlSummaryReport.TabPages.Add(tabPageReportDetail);
-        controller.ShowDetailReport(dateTimePickerStart.Value, dateTimePickerStop.Value);
-      }
-    }
-    public void UpdateReportDataGridView(DataTable[] dataTables)
-    {
-      if(InvokeRequired)
-      {
-        this.BeginInvoke(new DelegateUtility.OneValueArrayHandler<DataTable>(UpdateReportDataGridView), dataTables);
-        return;
-      }
-      dataGridViewLaporanProduct.DataSource = dataTables[0];
-      dataGridViewLaporanTransaksi.DataSource = dataTables[1];
-      dataGridViewLaporanKasir.DataSource = dataTables[2];
-    }
-
-    public void UpdateReportDetailDataGridView(DataTable dataTable)
-    {
-      if(InvokeRequired)
-      {
-        this.BeginInvoke(new DelegateUtility.OneValueArrayHandler<DataTable>(UpdateReportDataGridView), dataTable);
-        return;
-      }
-      dataGridViewLaporanDetail.DataSource = dataTable;
-    }
-
-
-    private bool isOnAddEditUser = false;
-    private bool isUpdatingUser = false;
-    private bool isAddingUser = false;
-
-    private void OnEditMasterUser(bool edit)
-    {
-      isOnAddEditUser = edit;
-      buttonAddUserMaster.Visible = !edit;
-      buttonEditUserMaster.Visible = !edit;
-      buttonDeleteUserMaster.Visible = !edit;
-      buttonOkUserMaster.Visible = edit;
-      buttonCancelUserMaster.Visible = edit;
-      textBoxUsernameMaster.Enabled = edit;
-      textBoxNameMaster.Enabled = edit;
-      textBoxPasswordMaster.Enabled = edit;
-      textBoxRePasswordMaster.Enabled = edit;
-      comboBoxRoleMaster.Enabled = edit;
-
-      dataGridViewUserMaster.Enabled = !edit;
-      dataGridViewUserMaster.ForeColor = edit ? Color.Gray : Color.Black;
-
-      if (!edit)
-      {
-        List<User> users = controller.GetUsers();
-        dataGridViewUserMaster.DataSource = null;
-        dataGridViewUserMaster.DataSource = users;
-      }
-    }
-
-
-
-    private string ValidateDetailUser()
-    {
-      StringBuilder sb = new StringBuilder();
-      sb.AppendLine(string.IsNullOrEmpty(textBoxUsernameMaster.Text) ? "Harap isi username" : string.Empty);
-      sb.AppendLine(string.IsNullOrEmpty(textBoxNameMaster.Text) ? "Harap isi nama user" : string.Empty);
-      sb.AppendLine(string.IsNullOrEmpty(textBoxPasswordMaster.Text) ? "Harap isi password" : string.Empty);
-      sb.AppendLine(string.IsNullOrEmpty(textBoxRePasswordMaster.Text) ? "Harap isi re-password " : string.Empty);
-      sb.AppendLine(textBoxPasswordMaster.Text != textBoxRePasswordMaster.Text ? "Password tidak sesuai dengan re-password" : string.Empty);
-      return sb.ToString().Trim();
-    }
-
-
-    private User _currentUserSelection;
-    private void buttonOkUserMaster_Click(object sender, EventArgs e)
-    {
-      string errorMsg = ValidateDetailUser();
-      if (!string.IsNullOrEmpty(errorMsg))
-      {
-        MessageBox.Show(errorMsg);
-        return;
-      }
-
-      string username;
-      string name;
-      string password;
-      int role;
-      GetUserDetail(out username, out name, out password, out role);
-      if (isUpdatingUser)
-      {
-        controller.UpdateUser(_currentUserSelection, username, name, password, role);
-        isUpdatingUser = false;
-      }
-      else if (isAddingUser)
-      {
-        controller.AddUser(username, name, password, role);
-        isAddingUser = false;
-      }
-      OnEditMasterUser(false);
-    }
-
-    private void GetUserDetail(out string username, out string name, out string password, out int role)
-    {
-      username = textBoxUsernameMaster.Text;
-      name = textBoxNameMaster.Text;
-      password = textBoxPasswordMaster.Text;
-      RoleOptions selectedRole = (RoleOptions)comboBoxRoleMaster.SelectedValue;
-      role = (int) selectedRole;
-    }
-
-    private void buttonCancelUserMaster_Click(object sender, EventArgs e)
-    {
-      OnEditMasterUser(false);
-      _currentUserSelection = null;
-      DataGridViewSelectedCellCollection selectedCells = dataGridViewUserMaster.SelectedCells;
-      if (selectedCells.Count > 0)
-      {
-        DataGridViewCell viewCell = selectedCells[0];
-        DataGridViewRow viewRow = dataGridViewUserMaster.Rows[viewCell.RowIndex];
-        var user = viewRow.DataBoundItem as User;
-        if (user != null)
-        {
-          UpdateDetailUser(user);
-        }
-      }
-    }
-
-    private void UpdateDetailUser(User user)
-    {
-      if (_currentUserSelection == user)
-        return;
-      _currentUserSelection = user;
-      textBoxUsernameMaster.Text = user.Username;
-      string password = user.Password;
-      if (!string.IsNullOrEmpty(password) && password.Length > 8) 
-      {
-        password = password.Substring(0, 8);
-      }
-      textBoxPasswordMaster.Text = password;
-      textBoxRePasswordMaster.Text = password;
-      textBoxNameMaster.Text = user.Name;
-      comboBoxRoleMaster.SelectedItem = (RoleOptions) user.Role;
-
-    }
-
-
-    private void buttonAddUserMaster_Click(object sender, EventArgs e)
-    {
-      if (!isOnAddEditUser)
-      {
-        OnEditMasterUser(true);
-        isAddingUser = true;
-        ClearFieldUser();
-        return;
-      }
-    }
-
-    private void ClearFieldUser()
-    {
-      textBoxUsernameMaster.Text = string.Empty;
-      textBoxNameMaster.Text = string.Empty;
-      textBoxPasswordMaster.Text = string.Empty;
-      textBoxRePasswordMaster.Text = string.Empty;
-    }
-
-    private void buttonEditUserMaster_Click(object sender, EventArgs e)
-    {
-      if (!isOnAddEditUser)
-      {
-        OnEditMasterUser(true);
-        isUpdatingUser = true;
-        return;
-      }
-    }
-
-    private void buttonDeleteUserMaster_Click(object sender, EventArgs e)
-    {
-      if (_currentUserSelection != null)
-      {
-        DialogResult dr = MessageBox.Show(
-          string.Format("Apakah anda benar ingin menghapus User {0}", _currentUserSelection.Name),
-          "Konfirmasi Hapus",
-          MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
-        if (dr == DialogResult.OK)
-        {
-          controller.DeleteUser(_currentUserSelection);
-          OnEditMasterUser(false);
-        }
-      }
-    }
-
-    private void dataGridViewUserMaster_SelectionChanged(object sender, EventArgs e)
-    {
-      DataGridViewSelectedCellCollection selectedCells = dataGridViewUserMaster.SelectedCells;
-      if (selectedCells.Count > 0)
-      {
-        DataGridViewCell viewCell = selectedCells[0];
-        DataGridViewRow viewRow = dataGridViewUserMaster.Rows[viewCell.RowIndex];
-        var user = viewRow.DataBoundItem as User;
-        if (user != null)
-        {
-          UpdateDetailUser(user);
-        }
-      }
-      else
-      {
-        ClearFieldUser();
-      }
-
     }
 
     private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -977,71 +144,11 @@ namespace InventoryAndSales.GUI
       Close();
     }
 
-    private void textBoxDetailItemBarcode_KeyPress(object sender, KeyPressEventArgs e)
-    {
-      //e.Handled = !char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar);
-    }
-
-    //private void checkBoxAutoGenerate_CheckedChanged(object sender, EventArgs e)
-    //{
-    //  textBoxDetailItemCode.Enabled = !checkBoxAutoGenerate.Checked;
-    //  if (checkBoxAutoGenerate.Checked)
-    //  {
-    //    textBoxDetailItemCode.Text = GenerateCode(textBoxDetailItemName.Text);
-    //  }
-    //}
-
-    private string GenerateCode(string name)
-    {
-      string prefix = GeneratePrefix(name);
-      int i = 0;
-      string codeGenerated = prefix;
-      while(i++ < 99999 && prefix.Length < 5)
-      {
-        codeGenerated = prefix + i.ToString().PadLeft(5-prefix.Length, '0');
-        //check if exitst
-        bool exists = _itemDictRowIdToItem.Values.Any(product => product.Code.Equals(codeGenerated, StringComparison.InvariantCultureIgnoreCase));
-        if(!exists) break;
-      }
-      return codeGenerated;
-    }
-
-    private string GeneratePrefix(string name)
-    {
-      string[] names = name.Split(' ');
-      string prefix = string.Empty;
-      foreach (string n in names)
-      {
-        string trim = n.Trim();
-        if (trim.Length > 0 && char.IsLetter(trim[0]))
-          prefix += trim[0];
-      }
-      return prefix.ToUpper();
-    }
-
-    private void textBoxPayment_KeyPress(object sender, KeyPressEventArgs e)
-    {
-      e.Handled = !char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar);
-    }
-
-    private void buttonGenerateCode_Click(object sender, EventArgs e)
-    {
-      textBoxDetailItemCode.Text = GenerateCode(textBoxDetailItemName.Text);
-    }
-
     private void printUlangTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      ReprintReceipt rr = new ReprintReceipt();
-      rr.ShowDialog(this);
-      if (rr.IsPrintPressed)
+      if (!controller.PrintReceipt())
       {
-        if (string.IsNullOrEmpty(rr.FacturNumber))
-          MessageBox.Show("No Faktur kosong");
-        else
-          if(!controller.PrintReceipt(rr.FacturNumber))
-          {
-            MessageBox.Show("No Faktur tidak ditemukan");
-          }
+        MessageBox.Show("No Faktur tidak ditemukan");
       }
     }
 
@@ -1058,14 +165,24 @@ namespace InventoryAndSales.GUI
         Keys keyCode = e.KeyCode;
         switch( keyCode )
         {
-          case Keys.F5: textBoxFilter.Focus();
+          case Keys.F5:
+            cashierPage1.FocusFilter();
             break;
-          case Keys.F6: textBoxPayment.Focus();
+          case Keys.F6:
+            cashierPage1.FocusPayment();
             break;
-          case Keys.F7: buttonCheckout.PerformClick();
+          case Keys.F7:
+            cashierPage1.FocusCheckout();
             break;
         }
       }
+    }
+
+    private void ubahTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      controller.RequestUpdateTransaction();
+      LoadCashierPage();
+
     }
   }
 

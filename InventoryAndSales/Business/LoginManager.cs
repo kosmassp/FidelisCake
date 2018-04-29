@@ -20,17 +20,27 @@ namespace InventoryAndSales.Business
     public User ActiveUser { get; private set; }
     public bool Login(string username, string password)
     {
-      string encryptedPass = HashUtility.GetEncryptedPass(password);
-      User user = _userManager.FindUserByUsernamePassword(username, encryptedPass);
-      if( user == null )
-        return false;
+      User user = AuthenticateUsernamePassword(password, username);
       ActiveUser = user;
-      return true;
+      if (OnActiveUserChanged != null)
+        OnActiveUserChanged(this, user);
+      return ActiveUser != null;
     }
+
+    public User AuthenticateUsernamePassword(string password, string username)
+    {
+      string encryptedPass = HashUtility.GetEncryptedPass(password);
+      return _userManager.FindUserByUsernamePassword(username, encryptedPass);
+    }
+
+    public delegate void OnActiveUserDelegate (object sender, User args);
+    public event OnActiveUserDelegate OnActiveUserChanged;
 
     public void Logout()
     {
       ActiveUser = null;
     }
-  }
-}
+
+} }
+
+ 

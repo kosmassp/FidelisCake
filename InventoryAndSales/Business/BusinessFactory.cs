@@ -13,6 +13,8 @@ namespace InventoryAndSales.Business
 
     public static BusinessFactory GetInstance()
     {
+      if (_instance != null)
+        return _instance;
       lock (InstanceLock)
       {
         if (_instance == null)
@@ -25,13 +27,15 @@ namespace InventoryAndSales.Business
     public LoginManager LoginManager { get; private set; }
     public MasterManager MasterManager { get; private set; }
     public ReportManager ReportManager { get; private set; }
+    public ViewManager ViewManager { get; private set; }
     private BusinessFactory()
     {
       DBFactory dbFactory = DBFactory.GetInstance();
-      CashierManager = new CashierManager(dbFactory.TransactionManager);
+      CashierManager = new CashierManager(dbFactory.TransactionManager, dbFactory.UserManager);
       LoginManager = new LoginManager(dbFactory.UserManager);
       MasterManager = new MasterManager(dbFactory.ProductManager, dbFactory.UserManager);
       ReportManager = new ReportManager(dbFactory.CustomManager);
+      ViewManager = new ViewManager(dbFactory.CustomManager);
     }
   }
 }

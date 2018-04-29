@@ -23,6 +23,8 @@ namespace InventoryAndSales.Database.Model
 
     public void UpdateQuantity(int quantity)
     {
+      if (quantity < 0)
+        quantity = 0;
       Quantity = quantity;
       SubtotalDiscount = ProductDiscount * quantity;
       SubtotalPrice = ProductPrice * quantity;

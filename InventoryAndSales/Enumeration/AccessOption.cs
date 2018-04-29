@@ -3,7 +3,7 @@
 namespace InventoryAndSales.Enumeration
 {
   [Flags]
-  enum MenuAccess
+  public enum AccessOption
   {
     Admin = 1,
     Cashier = 2,
@@ -14,6 +14,7 @@ namespace InventoryAndSales.Enumeration
   public enum RoleOptions
   {
     Admin = 1023,
-    Cashier = 2,
+    Cashier = AccessOption.Cashier,
+    Supervisor = AccessOption.Cashier | AccessOption.Master | AccessOption.Laporan,
   }
 }

@@ -28,6 +28,12 @@ namespace InventoryAndSales.Database.Manager
       return ConvertToList(returnList);
     }
 
+    public List<Dictionary<string, string>> GetTransaction(DateTime start, DateTime stop)
+    {
+      List<CustomQuery> returnList = _customDao.GetTransaction(start, stop);
+      return ConvertToList(returnList);
+    }
+
     public List<Dictionary<string, string>> GetDetailReport(DateTime start, DateTime stop)
     {
       List<CustomQuery> returnList = _customDao.GetReportDetailByTime(start, stop);
