@@ -120,6 +120,11 @@ namespace InventoryAndSales.GUI.Page
     {
       OnEditMasterItem(false);
       _currentProductSelection = null;
+      UpdateSelectedProduct();
+    }
+
+    private void UpdateSelectedProduct()
+    {
       DataGridViewSelectedCellCollection selectedCells = dataGridViewMasterItemList.SelectedCells;
       if (selectedCells.Count > 0)
       {
@@ -131,7 +136,6 @@ namespace InventoryAndSales.GUI.Page
           UpdateDetailBarang(item);
         }
       }
-
     }
 
 
@@ -239,6 +243,7 @@ namespace InventoryAndSales.GUI.Page
     {
       if (!isOnProductAddEditMode)
       {
+        UpdateSelectedProduct();
         OnEditMasterItem(true);
         isUpdatingProduct = true;
         return;
@@ -340,6 +345,11 @@ namespace InventoryAndSales.GUI.Page
         radioButtonDiscountAmount.Checked = false;
         radioButtonDiscountPercent.Checked = false;
       }
+    }
+
+    private void dataGridViewMasterItemList_Click(object sender, EventArgs e)
+    {
+      UpdateSelectedProduct();
     }
 
   }

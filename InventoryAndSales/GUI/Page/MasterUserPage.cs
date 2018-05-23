@@ -68,6 +68,11 @@ namespace InventoryAndSales.GUI.Page
     {
       OnEditMasterUser(false);
       _currentUserSelection = null;
+      UpdateSelectedUser();
+    }
+
+    private void UpdateSelectedUser()
+    {
       DataGridViewSelectedCellCollection selectedCells = dataGridViewUserMaster.SelectedCells;
       if (selectedCells.Count > 0)
       {
@@ -123,6 +128,7 @@ namespace InventoryAndSales.GUI.Page
     {
       if (!isOnAddEditUser)
       {
+        UpdateSelectedUser();
         OnEditMasterUser(true);
         isUpdatingUser = true;
         return;
@@ -206,6 +212,11 @@ namespace InventoryAndSales.GUI.Page
       sb.AppendLine(string.IsNullOrEmpty(textBoxRePasswordMaster.Text) ? "Harap isi re-password " : string.Empty);
       sb.AppendLine(textBoxPasswordMaster.Text != textBoxRePasswordMaster.Text ? "Password tidak sesuai dengan re-password" : string.Empty);
       return sb.ToString().Trim();
+    }
+
+    private void dataGridViewUserMaster_Click(object sender, EventArgs e)
+    {
+      UpdateSelectedUser();
     }
   }
 }

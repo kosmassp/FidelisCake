@@ -335,6 +335,7 @@
       this.dataGridViewMasterItemList.RowHeadersVisible = false;
       this.dataGridViewMasterItemList.Size = new System.Drawing.Size(505, 606);
       this.dataGridViewMasterItemList.TabIndex = 9;
+      this.dataGridViewMasterItemList.Click += new System.EventHandler(this.dataGridViewMasterItemList_Click);
       // 
       // buttonDelete
       // 

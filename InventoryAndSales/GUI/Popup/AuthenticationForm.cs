@@ -43,12 +43,12 @@ namespace InventoryAndSales.GUI.Popup
         } 
         else
         {
-          labelInvalidAuthentication.Text = string.Format("User tidak bisa punya hak. Gagal ke-{0}", _failed);
+          labelInvalidAuthentication.Text = string.Format("Akses Ditolak", ++_failed);
         }
       } 
       else
       {
-        labelInvalidAuthentication.Text = string.Format("Username/Password tidak sesuai. Gagal ke-{0}", _failed);
+        labelInvalidAuthentication.Text = string.Format("Akses Ditolak.", ++_failed);
       }
     }
 

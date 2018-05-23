@@ -50,6 +50,33 @@ namespace InventoryAndSales.GUI.Page
       }
     }
 
+
+    private void dataGridViewItemList_KeyPress(object sender, KeyPressEventArgs e)
+    {
+      if (e.KeyChar == '+')
+      {
+        var selectedRows = dataGridViewItemList.SelectedRows;
+        if (selectedRows.Count != 1)
+          return;
+        var selectedRow = selectedRows[0];
+        AddToCart(_itemDictRowIdToItem[selectedRow.Index]);
+        if (textBoxFilter.Text.IndexOf('+') >= 0)
+          textBoxFilter.Text = textBoxFilter.Text.Remove(textBoxFilter.Text.IndexOf('+'), 1);
+        //e.Handled = true;
+      }
+      else if (e.KeyChar == '-')
+      {
+        var selectedRows = dataGridViewItemList.SelectedRows;
+        if (selectedRows.Count != 1)
+          return;
+        var selectedRow = selectedRows[0];
+        RemoveFromCart(_itemDictRowIdToItem[selectedRow.Index]);
+        if (textBoxFilter.Text.IndexOf('-') >= 0)
+          textBoxFilter.Text = textBoxFilter.Text.Remove(textBoxFilter.Text.IndexOf('-'), 1);
+        //e.Handled = true;
+      }
+    }
+
     private void textBoxFilter_KeyPress(object sender, KeyPressEventArgs e)
     {
       if (e.KeyChar == '+')
@@ -61,7 +88,7 @@ namespace InventoryAndSales.GUI.Page
         AddToCart(_itemDictRowIdToItem[selectedRow.Index]);
         if (textBoxFilter.Text.IndexOf('+') >=0 )
           textBoxFilter.Text = textBoxFilter.Text.Remove(textBoxFilter.Text.IndexOf('+'), 1);
-        e.Handled = true;
+        //e.Handled = true;
       }
       else if (e.KeyChar == '-')
       {
@@ -72,13 +99,25 @@ namespace InventoryAndSales.GUI.Page
         RemoveFromCart(_itemDictRowIdToItem[selectedRow.Index]);
         if (textBoxFilter.Text.IndexOf('-') >= 0)
           textBoxFilter.Text = textBoxFilter.Text.Remove(textBoxFilter.Text.IndexOf('-'), 1);
-        e.Handled = true;
+        //e.Handled = true;
       }
     }
 
     private void textBoxFilter_KeyUp(object sender, KeyEventArgs e)
     {
       bool byBarcode;
+      if (textBoxFilter.Text.IndexOf('+') >= 0)
+      {
+        textBoxFilter.Text = textBoxFilter.Text.Remove(textBoxFilter.Text.IndexOf('+'), 1);
+        e.Handled = false;
+        return;
+      }
+      if (textBoxFilter.Text.IndexOf('-') >= 0)
+      {
+        textBoxFilter.Text = textBoxFilter.Text.Remove(textBoxFilter.Text.IndexOf('-'), 1);
+        e.Handled = false;
+        return;
+      }
       //if (e.KeyData == Keys.Add || e.KeyCode == Keys.Add)
       //{
       //  var selectedRows = dataGridViewItemList.SelectedRows;
@@ -86,7 +125,6 @@ namespace InventoryAndSales.GUI.Page
       //    return;
       //  var selectedRow = selectedRows[0];
       //  AddToCart(_itemDictRowIdToItem[selectedRow.Index]);
-      //  textBoxFilter.Text = textBoxFilter.Text.Remove(textBoxFilter.Text.IndexOf('+'),1);
       //}
       //else 
         if (e.KeyData == Keys.Down)
@@ -113,8 +151,8 @@ namespace InventoryAndSales.GUI.Page
             textBoxFilter.Text = string.Empty;
             FilterItemView(string.Empty, out byBarcode);
           }
+          e.Handled = true;
         }
-        e.Handled = true;
       }
     }
 
@@ -180,8 +218,10 @@ namespace InventoryAndSales.GUI.Page
       Product lastProduct = null;
       byBarcode = false;
       int selectedIndex = -1;
+      bool flagChange = false;
       foreach (KeyValuePair<int, Product> rowIdProduct in _itemDictRowIdToItem)
       {
+        bool lastState = dataGridViewItemList.Rows[rowIdProduct.Key].Visible;
         Product product = rowIdProduct.Value;
         if (!string.IsNullOrEmpty(filter))
         {
@@ -212,9 +252,11 @@ namespace InventoryAndSales.GUI.Page
           if (selectedIndex < 0)
             selectedIndex = rowIdProduct.Key;
         }
+        if (!flagChange && lastState != dataGridViewItemList.Rows[rowIdProduct.Key].Visible)
+          flagChange = true;
       }
 
-      if (selectedIndex >= 0)
+      if (selectedIndex >= 0 && flagChange)
       {
         dataGridViewItemList.ClearSelection();
         dataGridViewItemList.Rows[selectedIndex].Selected = true;
@@ -422,5 +464,6 @@ namespace InventoryAndSales.GUI.Page
     {
       textBoxPayment.SelectAll();
     }
+
   }
 }

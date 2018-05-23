@@ -28,10 +28,10 @@
     /// </summary>
     private void InitializeComponent()
     {
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+      System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
       this.groupBoxCart = new System.Windows.Forms.GroupBox();
       this.dataGridViewCart = new System.Windows.Forms.DataGridView();
       this.CartItemCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -129,8 +129,8 @@
       // 
       // CartItemPrice
       // 
-      dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemPrice.DefaultCellStyle = dataGridViewCellStyle9;
+      dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemPrice.DefaultCellStyle = dataGridViewCellStyle1;
       this.CartItemPrice.FillWeight = 120F;
       this.CartItemPrice.HeaderText = "Harga Barang";
       this.CartItemPrice.Name = "CartItemPrice";
@@ -140,8 +140,8 @@
       // 
       // CartItemDiscount
       // 
-      dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemDiscount.DefaultCellStyle = dataGridViewCellStyle10;
+      dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemDiscount.DefaultCellStyle = dataGridViewCellStyle2;
       this.CartItemDiscount.FillWeight = 120F;
       this.CartItemDiscount.HeaderText = "Diskon";
       this.CartItemDiscount.Name = "CartItemDiscount";
@@ -151,8 +151,8 @@
       // 
       // CartItemSubtotal
       // 
-      dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.CartItemSubtotal.DefaultCellStyle = dataGridViewCellStyle11;
+      dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.CartItemSubtotal.DefaultCellStyle = dataGridViewCellStyle3;
       this.CartItemSubtotal.FillWeight = 120F;
       this.CartItemSubtotal.HeaderText = "Total";
       this.CartItemSubtotal.Name = "CartItemSubtotal";
@@ -317,6 +317,7 @@
       this.dataGridViewItemList.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
       this.dataGridViewItemList.Size = new System.Drawing.Size(417, 444);
       this.dataGridViewItemList.TabIndex = 1;
+      this.dataGridViewItemList.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.dataGridViewItemList_KeyPress);
       this.dataGridViewItemList.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewItemList_CellContentClick);
       // 
       // ItemCode
@@ -337,8 +338,8 @@
       // 
       // ItemPrice
       // 
-      dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-      this.ItemPrice.DefaultCellStyle = dataGridViewCellStyle12;
+      dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+      this.ItemPrice.DefaultCellStyle = dataGridViewCellStyle4;
       this.ItemPrice.FillWeight = 20F;
       this.ItemPrice.HeaderText = "Harga";
       this.ItemPrice.Name = "ItemPrice";

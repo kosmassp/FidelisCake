@@ -190,6 +190,7 @@
       this.dataGridViewUserMaster.Size = new System.Drawing.Size(488, 617);
       this.dataGridViewUserMaster.TabIndex = 18;
       this.dataGridViewUserMaster.SelectionChanged += new System.EventHandler(this.dataGridViewUserMaster_SelectionChanged);
+      this.dataGridViewUserMaster.Click += new System.EventHandler(this.dataGridViewUserMaster_Click);
       // 
       // buttonDeleteUserMaster
       // 
