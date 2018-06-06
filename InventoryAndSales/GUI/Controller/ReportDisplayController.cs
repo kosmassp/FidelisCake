@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using InventoryAndSales.Business;
 using InventoryAndSales.GUI.Page;
+using SimpleCommon.UI;
 
 namespace InventoryAndSales.GUI.Controller
 {
@@ -46,6 +47,20 @@ namespace InventoryAndSales.GUI.Controller
     }
 
 
+    public void ShowSummaryReportInHtml( DateTime start, DateTime stop )
+    {
+      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetReportSummaryByCashier( start, stop );
+      if( reportSummaryByCashier.Count > 0 )
+      {
+        HtmlTable table = new HtmlTable(reportSummaryByCashier[ 0 ].Keys.ToArray());
+        string x = table.GetHeaderTable();
+        foreach( Dictionary<string, string> dictionary in reportSummaryByCashier )
+        {
+          string y = table.GenerateTableRow(dictionary.Values.ToArray());
+        }
+        string z = table.GetFooterTable();
+      }
 
+    }
   }
 }

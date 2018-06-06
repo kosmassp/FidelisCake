@@ -45,6 +45,7 @@ namespace InventoryAndSales.GUI.Page
       dataGridViewLaporanProduct.DataSource = dataTables[0];
       dataGridViewLaporanTransaksi.DataSource = dataTables[1];
       dataGridViewLaporanKasir.DataSource = dataTables[2];
+      HtmlDocument      
     }
 
     public void UpdateReportDetailDataGridView(DataTable dataTable)
@@ -55,6 +56,11 @@ namespace InventoryAndSales.GUI.Page
         return;
       }
       dataGridViewLaporanDetail.DataSource = dataTable;
+    }
+
+    private void buttonReportHtml_Click( object sender, EventArgs e )
+    {
+      controller.ShowSummaryReportInHtml( dateTimePickerStart.Value, dateTimePickerStop.Value );
     }
   }
 }

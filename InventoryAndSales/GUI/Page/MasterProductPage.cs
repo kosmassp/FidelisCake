@@ -27,17 +27,22 @@ namespace InventoryAndSales.GUI.Page
       OnEditMasterItem(false);
     }
 
-    private Dictionary<int, Product> _itemDictRowIdToItem = new Dictionary<int, Product>();
     private string GenerateCode(string name)
     {
       string prefix = GeneratePrefix(name);
       int i = 0;
+      HashSet<string> _existingCode = new HashSet<string>();
+      List<Product> items = controller.GetItems();
+      foreach( Product item in items )
+      {
+        _existingCode.Add(item.Code);
+      }
       string codeGenerated = prefix;
       while (i++ < 99999 && prefix.Length < 5)
       {
         codeGenerated = prefix + i.ToString().PadLeft(5 - prefix.Length, '0');
         //check if exitst
-        bool exists = _itemDictRowIdToItem.Values.Any(product => product.Code.Equals(codeGenerated, StringComparison.InvariantCultureIgnoreCase));
+        bool exists = _existingCode.Contains( codeGenerated );
         if (!exists) break;
       }
       return codeGenerated;

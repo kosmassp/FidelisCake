@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{C01708AA-56CE-4E10-9396-1A829C8378A6}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -164,6 +164,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="GUI\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -185,6 +186,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Utility\HtmlReportGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SimpleCommon\SimpleCommon.csproj">
@@ -195,33 +197,43 @@
   <ItemGroup>
     <EmbeddedResource Include="GUI\Page\TransactionUpdatePage.resx">
       <DependentUpon>TransactionUpdatePage.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Popup\AuthenticationForm.resx">
       <DependentUpon>AuthenticationForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Popup\TransactionHistory.resx">
       <DependentUpon>TransactionHistory.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Page\CashierPage.resx">
       <DependentUpon>CashierPage.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Page\LoginPage.resx">
       <DependentUpon>LoginPage.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Page\MasterUserPage.resx">
       <DependentUpon>MasterUserPage.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Page\MasterProductPage.resx">
       <DependentUpon>MasterProductPage.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Page\ReportDisplayPage.resx">
       <DependentUpon>ReportDisplayPage.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Popup\ReprintReceipt.resx">
       <DependentUpon>ReprintReceipt.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Popup\TransactionUpdateForm.resx">
       <DependentUpon>TransactionUpdateForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Icon\Add.png" />
     <EmbeddedResource Include="Icon\Edit.png" />

@@ -10,7 +10,77 @@ namespace InventoryAndSales.Database
   {
     public static void CheckForUpdate()
     {
+      //CheckTable();
       UpdateTableTransaction();
+    }
+
+    private static void CheckTable()
+    {
+      //if(CheckIfTableExist()) return;
+      /*
+      StringBuilder sb = new StringBuilder();
+      sb.Append( "  CREATE TABLE [dbo].[M_PRODUCTS](                                                  " );
+      sb.Append( "      [Id] [int] IDENTITY(1,1) NOT NULL,                                            " );
+      sb.Append( "      [Code] [varchar](10) NULL,                                                    " );
+      sb.Append( "      [Name] [varchar](70) NOT NULL,                                                " );
+      sb.Append( "      [Price] [decimal](18, 0) NOT NULL,                                            " );
+      sb.Append( "      [Discount] [decimal](18, 0) NULL,                                             " );
+      sb.Append( "      [Deleted] [bit] NOT NULL CONSTRAINT [DF_M_PRODUCTS_Deleted]  DEFAULT ((0)),   " );
+      sb.Append( "      [Barcode] [varchar](20) NULL                                                  " );
+      sb.Append( "  )                                                                                 " );
+      ExecuteNonQuery(sb.ToString());
+
+      sb = new StringBuilder();
+      sb.Append( "  CREATE TABLE [dbo].[M_USERS](                                                     " );
+      sb.Append( "      [Id] [int] IDENTITY(1,1) NOT NULL,                                            " );
+      sb.Append( "      [Username] [varchar](50) NULL,                                                " );
+      sb.Append( "      [Role] [int] NULL,                                                            " );
+      sb.Append( "      [Deleted] [bit] NOT NULL CONSTRAINT [DF_M_USERS_Deleted]  DEFAULT ((0)),      " );
+      sb.Append( "      [Name] [varchar](50) NULL,                                                    " );
+      sb.Append( "      [Password] [varchar](256) NULL                                                " );
+      sb.Append( "  )                                                                                 " );
+      ExecuteNonQuery( sb.ToString() );
+
+      sb = new StringBuilder();
+      sb.Append( "  CREATE TABLE [dbo].[T_TRANSACTION_DETAILS](                                       " );
+      sb.Append( "      [Id] [bigint] IDENTITY(1,1) NOT NULL,                                         " );
+      sb.Append( "      [ProductId] [int] NULL,                                                       " );
+      sb.Append( "      [Quantity] [int] NULL,                                                        " );
+      sb.Append( "      [ProductDiscount] [decimal](18, 0) NULL,                                      " );
+      sb.Append( "      [ProductPrice] [decimal](18, 0) NULL,                                         " );
+      sb.Append( "      [Subtotal] [decimal](18, 0) NULL,                                             " );
+      sb.Append( "      [TransactionId] [bigint] NULL,                                                " );
+      sb.Append( "      [SubtotalDiscount] [decimal](18, 0) NULL,                                     " );
+      sb.Append( "      [SubtotalPrice] [decimal](18, 0) NULL                                         " );
+      sb.Append( "  )                                                                                 " );
+      ExecuteNonQuery( sb.ToString() );
+
+      sb = new StringBuilder();
+      sb.Append( "  CREATE TABLE [dbo].[T_TRANSACTIONS](                                              " );
+      sb.Append( "      [Id] [bigint] IDENTITY(1,1) NOT NULL,                                         " );
+      sb.Append( "      [TotalPrice] [decimal](18, 0) NULL,                                           " );
+      sb.Append( "      [TotalDiscount] [decimal](18, 0) NULL,                                        " );
+      sb.Append( "      [Total] [decimal](18, 0) NULL,                                                " );
+      sb.Append( "      [Notes] [varchar](100) NULL,                                                  " );
+      sb.Append( "      [TransactionTime] [datetime] NULL,                                            " );
+      sb.Append( "      [Payment] [decimal](18, 0) NULL,                                              " );
+      sb.Append( "      [Exchange] [decimal](18, 0) NULL,                                             " );
+      sb.Append( "      [UserId] [int] NULL,                                                          " );
+      sb.Append( "      [Factur] [varchar](18) NULL,                                                  " );
+      sb.Append( "      [CustomerId] [bigint] NULL                                                    " );
+      sb.Append( "  )                                                                                 " );
+      ExecuteNonQuery( sb.ToString() );
+
+      sb = new StringBuilder();
+      sb.Append( "  CREATE TABLE [dbo].[M_CUSTOMERS](                                                 " );
+      sb.Append( "      [Id] [int] IDENTITY(1,1) NOT NULL,                                            " );
+      sb.Append( "      [Name] [varchar](50) NULL,                                                    " );
+      sb.Append( "      [Address] [varchar](50) NULL,                                                 " );
+      sb.Append( "      [Phone] [varchar](50) NULL,                                                   " );
+      sb.Append( "      [Type] [int] NULL                                                             " );
+      sb.Append( "  )                                                                                 " );
+      ExecuteNonQuery( sb.ToString() );
+      */
     }
 
     private static void UpdateTableTransaction()
