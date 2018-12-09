@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using InventoryAndSales.Business;
 using InventoryAndSales.GUI.Page;
+using InventoryAndSales.Utility;
 using SimpleCommon.UI;
 
 namespace InventoryAndSales.GUI.Controller
@@ -50,15 +52,20 @@ namespace InventoryAndSales.GUI.Controller
     public void ShowSummaryReportInHtml( DateTime start, DateTime stop )
     {
       List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetReportSummaryByCashier( start, stop );
+      string filename = string.Format("SBC{0}_{1}.html",start.ToString("yyyyMMdd"),stop.ToString("yyyyMMdd"));
       if( reportSummaryByCashier.Count > 0 )
       {
-        HtmlTable table = new HtmlTable(reportSummaryByCashier[ 0 ].Keys.ToArray());
-        string x = table.GetHeaderTable();
+        string[] headers = reportSummaryByCashier[0].Keys.ToArray();
+        List<string[]> dataRows = new List<string[]>();
         foreach( Dictionary<string, string> dictionary in reportSummaryByCashier )
         {
-          string y = table.GenerateTableRow(dictionary.Values.ToArray());
+          dataRows.Add(dictionary.Values.ToArray());
         }
-        string z = table.GetFooterTable();
+        string tableSBC = HtmlTableGenerator.GenerateTable("TableSummaryByCashier", headers, dataRows);
+        string fullPath = Path.Combine("c:\\temp\\Report\\", filename);
+        HtmlReportGenerator.Write("Cashier Report", tableSBC, fullPath);
+        System.Diagnostics.Process.Start(fullPath);
+
       }
 
     }

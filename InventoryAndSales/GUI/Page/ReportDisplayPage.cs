@@ -45,7 +45,7 @@ namespace InventoryAndSales.GUI.Page
       dataGridViewLaporanProduct.DataSource = dataTables[0];
       dataGridViewLaporanTransaksi.DataSource = dataTables[1];
       dataGridViewLaporanKasir.DataSource = dataTables[2];
-      HtmlDocument      
+      //HtmlDocument      
     }
 
     public void UpdateReportDetailDataGridView(DataTable dataTable)

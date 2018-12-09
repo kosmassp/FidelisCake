@@ -121,7 +121,7 @@ namespace InventoryAndSales.Business
       }
     }
 
-    public void UpdateCheckout(Transaction _originalTransaction, decimal payment, string notes, int userId, int customerId)
+    public void UpdateCheckout(Transaction _originalTransaction, decimal payment, string notes, int userId, long customerId)
     {
       List<TransactionDetail> transactionDetails;
       Transaction transaction = GenerateTransactionAndDetails(notes, payment, userId, customerId, out transactionDetails);
@@ -135,7 +135,7 @@ namespace InventoryAndSales.Business
       return _lastFactur;
     }
 
-    public void Checkout(decimal payment, string notes, int userId, int customerId)
+    public void Checkout(decimal payment, string notes, int userId, long customerId)
     {
       List<TransactionDetail> transactionDetails;
       Transaction transaction = GenerateTransactionAndDetails(notes, payment, userId, customerId, out transactionDetails);
@@ -144,7 +144,7 @@ namespace InventoryAndSales.Business
       PrintPaymentNote(transaction, transactionDetails);
     }
 
-    private Transaction GenerateTransactionAndDetails(string notes, decimal payment, int userId, int customerId, out List<TransactionDetail> transactionDetails)
+    private Transaction GenerateTransactionAndDetails(string notes, decimal payment, int userId, long customerId, out List<TransactionDetail> transactionDetails)
     {
       Transaction transaction = new Transaction();
       transaction.TotalPrice = 0;

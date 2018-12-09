@@ -17,7 +17,6 @@ namespace InventoryAndSales.Database
     private static void CheckTable()
     {
       //if(CheckIfTableExist()) return;
-      /*
       StringBuilder sb = new StringBuilder();
       sb.Append( "  CREATE TABLE [dbo].[M_PRODUCTS](                                                  " );
       sb.Append( "      [Id] [int] IDENTITY(1,1) NOT NULL,                                            " );
@@ -80,7 +79,6 @@ namespace InventoryAndSales.Database
       sb.Append( "      [Type] [int] NULL                                                             " );
       sb.Append( "  )                                                                                 " );
       ExecuteNonQuery( sb.ToString() );
-      */
     }
 
     private static void UpdateTableTransaction()

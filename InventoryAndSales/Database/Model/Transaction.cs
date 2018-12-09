@@ -16,7 +16,7 @@ namespace InventoryAndSales.Database.Model
     public decimal Exchange { get; set; }
     public string Notes { get; set; }
     public int UserId { get; set; }
-    public int CustomerId { get; set; }
+    public long CustomerId { get; set; }
     public long Revision { get; set; }
 
     [Browsable(false)]
@@ -90,7 +90,7 @@ namespace InventoryAndSales.Database.Model
             UserId = (int)value;
             break;
           case "CustomerId":
-            CustomerId = (int)value;
+            CustomerId = long.Parse(value.ToString());
             break;
           case "Revision":
             Revision = long.Parse(value.ToString());
