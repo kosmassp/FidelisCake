@@ -305,6 +305,7 @@
       this.jumlahSetoranToolStripMenuItem.Name = "jumlahSetoranToolStripMenuItem";
       this.jumlahSetoranToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
       this.jumlahSetoranToolStripMenuItem.Text = "Jumlah Setoran";
+      this.jumlahSetoranToolStripMenuItem.Click += jumlahSetoranToolStripMenuItem_Click;
       // 
       // loginPage1
       // 

@@ -160,6 +160,7 @@ namespace InventoryAndSales.GUI
       this.Controls.Add(this.dateTimePickerTo);
       this.Controls.Add(this.dateTimePickerFrom);
       this.Name = "TransactionHistory";
+      this.ShowIcon = false;
       this.Text = "HistoryTransaksi";
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSearch)).EndInit();
       this.ResumeLayout(false);
