@@ -49,12 +49,40 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\ISearchable.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ComponentWinForm\SpecialKeyEventArgs.cs" />
+    <Compile Include="UI\ComponentWinForm\SplitButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\ComponentWinForm\SearcheableDataView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ComponentWinForm\SearcheableDataView.Designer.cs">
+      <DependentUpon>SearcheableDataView.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\HtmlTableGenerator.cs" />
     <Compile Include="Utility\ControlUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utility\DelegateUtility.cs" />
     <Compile Include="Utility\HashUtility.cs" />
     <Compile Include="Utility\PrinterUtility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ComponentWinForm\SearcheableDataView.resx">
+      <DependentUpon>SearcheableDataView.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Icon\Setting.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

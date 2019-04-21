@@ -26,7 +26,7 @@ namespace InventoryAndSales.GUI
     private void buttonSearch_Click(object sender, EventArgs e)
     {
       List<Dictionary<string, string>> summaryReport = _viewManager.GetTransaction(dateTimePickerFrom.Value, dateTimePickerTo.Value);
-      DataTable dataTableSummaryProduct = DataTableUtil.GetDataTable(summaryReport, "SummaryReportProduct");
+      DataTable dataTableSummaryProduct = DataTableUtil.GetDataTable(summaryReport, "Transaction History");
       UpdateDataGridView(dataTableSummaryProduct);
     }
 

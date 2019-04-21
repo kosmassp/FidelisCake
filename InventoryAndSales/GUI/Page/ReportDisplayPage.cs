@@ -58,9 +58,35 @@ namespace InventoryAndSales.GUI.Page
       dataGridViewLaporanDetail.DataSource = dataTable;
     }
 
-    private void buttonReportHtml_Click( object sender, EventArgs e )
+    private void buttonReportPerKasir_Click(object sender, EventArgs e)
     {
-      controller.ShowSummaryReportInHtml( dateTimePickerStart.Value, dateTimePickerStop.Value );
+      controller.ShowSummaryReportPerKasir(dateTimePickerStart.Value, dateTimePickerStop.Value);
+    }
+
+    private void buttonReportPerTransaksi_Click(object sender, EventArgs e)
+    {
+      controller.ShowSummaryReportPerTransaksi(dateTimePickerStart.Value, dateTimePickerStop.Value);
+    }
+
+    private void buttonReportPerProduct_Click(object sender, EventArgs e)
+    {
+      controller.ShowSummaryReportPerProduct(dateTimePickerStart.Value, dateTimePickerStop.Value);
+    }
+
+    private void buttonReportPerItem_Click(object sender, EventArgs e)
+    {
+      controller.ShowSummaryReportPerDetail(dateTimePickerStart.Value, dateTimePickerStop.Value);
+    }
+
+    public void RefreshOnDisplay()
+    {
+      if (InvokeRequired)
+      {
+        this.BeginInvoke(new DelegateUtility.VoidHandler(RefreshOnDisplay));
+        return;
+      }
+      dateTimePickerStart.Value = DateTime.Today;
+      dateTimePickerStop.Value = DateTime.Today;
     }
   }
 }

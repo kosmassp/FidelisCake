@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using InventoryAndSales.Business.Enum;
 using InventoryAndSales.Database.Manager;
 using InventoryAndSales.Database.Model;
 using SimpleCommon.Utility;
@@ -124,9 +125,17 @@ namespace InventoryAndSales.Business
     public void UpdateCheckout(Transaction _originalTransaction, decimal payment, string notes, int userId, long customerId)
     {
       List<TransactionDetail> transactionDetails;
+      notes = string.Format("Ralat Dari Transaksi: {0}, No Faktur: {1}.", _originalTransaction.Id, _originalTransaction.Factur) + notes;
       Transaction transaction = GenerateTransactionAndDetails(notes, payment, userId, customerId, out transactionDetails);
       _transactionManager.UpdateCompleteTransaction(_originalTransaction, transaction, transactionDetails);
-      PrintPaymentNote(transaction, transactionDetails);
+      try
+      {
+        PrintPaymentNote(transaction, transactionDetails);
+      }
+      catch(Exception e)
+      {
+        
+      }
     }
 
     private string _lastFactur;
@@ -135,13 +144,33 @@ namespace InventoryAndSales.Business
       return _lastFactur;
     }
 
-    public void Checkout(decimal payment, string notes, int userId, long customerId)
+    public TransactionStatus Checkout(decimal payment, string notes, int userId, long customerId, out string message)
     {
+      TransactionStatus status = TransactionStatus.INITIATE;
+      message = string.Empty;
       List<TransactionDetail> transactionDetails;
       Transaction transaction = GenerateTransactionAndDetails(notes, payment, userId, customerId, out transactionDetails);
-      _transactionManager.SaveCompleteTransaction(transaction, transactionDetails);
-      _lastFactur = transaction.Factur;
-      PrintPaymentNote(transaction, transactionDetails);
+      try
+      {
+        _transactionManager.SaveCompleteTransaction(transaction, transactionDetails);
+        _lastFactur = transaction.Factur;
+        status = TransactionStatus.SUCCESS;
+      }
+      catch(Exception e)
+      {
+        status = TransactionStatus.FAILED;
+        message = "Gagal menyimpan transaksi. Silahkan coba lagi.";
+        return status;
+      }
+      try
+      {
+        PrintPaymentNote(transaction, transactionDetails);
+      }
+      catch(Exception e)
+      {
+        message = "Transaksi berhasil namun gagal mencetak. Pastikan printer terhubung dan cetak laporan melalui menu.";
+      }
+      return status;
     }
 
     private Transaction GenerateTransactionAndDetails(string notes, decimal payment, int userId, long customerId, out List<TransactionDetail> transactionDetails)

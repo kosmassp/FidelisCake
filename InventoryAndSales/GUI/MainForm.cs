@@ -137,6 +137,7 @@ namespace InventoryAndSales.GUI
     private void laporanTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
     {
       tabControlPage.SelectedTab = tabPageReport;
+      reportDisplayPage1.RefreshOnDisplay();
     }
 
     private void exitToolStripMenuItem_Click(object sender, EventArgs e)

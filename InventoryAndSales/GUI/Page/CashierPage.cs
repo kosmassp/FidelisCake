@@ -442,6 +442,7 @@ namespace InventoryAndSales.GUI.Page
         return;
       }
       textBoxTotal.Text = total.ToString(Constant.DISPLAY_CURRENCY);
+      RecalculateChanges();
     }
 
     public void FocusFilter()

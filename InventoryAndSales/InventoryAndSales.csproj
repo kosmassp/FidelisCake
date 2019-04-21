@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Business\BusinessFactory.cs" />
     <Compile Include="Business\CashierManager.cs" />
+    <Compile Include="Business\Enum\TransactionStatus.cs" />
     <Compile Include="Business\ViewManager.cs" />
     <Compile Include="Business\ReportManager.cs" />
     <Compile Include="Business\MasterManager.cs" />
@@ -239,6 +240,9 @@
     <EmbeddedResource Include="Icon\Add.png" />
     <EmbeddedResource Include="Icon\Edit.png" />
     <EmbeddedResource Include="Icon\Remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Icon\Setting.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

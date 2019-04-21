@@ -49,25 +49,49 @@ namespace InventoryAndSales.GUI.Controller
     }
 
 
-    public void ShowSummaryReportInHtml( DateTime start, DateTime stop )
+    public void ShowSummaryReportPerKasir(DateTime start, DateTime stop)
     {
-      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetReportSummaryByCashier( start, stop );
-      string filename = string.Format("SBC{0}_{1}.html",start.ToString("yyyyMMdd"),stop.ToString("yyyyMMdd"));
-      if( reportSummaryByCashier.Count > 0 )
+      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetReportSummaryByCashier(start, stop);
+      string filename = string.Format("SBC{0}_{1}.html", start.ToString("yyyyMMdd"), stop.ToString("yyyyMMdd"));
+      ShowSummaryReportInHtml(reportSummaryByCashier, filename, "TableSummaryByCashier", "Cashier Report");
+    }
+
+    public void ShowSummaryReportPerTransaksi(DateTime start, DateTime stop)
+    {
+      List<Dictionary<string, string>> byTransaction = _reportManager.GetReportSummaryByTransaction(start, stop);
+      string filename = string.Format("SBT{0}_{1}.html", start.ToString("yyyyMMdd"), stop.ToString("yyyyMMdd"));
+      ShowSummaryReportInHtml(byTransaction, filename, "TableSummaryByTransaction", "Transaction Report");
+    }
+
+    public void ShowSummaryReportPerProduct(DateTime start, DateTime stop)
+    {
+      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetSummaryReportProduct(start, stop);
+      string filename = string.Format("SRP{0}_{1}.html", start.ToString("yyyyMMdd"), stop.ToString("yyyyMMdd"));
+      ShowSummaryReportInHtml(reportSummaryByCashier, filename, "ReportPerProduct", "Product Sales Report");
+    }
+
+    public void ShowSummaryReportPerDetail(DateTime start, DateTime stop)
+    {
+      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetDetailReport(start, stop);
+      string filename = string.Format("RDP{0}_{1}.html", start.ToString("yyyyMMdd"), stop.ToString("yyyyMMdd"));
+      ShowSummaryReportInHtml(reportSummaryByCashier, filename, "DetailReport", "Detail Report");
+    }
+
+    public void ShowSummaryReportInHtml(List<Dictionary<string, string>> dataReport, string filename, string id, string title)
+    {
+      if (dataReport.Count > 0)
       {
-        string[] headers = reportSummaryByCashier[0].Keys.ToArray();
+        string[] headers = dataReport[0].Keys.ToArray();
         List<string[]> dataRows = new List<string[]>();
-        foreach( Dictionary<string, string> dictionary in reportSummaryByCashier )
+        foreach (Dictionary<string, string> dictionary in dataReport)
         {
           dataRows.Add(dictionary.Values.ToArray());
         }
-        string tableSBC = HtmlTableGenerator.GenerateTable("TableSummaryByCashier", headers, dataRows);
+        string table = HtmlTableGenerator.GenerateTable(id, headers, dataRows);
         string fullPath = Path.Combine("c:\\temp\\Report\\", filename);
-        HtmlReportGenerator.Write("Cashier Report", tableSBC, fullPath);
+        HtmlReportGenerator.Write(title, table, fullPath);
         System.Diagnostics.Process.Start(fullPath);
-
       }
-
     }
   }
 }

@@ -41,6 +41,7 @@ namespace InventoryAndSales.GUI.Page
       FilterItemView(string.Empty, out byBarcode);
       controller.NewCart();
       controller.ResetByTransaction();
+      textBoxPayment.Text = controller.OriginalTransaction.Payment.ToString();
       textBoxFilter.Focus();
     }
 
@@ -388,6 +389,7 @@ namespace InventoryAndSales.GUI.Page
         return;
       }
       textBoxTotal.Text = total.ToString(Constant.DISPLAY_CURRENCY);
+      RecalculateChanges();
     }
 
     public void FocusFilter()

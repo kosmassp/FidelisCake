@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using InventoryAndSales.Business;
+using InventoryAndSales.Business.Enum;
 using InventoryAndSales.Database.Model;
 using InventoryAndSales.GUI.Page;
 using InventoryAndSales.GUI.Utility;
@@ -65,9 +66,19 @@ namespace InventoryAndSales.GUI.Controller
 
       try
       {
-        _cashierManager.Checkout(payment, notes, _loginManager.ActiveUser.Id, 1);
-        successMessage = string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ", changes.ToString(Constant.DISPLAY_CURRENCY));
-        NewCart();
+        string message;
+        TransactionStatus status = _cashierManager.Checkout(payment, notes, _loginManager.ActiveUser.Id, 1, out message);
+        if (status == TransactionStatus.SUCCESS)
+        {
+          successMessage = string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ",
+                                         changes.ToString(Constant.DISPLAY_CURRENCY));
+          successMessage += "\n " + message;
+          NewCart();
+        } 
+        else
+        {
+          return message;
+        }
       }
       catch (Exception e)
       {
