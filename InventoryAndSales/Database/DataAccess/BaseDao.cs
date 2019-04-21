@@ -54,6 +54,7 @@ namespace InventoryAndSales.Database.DataAccess
         orderbyClause = orderbyClause.Trim();
         if (!orderbyClause.StartsWith("ORDER BY", true, CultureInfo.InvariantCulture))
           orderbyClause = "ORDER BY " + orderbyClause;
+        orderbyClause = " " + orderbyClause;
       }
       string preparedSql = string.Format(FIND_BY_QUERY, _dataTable.TableName, whereClause + orderbyClause);
       return ExecuteReader(preparedSql);

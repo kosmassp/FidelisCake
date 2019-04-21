@@ -24,6 +24,13 @@ namespace InventoryAndSales.Business
       return _productManager.GetAll();
     }
 
+    public List<Product> GetAllAvailable(string criteria, string orderBy)
+    {
+      if (string.IsNullOrEmpty(orderBy))
+        return _productManager.GetAllAvailable(criteria);
+      return _productManager.GetAllAvailable(criteria, orderBy);
+    }
+
     public void AddProduct(Product product)
     {
       _productManager.Save(product);

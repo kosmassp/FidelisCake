@@ -24,6 +24,8 @@ namespace InventoryAndSales.GUI.Page
 
     public void Reset()
     {
+      isUpdatingUser = false;
+      isAddingUser = false;
       OnEditMasterUser(false);
     }
 
@@ -45,13 +47,13 @@ namespace InventoryAndSales.GUI.Page
       if (isUpdatingUser)
       {
         controller.UpdateUser(_currentUserSelection, username, name, password, role);
-        isUpdatingUser = false;
       }
       else if (isAddingUser)
       {
         controller.AddUser(username, name, password, role);
-        isAddingUser = false;
       }
+      isUpdatingUser = false;
+      isAddingUser = false;
       OnEditMasterUser(false);
     }
 
@@ -66,6 +68,8 @@ namespace InventoryAndSales.GUI.Page
 
     private void buttonCancelUserMaster_Click(object sender, EventArgs e)
     {
+      isUpdatingUser = false;
+      isAddingUser = false;
       OnEditMasterUser(false);
       _currentUserSelection = null;
       UpdateSelectedUser();
@@ -111,6 +115,7 @@ namespace InventoryAndSales.GUI.Page
       {
         OnEditMasterUser(true);
         isAddingUser = true;
+        isUpdatingUser = false;
         ClearFieldUser();
         return;
       }
@@ -131,6 +136,7 @@ namespace InventoryAndSales.GUI.Page
         UpdateSelectedUser();
         OnEditMasterUser(true);
         isUpdatingUser = true;
+        isAddingUser = false;
         return;
       }
     }
@@ -146,6 +152,8 @@ namespace InventoryAndSales.GUI.Page
         if (dr == DialogResult.OK)
         {
           controller.DeleteUser(_currentUserSelection);
+          isUpdatingUser = false;
+          isAddingUser = false;
           OnEditMasterUser(false);
         }
       }

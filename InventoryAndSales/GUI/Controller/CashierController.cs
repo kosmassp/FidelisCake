@@ -46,7 +46,7 @@ namespace InventoryAndSales.GUI.Controller
 
     public List<Product> GetItems()
     {
-      return _masterManager.GetAllProduct();
+      return _masterManager.GetAllAvailable(string.Empty, string.Empty);
     }
 
     public string Checkout(decimal payment, string notes, out string successMessage)

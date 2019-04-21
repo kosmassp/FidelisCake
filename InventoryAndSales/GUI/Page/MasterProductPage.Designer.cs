@@ -57,6 +57,10 @@
       this.buttonDelete = new System.Windows.Forms.Button();
       this.buttonUpdate = new System.Windows.Forms.Button();
       this.buttonAdd = new System.Windows.Forms.Button();
+      this.comboBoxSort = new System.Windows.Forms.ComboBox();
+      this.textBoxSearch = new System.Windows.Forms.TextBox();
+      this.labelSort = new System.Windows.Forms.Label();
+      this.buttonSearch = new System.Windows.Forms.Button();
       this.groupBoxExportImport.SuspendLayout();
       this.groupBoxMasterItemDetail.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewMasterItemList)).BeginInit();
@@ -323,6 +327,7 @@
       // dataGridViewMasterItemList
       // 
       this.dataGridViewMasterItemList.AllowUserToAddRows = false;
+      this.dataGridViewMasterItemList.AllowUserToOrderColumns = true;
       this.dataGridViewMasterItemList.AllowUserToResizeRows = false;
       this.dataGridViewMasterItemList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                   | System.Windows.Forms.AnchorStyles.Left)
@@ -330,10 +335,11 @@
       this.dataGridViewMasterItemList.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
       this.dataGridViewMasterItemList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
       this.dataGridViewMasterItemList.Enabled = false;
-      this.dataGridViewMasterItemList.Location = new System.Drawing.Point(18, 16);
+      this.dataGridViewMasterItemList.Location = new System.Drawing.Point(18, 43);
       this.dataGridViewMasterItemList.Name = "dataGridViewMasterItemList";
       this.dataGridViewMasterItemList.RowHeadersVisible = false;
-      this.dataGridViewMasterItemList.Size = new System.Drawing.Size(505, 606);
+      this.dataGridViewMasterItemList.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+      this.dataGridViewMasterItemList.Size = new System.Drawing.Size(505, 579);
       this.dataGridViewMasterItemList.TabIndex = 9;
       this.dataGridViewMasterItemList.Click += new System.EventHandler(this.dataGridViewMasterItemList_Click);
       // 
@@ -373,10 +379,51 @@
       this.buttonAdd.UseVisualStyleBackColor = true;
       this.buttonAdd.Click += new System.EventHandler(this.buttonAddProduct_Click);
       // 
+      // comboBoxSort
+      // 
+      this.comboBoxSort.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxSort.FormattingEnabled = true;
+      this.comboBoxSort.Location = new System.Drawing.Point(402, 16);
+      this.comboBoxSort.Name = "comboBoxSort";
+      this.comboBoxSort.Size = new System.Drawing.Size(121, 21);
+      this.comboBoxSort.TabIndex = 17;
+      this.comboBoxSort.SelectedIndexChanged += new System.EventHandler(this.comboBoxSort_SelectedIndexChanged);
+      // 
+      // textBoxSearch
+      // 
+      this.textBoxSearch.Location = new System.Drawing.Point(18, 15);
+      this.textBoxSearch.Name = "textBoxSearch";
+      this.textBoxSearch.Size = new System.Drawing.Size(238, 20);
+      this.textBoxSearch.TabIndex = 18;
+      this.textBoxSearch.TextChanged += new System.EventHandler(this.textBoxSearch_TextChanged);
+      // 
+      // labelSort
+      // 
+      this.labelSort.AutoSize = true;
+      this.labelSort.Location = new System.Drawing.Point(351, 19);
+      this.labelSort.Name = "labelSort";
+      this.labelSort.Size = new System.Drawing.Size(45, 13);
+      this.labelSort.TabIndex = 20;
+      this.labelSort.Text = "Urutkan";
+      // 
+      // buttonSearch
+      // 
+      this.buttonSearch.Location = new System.Drawing.Point(262, 14);
+      this.buttonSearch.Name = "buttonSearch";
+      this.buttonSearch.Size = new System.Drawing.Size(75, 23);
+      this.buttonSearch.TabIndex = 21;
+      this.buttonSearch.Text = "Cari";
+      this.buttonSearch.UseVisualStyleBackColor = true;
+      this.buttonSearch.Click += new System.EventHandler(this.buttonSearch_Click);
+      // 
       // MasterProductPage
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+      this.Controls.Add(this.buttonSearch);
+      this.Controls.Add(this.labelSort);
+      this.Controls.Add(this.textBoxSearch);
+      this.Controls.Add(this.comboBoxSort);
       this.Controls.Add(this.buttonUpdate);
       this.Controls.Add(this.buttonAdd);
       this.Controls.Add(this.buttonCancelSave);
@@ -392,6 +439,7 @@
       this.groupBoxMasterItemDetail.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewMasterItemList)).EndInit();
       this.ResumeLayout(false);
+      this.PerformLayout();
 
     }
 
@@ -426,5 +474,9 @@
     private System.Windows.Forms.Button buttonDelete;
     private System.Windows.Forms.Button buttonUpdate;
     private System.Windows.Forms.Button buttonAdd;
+    private System.Windows.Forms.ComboBox comboBoxSort;
+    private System.Windows.Forms.TextBox textBoxSearch;
+    private System.Windows.Forms.Label labelSort;
+    private System.Windows.Forms.Button buttonSearch;
   }
 }

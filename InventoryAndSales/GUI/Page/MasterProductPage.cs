@@ -20,10 +20,15 @@ namespace InventoryAndSales.GUI.Page
     {
       InitializeComponent();
       controller = new MasterProductController(this);
+      comboBoxSort.Items.Clear();
+      comboBoxSort.Items.AddRange(controller.GetSortableColumns().ToArray());
+      comboBoxSort.SelectedIndex = 0;
     }
 
     public void Reset()
     {
+      isUpdatingProduct = false;
+      isAddingProduct = false;
       OnEditMasterItem(false);
     }
 
@@ -32,7 +37,7 @@ namespace InventoryAndSales.GUI.Page
       string prefix = GeneratePrefix(name);
       int i = 0;
       HashSet<string> _existingCode = new HashSet<string>();
-      List<Product> items = controller.GetItems();
+      List<Product> items = controller.GetItems(string.Empty, string.Empty);
       foreach( Product item in items )
       {
         _existingCode.Add(item.Code);
@@ -111,18 +116,20 @@ namespace InventoryAndSales.GUI.Page
       if (isUpdatingProduct)
       {
         controller.UpdateItem(_currentProductSelection, code, barcode, name, price, discount);
-        isUpdatingProduct = false;
       }
       else if (isAddingProduct)
       {
         controller.AddItem(code, barcode, name, price, discount);
-        isAddingProduct = false;
       }
+      isUpdatingProduct = false;
+      isAddingProduct = false;
       OnEditMasterItem(false);
     }
 
     private void buttonCancelEdit_Click(object sender, EventArgs e)
     {
+      isUpdatingProduct = false;
+      isAddingProduct = false;
       OnEditMasterItem(false);
       _currentProductSelection = null;
       UpdateSelectedProduct();
@@ -166,6 +173,7 @@ namespace InventoryAndSales.GUI.Page
       {
         OnEditMasterItem(true);
         isAddingProduct = true;
+        isUpdatingProduct = false;
         ClearFieldItemDetail();
 
         return;
@@ -205,7 +213,7 @@ namespace InventoryAndSales.GUI.Page
       var name = textBoxDetailItemName.Text;
       var barcode = textBoxDetailItemBarcode.Text;
       bool codeExist = false, nameExist = false, barcodeExist = false;
-      List<Product> items = controller.GetItems();
+      List<Product> items = controller.GetItems(string.Empty, comboBoxSort.SelectedItem.ToString());
       foreach (Product item in items)
       {
         if (_currentProductSelection != null
@@ -251,6 +259,7 @@ namespace InventoryAndSales.GUI.Page
         UpdateSelectedProduct();
         OnEditMasterItem(true);
         isUpdatingProduct = true;
+        isAddingProduct = false;
         return;
       }
     }
@@ -277,7 +286,7 @@ namespace InventoryAndSales.GUI.Page
 
       if (!edit) //on edit item done
       {
-        List<Product> items = controller.GetItems();
+        List<Product> items = controller.GetItems(_searchedText, comboBoxSort.SelectedItem.ToString());
         dataGridViewMasterItemList.DataSource = null;
         dataGridViewMasterItemList.DataSource = items;
       }
@@ -308,6 +317,8 @@ namespace InventoryAndSales.GUI.Page
         if (dr == DialogResult.OK)
         {
           controller.RemoveItem(_currentProductSelection);
+          isUpdatingProduct = false;
+          isAddingProduct = false;
           OnEditMasterItem(false);
         }
       }
@@ -355,6 +366,23 @@ namespace InventoryAndSales.GUI.Page
     private void dataGridViewMasterItemList_Click(object sender, EventArgs e)
     {
       UpdateSelectedProduct();
+    }
+
+    private void textBoxSearch_TextChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void comboBoxSort_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      Reset();
+    }
+
+    private string _searchedText = string.Empty;
+    private void buttonSearch_Click(object sender, EventArgs e)
+    {
+      _searchedText = textBoxSearch.Text;
+      Reset();
     }
 
   }

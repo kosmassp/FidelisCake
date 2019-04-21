@@ -29,6 +29,7 @@
     private void InitializeComponent()
     {
       this.components = new System.ComponentModel.Container();
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
       this.menuStripMain = new System.Windows.Forms.MenuStrip();
       this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.loginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -37,6 +38,7 @@
       this.penjualanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.printLastReceiptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.printUlangTransaksiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.ubahTransaksiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.daftarBarangToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.daftarUserToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -53,12 +55,13 @@
       this.toolStripStatusLabelEmpty = new System.Windows.Forms.ToolStripStatusLabel();
       this.toolStripStatusLabelActiveUser = new System.Windows.Forms.ToolStripStatusLabel();
       this.timerDisplayDate = new System.Windows.Forms.Timer(this.components);
+      this.checkKasirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.jumlahSetoranToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.loginPage1 = new InventoryAndSales.GUI.Page.LoginPage();
       this.cashierPage1 = new InventoryAndSales.GUI.Page.CashierPage();
       this.masterProductPage1 = new InventoryAndSales.GUI.Page.MasterProductPage();
       this.reportDisplayPage1 = new InventoryAndSales.GUI.Page.ReportDisplayPage();
       this.masterUserPage1 = new InventoryAndSales.GUI.Page.MasterUserPage();
-      this.ubahTransaksiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.menuStripMain.SuspendLayout();
       this.tabControlPage.SuspendLayout();
       this.tabPageLogin.SuspendLayout();
@@ -75,7 +78,8 @@
             this.fileToolStripMenuItem,
             this.transaksiToolStripMenuItem,
             this.editToolStripMenuItem,
-            this.laporanToolStripMenuItem});
+            this.laporanToolStripMenuItem,
+            this.checkKasirToolStripMenuItem});
       this.menuStripMain.Location = new System.Drawing.Point(0, 0);
       this.menuStripMain.Name = "menuStripMain";
       this.menuStripMain.Size = new System.Drawing.Size(1108, 24);
@@ -113,7 +117,7 @@
             this.printUlangTransaksiToolStripMenuItem,
             this.ubahTransaksiToolStripMenuItem});
       this.transaksiToolStripMenuItem.Name = "transaksiToolStripMenuItem";
-      this.transaksiToolStripMenuItem.Size = new System.Drawing.Size(67, 20);
+      this.transaksiToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
       this.transaksiToolStripMenuItem.Text = "Transaksi";
       // 
       // penjualanToolStripMenuItem
@@ -136,6 +140,13 @@
       this.printUlangTransaksiToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
       this.printUlangTransaksiToolStripMenuItem.Text = "Print ulang transaksi ...";
       this.printUlangTransaksiToolStripMenuItem.Click += new System.EventHandler(this.printUlangTransaksiToolStripMenuItem_Click);
+      // 
+      // ubahTransaksiToolStripMenuItem
+      // 
+      this.ubahTransaksiToolStripMenuItem.Name = "ubahTransaksiToolStripMenuItem";
+      this.ubahTransaksiToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
+      this.ubahTransaksiToolStripMenuItem.Text = "Ubah transaksi ...";
+      this.ubahTransaksiToolStripMenuItem.Click += new System.EventHandler(this.ubahTransaksiToolStripMenuItem_Click);
       // 
       // editToolStripMenuItem
       // 
@@ -171,7 +182,7 @@
       // laporanTransaksiToolStripMenuItem
       // 
       this.laporanTransaksiToolStripMenuItem.Name = "laporanTransaksiToolStripMenuItem";
-      this.laporanTransaksiToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
+      this.laporanTransaksiToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
       this.laporanTransaksiToolStripMenuItem.Text = "Laporan Transaksi";
       this.laporanTransaksiToolStripMenuItem.Click += new System.EventHandler(this.laporanTransaksiToolStripMenuItem_Click);
       // 
@@ -280,6 +291,21 @@
       this.timerDisplayDate.Interval = 1000;
       this.timerDisplayDate.Tick += new System.EventHandler(this.timerDisplayDate_Tick);
       // 
+      // checkKasirToolStripMenuItem
+      // 
+      this.checkKasirToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.jumlahSetoranToolStripMenuItem});
+      this.checkKasirToolStripMenuItem.Name = "checkKasirToolStripMenuItem";
+      this.checkKasirToolStripMenuItem.Size = new System.Drawing.Size(80, 20);
+      this.checkKasirToolStripMenuItem.Text = "Check Kasir";
+      this.checkKasirToolStripMenuItem.Visible = false;
+      // 
+      // jumlahSetoranToolStripMenuItem
+      // 
+      this.jumlahSetoranToolStripMenuItem.Name = "jumlahSetoranToolStripMenuItem";
+      this.jumlahSetoranToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+      this.jumlahSetoranToolStripMenuItem.Text = "Jumlah Setoran";
+      // 
       // loginPage1
       // 
       this.loginPage1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -320,13 +346,6 @@
       this.masterUserPage1.Size = new System.Drawing.Size(1094, 651);
       this.masterUserPage1.TabIndex = 0;
       // 
-      // ubahTransaksiToolStripMenuItem
-      // 
-      this.ubahTransaksiToolStripMenuItem.Name = "ubahTransaksiToolStripMenuItem";
-      this.ubahTransaksiToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
-      this.ubahTransaksiToolStripMenuItem.Text = "Ubah transaksi ...";
-      this.ubahTransaksiToolStripMenuItem.Click += new System.EventHandler(this.ubahTransaksiToolStripMenuItem_Click);
-      // 
       // MainForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -335,8 +354,9 @@
       this.Controls.Add(this.tabControlPage);
       this.Controls.Add(this.statusStripInformation);
       this.Controls.Add(this.menuStripMain);
+      this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
       this.MainMenuStrip = this.menuStripMain;
-      this.MinimumSize = new System.Drawing.Size(1024, 768);
+      this.MinimumSize = new System.Drawing.Size(1024, 726);
       this.Name = "MainForm";
       this.Text = "Fidelis Cake and Bakery";
       this.Load += new System.EventHandler(this.MainForm_Load);
@@ -388,6 +408,8 @@
     private InventoryAndSales.GUI.Page.ReportDisplayPage reportDisplayPage1;
     private InventoryAndSales.GUI.Page.MasterUserPage masterUserPage1;
     private System.Windows.Forms.ToolStripMenuItem ubahTransaksiToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem checkKasirToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem jumlahSetoranToolStripMenuItem;
   }
 }
 

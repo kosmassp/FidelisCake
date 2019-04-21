@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Business;
+using InventoryAndSales.Database.DataTable;
 using InventoryAndSales.Database.Model;
 using InventoryAndSales.GUI.Page;
 
@@ -16,7 +17,11 @@ namespace InventoryAndSales.GUI.Controller
     {
       control = masterProductPage;
       _masterManager = BusinessFactory.GetInstance().MasterManager;
+    }
 
+    public IList<string> GetSortableColumns()
+    {
+      return DataTableList.Instance.GetDataTable(typeof (Product)).Columns;
     }
 
     public void AddItem(string code, string barcode, string name, decimal price, decimal discount)
@@ -39,9 +44,9 @@ namespace InventoryAndSales.GUI.Controller
       _masterManager.DeleteProduct(currentProductSelection);
     }
 
-    public List<Product> GetItems()
+    public List<Product> GetItems(string nameLike, string orderBy)
     {
-      return _masterManager.GetAllProduct();
+      return _masterManager.GetAllAvailable(nameLike, orderBy);
     }
   }
 }
