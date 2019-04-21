@@ -199,6 +199,20 @@ namespace InventoryAndSales.GUI
       messageBuilder.AppendLine("Jika terdapat perubahan transaksi, Jumlah kemungkinan tidak sesuai.");
       MessageBox.Show(messageBuilder.ToString(), "Jumlah Transaksi", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
+
+    private void hapusTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      try
+      {
+        if ( controller.RequestDeleteTransaction())
+          MessageBox.Show("Transaksi dihapus.");
+      }
+      catch(Exception)
+      {
+        MessageBox.Show("Terdapat kesalahan sistem. Tolong check kembali. ");
+      }
+      LoadCashierPage();
+    }
   }
 
 }

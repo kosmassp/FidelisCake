@@ -73,5 +73,21 @@ namespace InventoryAndSales.Database.Manager
         throw;
       }
     }
+
+    public void CancelTransaction(Transaction originalTransaction)
+    {
+      DBFactory.GetInstance().BeginTransaction();
+      try
+      {
+        originalTransaction.Revision = -1;
+        _trxDao.Update(originalTransaction);
+        DBFactory.GetInstance().CommitTransaction();
+      }
+      catch(Exception e)
+      {
+        DBFactory.GetInstance().RollbackTransaction();
+        throw;
+      }
+    }
   }
 }

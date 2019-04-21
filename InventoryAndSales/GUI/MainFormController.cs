@@ -118,6 +118,32 @@ namespace InventoryAndSales.GUI
       }
     }
 
+    public bool RequestDeleteTransaction()
+    {
+      if (_loginManager.ActiveUser != null)
+      {
+        User supervisor = _loginManager.ActiveUser;
+        if (!BusinessUtil.AllowedRole(_loginManager.ActiveUser.Role, AccessOption.Master))
+        {
+          AuthenticationForm authenticationForm = new AuthenticationForm(AccessOption.Master);
+          DialogResult dr = authenticationForm.ShowDialog();
+          if (dr == DialogResult.Cancel)
+          {
+            return false;
+          }
+          supervisor = authenticationForm.AuthenticatedUser;
+        }
+        TransactionHistory th = new TransactionHistory();
+        DialogResult result = th.ShowDialog();
+        if (result == DialogResult.OK)
+        {
+          _cashierManager.CancelTransaction(th.SelectedTransactionFactur);
+          return true;
+        }
+      }
+      return false;
+    }
+
     public string GetCurrentDayTotalTransaction()
     {
       return _reportManager.GetTodaySummaryByCashier(_loginManager.ActiveUser, DateTime.Today);

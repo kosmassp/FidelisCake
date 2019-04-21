@@ -138,6 +138,13 @@ namespace InventoryAndSales.Business
       }
     }
 
+    public void CancelTransaction(string transactionFactur)
+    {
+      List<TransactionDetail> details;
+      Transaction transaction = GetTransaction(transactionFactur, out details);
+      _transactionManager.CancelTransaction(transaction);
+    }
+
     private string _lastFactur;
     public string GetLastFactur()
     {
