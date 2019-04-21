@@ -127,6 +127,7 @@ namespace InventoryAndSales.GUI
       transaksiToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Cashier);
       editToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Master);
       laporanToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Admin);
+      checkKasirToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Cashier);
     }
 
     private void timerDisplayDate_Tick(object sender, EventArgs e)
@@ -184,6 +185,19 @@ namespace InventoryAndSales.GUI
       controller.RequestUpdateTransaction();
       LoadCashierPage();
 
+    }
+
+    private void jumlahSetoranToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      string total = controller.GetCurrentDayTotalTransaction();
+      StringBuilder messageBuilder = new StringBuilder(); 
+      messageBuilder.AppendLine("Tanggal: " + DateTime.Today.ToString("dd/MMM/yyyy"));
+      messageBuilder.AppendLine("Jam: " + DateTime.Now.ToString("HH:mm:ss"));
+      messageBuilder.AppendLine("Total Transaksi : " + total);
+      messageBuilder.AppendLine();
+      messageBuilder.AppendLine();
+      messageBuilder.AppendLine("Jika terdapat perubahan transaksi, Jumlah kemungkinan tidak sesuai.");
+      MessageBox.Show(messageBuilder.ToString(), "Jumlah Transaksi", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
   }
 

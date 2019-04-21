@@ -36,5 +36,10 @@ namespace InventoryAndSales.Business
     {
       return _customManager.GetReportSummaryByCashier(start, stop);
     }
+
+    public string GetTodaySummaryByCashier(User activeUser, DateTime date)
+    {
+      return _customManager.GetTodaySummaryByCashier(activeUser, date);
+    }
   }
 }

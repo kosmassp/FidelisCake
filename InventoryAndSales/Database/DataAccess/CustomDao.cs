@@ -90,6 +90,13 @@ namespace InventoryAndSales.Database.DataAccess
       " group by COALESCE(u.Name,'ADMIN'),CAST(t.TransactionTime as date)" +
       " order by CAST(t.TransactionTime as date)";
 
+    private const string QUERY_TODAY_SUMMARY_BY_USER_ID =
+      " SELECT COALESCE(SUM([Total]),0) SUMTOTAL" +
+      " FROM T_TRANSACTIONS" +
+      " Where UserId = {0}" +
+      " and Revision = 0" +
+      " and CAST(TransactionTime as date) = '{1}'";
+
 
     private const string QUERY_REPORT_SUMMARY_BY_TRANSACTION =
       " select"+
@@ -175,8 +182,13 @@ namespace InventoryAndSales.Database.DataAccess
     }
 
 
-
-    
+    public string GetTodaySummaryByCashier(User activeUser, DateTime date)
+    {
+      var retValue = ExecuteReader(string.Format(QUERY_TODAY_SUMMARY_BY_USER_ID, activeUser.Id, date.ToShortDateString()));
+      if(retValue.Count == 0)
+        return "Rp. 0";
+      return "Rp. " + retValue[0]["SUMTOTAL"];
+    }
   }
 
 }

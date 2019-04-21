@@ -25,11 +25,13 @@ namespace InventoryAndSales.GUI
     private MainForm _mainForm;
     private CashierManager _cashierManager;
     private LoginManager _loginManager;
+    private ReportManager _reportManager;
     public MainFormController(MainForm mainForm)
     {
       _mainForm = mainForm;
       _loginManager = BusinessFactory.GetInstance().LoginManager;
       _cashierManager = BusinessFactory.GetInstance().CashierManager;
+      _reportManager = BusinessFactory.GetInstance().ReportManager;
 
       _loginManager.OnActiveUserChanged += OnActiveUserChanged;
     }
@@ -114,6 +116,11 @@ namespace InventoryAndSales.GUI
           transactionUpdateForm.ShowDialog();
         }
       }
+    }
+
+    public string GetCurrentDayTotalTransaction()
+    {
+      return _reportManager.GetTodaySummaryByCashier(_loginManager.ActiveUser, DateTime.Today);
     }
   }
 }
