@@ -69,7 +69,7 @@
       // buttonCancelSave
       // 
       this.buttonCancelSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonCancelSave.Location = new System.Drawing.Point(844, 593);
+      this.buttonCancelSave.Location = new System.Drawing.Point(805, 576);
       this.buttonCancelSave.Name = "buttonCancelSave";
       this.buttonCancelSave.Size = new System.Drawing.Size(164, 28);
       this.buttonCancelSave.TabIndex = 12;
@@ -80,7 +80,7 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point(667, 593);
+      this.buttonSave.Location = new System.Drawing.Point(630, 576);
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size(164, 28);
       this.buttonSave.TabIndex = 11;
@@ -327,6 +327,7 @@
       // dataGridViewMasterItemList
       // 
       this.dataGridViewMasterItemList.AllowUserToAddRows = false;
+      this.dataGridViewMasterItemList.AllowUserToDeleteRows = false;
       this.dataGridViewMasterItemList.AllowUserToOrderColumns = true;
       this.dataGridViewMasterItemList.AllowUserToResizeRows = false;
       this.dataGridViewMasterItemList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -334,11 +335,14 @@
                   | System.Windows.Forms.AnchorStyles.Right)));
       this.dataGridViewMasterItemList.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
       this.dataGridViewMasterItemList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.dataGridViewMasterItemList.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
       this.dataGridViewMasterItemList.Enabled = false;
       this.dataGridViewMasterItemList.Location = new System.Drawing.Point(18, 43);
+      this.dataGridViewMasterItemList.MultiSelect = false;
       this.dataGridViewMasterItemList.Name = "dataGridViewMasterItemList";
       this.dataGridViewMasterItemList.RowHeadersVisible = false;
       this.dataGridViewMasterItemList.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+      this.dataGridViewMasterItemList.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
       this.dataGridViewMasterItemList.Size = new System.Drawing.Size(505, 579);
       this.dataGridViewMasterItemList.TabIndex = 9;
       this.dataGridViewMasterItemList.Click += new System.EventHandler(this.dataGridViewMasterItemList_Click);

@@ -17,11 +17,13 @@ namespace InventoryAndSales.Database.Manager
 
     public List<Product> GetAllAvailable(string criteria)
     {
+      criteria = criteria.Replace(' ', '%');
       List<Product> items = BaseDao.FindByQuery(string.Format("WHERE Name like '%{0}%' and Deleted = '{1}'", criteria, false));
       return items;
     }
     public List<Product> GetAllAvailable(string criteria, string orderBy)
     {
+      criteria = criteria.Replace(' ', '%');
       List<Product> items = BaseDao.FindByQuery(string.Format("WHERE Name like '%{0}%' and Deleted = '{1}' ", criteria, false), 
                                                 orderBy);
       return items;
