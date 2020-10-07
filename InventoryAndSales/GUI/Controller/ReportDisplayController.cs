@@ -88,7 +88,10 @@ namespace InventoryAndSales.GUI.Controller
           dataRows.Add(dictionary.Values.ToArray());
         }
         string table = HtmlTableGenerator.GenerateTable(id, headers, dataRows);
-        string fullPath = Path.Combine("c:\\temp\\Report\\", filename);
+        string directory = "c:\\temp\\Report\\";
+        if (!Directory.Exists(directory))
+          Directory.CreateDirectory(directory);
+        string fullPath = Path.Combine(directory, filename);
         HtmlReportGenerator.Write(title, table, fullPath);
         System.Diagnostics.Process.Start(fullPath);
       }
