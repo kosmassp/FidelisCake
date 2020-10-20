@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows.Forms;
 using InventoryAndSales.Database.Model;
 using InventoryAndSales.Enumeration;
+using InventoryAndSales.GUI.Popup;
 using InventoryAndSales.GUI.Util;
 using InventoryAndSales.GUI.Utility;
 using SimpleCommon.Utility;
@@ -212,6 +213,12 @@ namespace InventoryAndSales.GUI
         MessageBox.Show("Terdapat kesalahan sistem. Tolong check kembali. ");
       }
       LoadCashierPage();
+    }
+
+    private void pengaturanToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      SettingForm settingForm = new SettingForm();
+      settingForm.Show();
     }
   }
 

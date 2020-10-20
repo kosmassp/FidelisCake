@@ -18,11 +18,12 @@ namespace InventoryAndSales.GUI.Page
 
     public MasterProductPage()
     {
+
       InitializeComponent();
       controller = new MasterProductController(this);
       comboBoxSort.Items.Clear();
       comboBoxSort.Items.AddRange(controller.GetSortableColumns().ToArray());
-      comboBoxSort.SelectedIndex = 0;
+      //comboBoxSort.SelectedIndex = 0;
     }
 
     public void Reset()

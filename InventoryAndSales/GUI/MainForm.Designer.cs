@@ -44,24 +44,25 @@
       this.daftarUserToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.laporanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.laporanTransaksiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.checkKasirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.jumlahSetoranToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.tabControlPage = new System.Windows.Forms.TabControl();
       this.tabPageLogin = new System.Windows.Forms.TabPage();
+      this.loginPage1 = new InventoryAndSales.GUI.Page.LoginPage();
       this.tabPageCashier = new System.Windows.Forms.TabPage();
+      this.cashierPage1 = new InventoryAndSales.GUI.Page.CashierPage();
       this.tabPageProductMaster = new System.Windows.Forms.TabPage();
+      this.masterProductPage1 = new InventoryAndSales.GUI.Page.MasterProductPage();
       this.tabPageReport = new System.Windows.Forms.TabPage();
+      this.reportDisplayPage1 = new InventoryAndSales.GUI.Page.ReportDisplayPage();
       this.tabPageUserMaster = new System.Windows.Forms.TabPage();
+      this.masterUserPage1 = new InventoryAndSales.GUI.Page.MasterUserPage();
       this.statusStripInformation = new System.Windows.Forms.StatusStrip();
       this.toolStripStatusCurrentDate = new System.Windows.Forms.ToolStripStatusLabel();
       this.toolStripStatusLabelEmpty = new System.Windows.Forms.ToolStripStatusLabel();
       this.toolStripStatusLabelActiveUser = new System.Windows.Forms.ToolStripStatusLabel();
       this.timerDisplayDate = new System.Windows.Forms.Timer(this.components);
-      this.checkKasirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.jumlahSetoranToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.loginPage1 = new InventoryAndSales.GUI.Page.LoginPage();
-      this.cashierPage1 = new InventoryAndSales.GUI.Page.CashierPage();
-      this.masterProductPage1 = new InventoryAndSales.GUI.Page.MasterProductPage();
-      this.reportDisplayPage1 = new InventoryAndSales.GUI.Page.ReportDisplayPage();
-      this.masterUserPage1 = new InventoryAndSales.GUI.Page.MasterUserPage();
+      this.pengaturanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.menuStripMain.SuspendLayout();
       this.tabControlPage.SuspendLayout();
       this.tabPageLogin.SuspendLayout();
@@ -152,7 +153,8 @@
       // 
       this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.daftarBarangToolStripMenuItem,
-            this.daftarUserToolStripMenuItem});
+            this.daftarUserToolStripMenuItem,
+            this.pengaturanToolStripMenuItem});
       this.editToolStripMenuItem.Name = "editToolStripMenuItem";
       this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
       this.editToolStripMenuItem.Text = "Edit";
@@ -160,15 +162,15 @@
       // daftarBarangToolStripMenuItem
       // 
       this.daftarBarangToolStripMenuItem.Name = "daftarBarangToolStripMenuItem";
-      this.daftarBarangToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+      this.daftarBarangToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
       this.daftarBarangToolStripMenuItem.Text = "Daftar Barang";
       this.daftarBarangToolStripMenuItem.Click += new System.EventHandler(this.daftarBarangToolStripMenuItem_Click);
       // 
       // daftarUserToolStripMenuItem
       // 
       this.daftarUserToolStripMenuItem.Name = "daftarUserToolStripMenuItem";
-      this.daftarUserToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-      this.daftarUserToolStripMenuItem.Text = "Daftar User";
+      this.daftarUserToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+      this.daftarUserToolStripMenuItem.Text = "Daftar Pengguna";
       this.daftarUserToolStripMenuItem.Click += new System.EventHandler(this.daftarUserToolStripMenuItem_Click);
       // 
       // laporanToolStripMenuItem
@@ -185,6 +187,21 @@
       this.laporanTransaksiToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
       this.laporanTransaksiToolStripMenuItem.Text = "Laporan Transaksi";
       this.laporanTransaksiToolStripMenuItem.Click += new System.EventHandler(this.laporanTransaksiToolStripMenuItem_Click);
+      // 
+      // checkKasirToolStripMenuItem
+      // 
+      this.checkKasirToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.jumlahSetoranToolStripMenuItem});
+      this.checkKasirToolStripMenuItem.Name = "checkKasirToolStripMenuItem";
+      this.checkKasirToolStripMenuItem.Size = new System.Drawing.Size(80, 20);
+      this.checkKasirToolStripMenuItem.Text = "Check Kasir";
+      this.checkKasirToolStripMenuItem.Visible = false;
+      // 
+      // jumlahSetoranToolStripMenuItem
+      // 
+      this.jumlahSetoranToolStripMenuItem.Name = "jumlahSetoranToolStripMenuItem";
+      this.jumlahSetoranToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+      this.jumlahSetoranToolStripMenuItem.Text = "Jumlah Setoran";
       // 
       // tabControlPage
       // 
@@ -211,6 +228,14 @@
       this.tabPageLogin.Text = "Login";
       this.tabPageLogin.UseVisualStyleBackColor = true;
       // 
+      // loginPage1
+      // 
+      this.loginPage1.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.loginPage1.Location = new System.Drawing.Point(3, 3);
+      this.loginPage1.Name = "loginPage1";
+      this.loginPage1.Size = new System.Drawing.Size(1094, 651);
+      this.loginPage1.TabIndex = 0;
+      // 
       // tabPageCashier
       // 
       this.tabPageCashier.Controls.Add(this.cashierPage1);
@@ -221,6 +246,14 @@
       this.tabPageCashier.TabIndex = 0;
       this.tabPageCashier.Text = "Kasir";
       this.tabPageCashier.UseVisualStyleBackColor = true;
+      // 
+      // cashierPage1
+      // 
+      this.cashierPage1.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.cashierPage1.Location = new System.Drawing.Point(3, 3);
+      this.cashierPage1.Name = "cashierPage1";
+      this.cashierPage1.Size = new System.Drawing.Size(1094, 651);
+      this.cashierPage1.TabIndex = 0;
       // 
       // tabPageProductMaster
       // 
@@ -233,6 +266,14 @@
       this.tabPageProductMaster.Text = "Daftar Barang";
       this.tabPageProductMaster.UseVisualStyleBackColor = true;
       // 
+      // masterProductPage1
+      // 
+      this.masterProductPage1.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.masterProductPage1.Location = new System.Drawing.Point(3, 3);
+      this.masterProductPage1.Name = "masterProductPage1";
+      this.masterProductPage1.Size = new System.Drawing.Size(1094, 651);
+      this.masterProductPage1.TabIndex = 0;
+      // 
       // tabPageReport
       // 
       this.tabPageReport.Controls.Add(this.reportDisplayPage1);
@@ -244,6 +285,14 @@
       this.tabPageReport.Text = "Laporan";
       this.tabPageReport.UseVisualStyleBackColor = true;
       // 
+      // reportDisplayPage1
+      // 
+      this.reportDisplayPage1.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.reportDisplayPage1.Location = new System.Drawing.Point(3, 3);
+      this.reportDisplayPage1.Name = "reportDisplayPage1";
+      this.reportDisplayPage1.Size = new System.Drawing.Size(1094, 651);
+      this.reportDisplayPage1.TabIndex = 0;
+      // 
       // tabPageUserMaster
       // 
       this.tabPageUserMaster.Controls.Add(this.masterUserPage1);
@@ -254,6 +303,14 @@
       this.tabPageUserMaster.TabIndex = 4;
       this.tabPageUserMaster.Text = "Daftar User";
       this.tabPageUserMaster.UseVisualStyleBackColor = true;
+      // 
+      // masterUserPage1
+      // 
+      this.masterUserPage1.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.masterUserPage1.Location = new System.Drawing.Point(3, 3);
+      this.masterUserPage1.Name = "masterUserPage1";
+      this.masterUserPage1.Size = new System.Drawing.Size(1094, 651);
+      this.masterUserPage1.TabIndex = 0;
       // 
       // statusStripInformation
       // 
@@ -291,61 +348,12 @@
       this.timerDisplayDate.Interval = 1000;
       this.timerDisplayDate.Tick += new System.EventHandler(this.timerDisplayDate_Tick);
       // 
-      // checkKasirToolStripMenuItem
+      // pengaturanToolStripMenuItem
       // 
-      this.checkKasirToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.jumlahSetoranToolStripMenuItem});
-      this.checkKasirToolStripMenuItem.Name = "checkKasirToolStripMenuItem";
-      this.checkKasirToolStripMenuItem.Size = new System.Drawing.Size(80, 20);
-      this.checkKasirToolStripMenuItem.Text = "Check Kasir";
-      this.checkKasirToolStripMenuItem.Visible = false;
-      // 
-      // jumlahSetoranToolStripMenuItem
-      // 
-      this.jumlahSetoranToolStripMenuItem.Name = "jumlahSetoranToolStripMenuItem";
-      this.jumlahSetoranToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
-      this.jumlahSetoranToolStripMenuItem.Text = "Jumlah Setoran";
-      this.jumlahSetoranToolStripMenuItem.Click += jumlahSetoranToolStripMenuItem_Click;
-      // 
-      // loginPage1
-      // 
-      this.loginPage1.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.loginPage1.Location = new System.Drawing.Point(3, 3);
-      this.loginPage1.Name = "loginPage1";
-      this.loginPage1.Size = new System.Drawing.Size(1094, 651);
-      this.loginPage1.TabIndex = 0;
-      // 
-      // cashierPage1
-      // 
-      this.cashierPage1.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.cashierPage1.Location = new System.Drawing.Point(3, 3);
-      this.cashierPage1.Name = "cashierPage1";
-      this.cashierPage1.Size = new System.Drawing.Size(1094, 651);
-      this.cashierPage1.TabIndex = 0;
-      // 
-      // masterProductPage1
-      // 
-      this.masterProductPage1.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.masterProductPage1.Location = new System.Drawing.Point(3, 3);
-      this.masterProductPage1.Name = "masterProductPage1";
-      this.masterProductPage1.Size = new System.Drawing.Size(1094, 651);
-      this.masterProductPage1.TabIndex = 0;
-      // 
-      // reportDisplayPage1
-      // 
-      this.reportDisplayPage1.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.reportDisplayPage1.Location = new System.Drawing.Point(3, 3);
-      this.reportDisplayPage1.Name = "reportDisplayPage1";
-      this.reportDisplayPage1.Size = new System.Drawing.Size(1094, 651);
-      this.reportDisplayPage1.TabIndex = 0;
-      // 
-      // masterUserPage1
-      // 
-      this.masterUserPage1.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.masterUserPage1.Location = new System.Drawing.Point(3, 3);
-      this.masterUserPage1.Name = "masterUserPage1";
-      this.masterUserPage1.Size = new System.Drawing.Size(1094, 651);
-      this.masterUserPage1.TabIndex = 0;
+      this.pengaturanToolStripMenuItem.Name = "pengaturanToolStripMenuItem";
+      this.pengaturanToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+      this.pengaturanToolStripMenuItem.Text = "Pengaturan";
+      this.pengaturanToolStripMenuItem.Click += new System.EventHandler(this.pengaturanToolStripMenuItem_Click);
       // 
       // MainForm
       // 
@@ -411,6 +419,7 @@
     private System.Windows.Forms.ToolStripMenuItem ubahTransaksiToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem checkKasirToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem jumlahSetoranToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem pengaturanToolStripMenuItem;
   }
 }
 
