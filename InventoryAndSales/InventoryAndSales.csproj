@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,14 +10,16 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>InventoryAndSales</RootNamespace>
     <AssemblyName>InventoryAndSales</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <ApplicationIcon>bakery-basket-bread-bake-512.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +29,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,8 +38,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\SimpleCommon\Include\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -63,8 +70,11 @@
     <Compile Include="Business\ReportManager.cs" />
     <Compile Include="Business\MasterManager.cs" />
     <Compile Include="Database\DataAccess\CustomDao.cs" />
+    <Compile Include="Database\DataAccess\SettingDao.cs" />
     <Compile Include="Database\DBUtility.cs" />
+    <Compile Include="Database\Manager\SettingManager.cs" />
     <Compile Include="Database\Manager\CustomManager.cs" />
+    <Compile Include="Database\Model\SettingConfiguration.cs" />
     <Compile Include="Database\Model\CustomQuery.cs" />
     <Compile Include="Enumeration\DisplayPage.cs" />
     <Compile Include="Enumeration\AccessOption.cs" />
@@ -92,6 +102,8 @@
     <Compile Include="Database\Model\TransactionDetail.cs" />
     <Compile Include="Database\Model\User.cs" />
     <Compile Include="GUI\Controller\CashierController.cs" />
+    <Compile Include="GUI\Controller\SettingPageController.cs" />
+    <Compile Include="GUI\Controller\SettingPage\HeaderAndFooterController.cs" />
     <Compile Include="GUI\Controller\TransactionUpdateController.cs" />
     <Compile Include="GUI\Controller\LoginController.cs" />
     <Compile Include="GUI\Controller\MasterProductController.cs" />
@@ -113,11 +125,23 @@
     <Compile Include="GUI\Popup\SettingForm.Designer.cs">
       <DependentUpon>SettingForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\Popup\SettingPage\HeaderAndFooter.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\HeaderAndFooter.Designer.cs">
+      <DependentUpon>HeaderAndFooter.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Popup\TransactionUpdateForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="GUI\Popup\TransactionUpdateForm.Designer.cs">
       <DependentUpon>TransactionUpdateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\SplashForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\SplashForm.Designer.cs">
+      <DependentUpon>SplashForm.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\Util\BusinessUtil.cs" />
     <Compile Include="GUI\Util\DataTableUtil.cs" />
@@ -183,6 +207,12 @@
     <EmbeddedResource Include="GUI\Popup\SettingForm.resx">
       <DependentUpon>SettingForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Popup\SettingPage\HeaderAndFooter.resx">
+      <DependentUpon>HeaderAndFooter.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\SplashForm.resx">
+      <DependentUpon>SplashForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -194,6 +224,9 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="App.config" />
+    <AdditionalFiles Include="log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AdditionalFiles>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -260,7 +293,7 @@
     <None Include="Icon\Setting.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bakery-basket-bread-bake-512.ico" />
+    <None Include="Icon\splash.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

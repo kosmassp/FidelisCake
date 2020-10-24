@@ -15,14 +15,47 @@ namespace InventoryAndSales.Business
   {
     private readonly TransactionManager _transactionManager;
     private readonly UserManager _userManager;
-    public CashierManager(TransactionManager transactionManager, UserManager userManager)
+    private readonly SettingConfigurationManager _settingManager;
+    public CashierManager(TransactionManager transactionManager, UserManager userManager, SettingConfigurationManager settingManager)
     {
       _transactionManager = transactionManager;
       _userManager = userManager;
+      _settingManager = settingManager;
       _cart = new Dictionary<int, TransactionDetail>();
     }
 
+    public string GetHeaderNote()
+    {
+      return GetFormattedNote(_settingManager.FindByKey("HEADER").First().Value);
+    }
+    public string GetFooterNote()
+    {
+      return GetFormattedNote(_settingManager.FindByKey("FOOTER").First().Value);
+    }
 
+    public void SetHeaderNote(string header)
+    {
+      var headerData = _settingManager.FindByKey("HEADER").First();
+      headerData.Value = GetUnformattedNote(header);
+      _settingManager.Update(headerData);
+    }
+    public void SetFooterNote(string footer)
+    {
+      var footerData = _settingManager.FindByKey("FOOTER").First();
+      footerData.Value = GetUnformattedNote(footer);
+      _settingManager.Update(footerData);
+    }
+
+    public string GetUnformattedNote(string original)
+    {
+      return original?
+         .Replace(Environment.NewLine, "%NEW_LINE%");
+    }
+    public string GetFormattedNote(string original)
+    {
+      return original?
+         .Replace("%NEW_LINE%", Environment.NewLine);
+    }
 
     public decimal GetCartTotal(out decimal totalPrice, out decimal totalDiscount)
     {
@@ -317,21 +350,35 @@ namespace InventoryAndSales.Business
 
     private Font _printFont = new Font("Courier New", 9);
     private const string lineSeparator = "=================================";
+
+    public Font GetPrintFont()
+    {
+      return _printFont;
+    }
+
     public void PrintPaymentNote(Transaction transaction, List<TransactionDetail> transactionDetails)
     {
       User cashier = _userManager.FindById(transaction.UserId);
-      if(cashier == null)
+      if (cashier == null)
         return;
+      List<StringPrint> stringToPrint = GeneratePaymentNote(GetHeaderNote(), GetFooterNote(), transaction, transactionDetails, cashier);
+
+      PrinterUtility.Print(stringToPrint, _printFont);
+    }
+
+    public static List<StringPrint> GeneratePaymentNote(string headerNotes, string footerNotes, Transaction transaction, List<TransactionDetail> transactionDetails, User cashier)
+    {
       List<StringPrint> stringToPrint = new List<StringPrint>();
       StringFormat centerString = new StringFormat();
       centerString.Alignment = StringAlignment.Center;
       StringFormat leftString = new StringFormat();
       leftString.Alignment = StringAlignment.Near;
       //Todo customize this
-      stringToPrint.Add(new StringPrint("FIDELIS CAKE AND BAKERY", centerString));
-      stringToPrint.Add(new StringPrint("JL MAYJEND SUTOYO NO 1", centerString));
-      stringToPrint.Add(new StringPrint("BANJARNEGARA", centerString));
-      stringToPrint.Add(new StringPrint("(0286) 594573", centerString));
+      var headers = headerNotes.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+      foreach(var header in headers)
+      {
+        stringToPrint.Add(new StringPrint(header, centerString));
+      }
       stringToPrint.Add(new StringPrint(lineSeparator, leftString));
       stringToPrint.Add(new StringPrint(transaction.Time.ToString("dd-MM-yyyy HH:mm") + "  ID:" + transaction.Factur));
       stringToPrint.Add(new StringPrint("KASIR:" + cashier.Name));
@@ -340,9 +387,9 @@ namespace InventoryAndSales.Business
       foreach (TransactionDetail tDetail in transactionDetails)
       {
         stringToPrint.Add(new StringPrint(tDetail.ProductName, leftString));
-        stringToPrint.Add(new StringPrint(tDetail.Quantity + " X " + tDetail.ProductPrice + " = " + tDetail.SubtotalPrice, leftString));
+        stringToPrint.Add(new StringPrint(tDetail.Quantity + " x Rp. " + tDetail.ProductPrice + " = " + tDetail.SubtotalPrice, leftString));
         if (tDetail.ProductDiscount > 0)
-          stringToPrint.Add(new StringPrint("Discount: " + tDetail.SubtotalDiscount, leftString));
+          stringToPrint.Add(new StringPrint("Discount: Rp. " + tDetail.SubtotalDiscount, leftString));
       }
       stringToPrint.Add(new StringPrint(lineSeparator, leftString));
       stringToPrint.Add(new StringPrint("TOTAL BELANJA : Rp. " + transaction.TotalPrice, leftString));
@@ -351,14 +398,14 @@ namespace InventoryAndSales.Business
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
       stringToPrint.Add(new StringPrint("PEMBAYARAN    : Rp. " + transaction.Payment, leftString));
       stringToPrint.Add(new StringPrint("KEMBALI       : Rp. " + transaction.Exchange, leftString));
-      //Todo customize this
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
-      stringToPrint.Add(new StringPrint(lineSeparator, leftString));
-      stringToPrint.Add(new StringPrint("TERIMA KASIH", centerString));
-
-      PrinterUtility.Print(stringToPrint, _printFont);
+      var footers = footerNotes.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+      foreach (var footer in footers)
+      {
+        stringToPrint.Add(new StringPrint(footer, centerString));
+      }
+      return stringToPrint;
     }
-
   }
 
 }

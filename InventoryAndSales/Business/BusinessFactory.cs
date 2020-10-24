@@ -31,7 +31,7 @@ namespace InventoryAndSales.Business
     private BusinessFactory()
     {
       DBFactory dbFactory = DBFactory.GetInstance();
-      CashierManager = new CashierManager(dbFactory.TransactionManager, dbFactory.UserManager);
+      CashierManager = new CashierManager(dbFactory.TransactionManager, dbFactory.UserManager, dbFactory.SettingManager);
       LoginManager = new LoginManager(dbFactory.UserManager);
       MasterManager = new MasterManager(dbFactory.ProductManager, dbFactory.UserManager);
       ReportManager = new ReportManager(dbFactory.CustomManager);

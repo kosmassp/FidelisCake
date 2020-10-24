@@ -114,7 +114,7 @@
       this.Controls.Add(this.buttonAuthenticate);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
       this.Name = "AuthenticationForm";
-      this.Text = "Authentication Form";
+      this.Text = "Persetujuan Admin / Supervisor";
       this.ResumeLayout(false);
       this.PerformLayout();
 

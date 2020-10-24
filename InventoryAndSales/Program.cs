@@ -11,6 +11,7 @@ namespace InventoryAndSales
 {
   static class Program
   {
+    private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     /// <summary>
     /// The main entry point for the application.
     /// </summary>
@@ -20,11 +21,22 @@ namespace InventoryAndSales
       Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
       Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
-      DBUtility.CheckForUpdate();
 
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault(false);
-      Application.Run(new MainForm());
+      var splashForm = new SplashForm();
+      Application.Run(splashForm);
+      if (splashForm.InitializationCheckSuccess)
+      {
+        log.Info("Application started");
+        Application.Run(new MainForm());
+      }
+      else
+      {
+        log.Info("Application failed to start");
+        Environment.Exit(1);
+      }
+          
     }
   }
 }

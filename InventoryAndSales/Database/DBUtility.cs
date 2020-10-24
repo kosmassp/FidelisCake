@@ -8,15 +8,86 @@ namespace InventoryAndSales.Database
 {
   public class DBUtility
   {
-    public static void CheckForUpdate()
+    private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    public static void CheckForDatabaseTable()
     {
+      log.Info("Create Table if not exists");
       CheckTable();
+      log.Info("Update missing column");
       UpdateTableTransaction();
+      log.Info("Create index");
+      CheckIndex();
+    }
+
+    private static void CheckIndex()
+    {
+      try
+      {
+        var create_index = "CREATE UNIQUE NONCLUSTERED INDEX[IDX_T_TRANS_TRXTIME] ON[dbo].[T_TRANSACTIONS] ( [TransactionTime] ASC )";
+        ExecuteNonQuery(create_index);
+        create_index = "ALTER TABLE T_TRANSACTIONS ALTER COLUMN [Factur] varchar(18) collate Latin1_General_CS_AS";
+        ExecuteNonQuery(create_index);
+        create_index = "CREATE UNIQUE NONCLUSTERED INDEX[IDX_T_TRANS_FACTUR] ON[dbo].[T_TRANSACTIONS] ( [Factur] ASC )";
+        ExecuteNonQuery(create_index);
+      }
+      catch (Exception e)
+      {
+      }
+    }
+
+    public static void CheckForDatabaseRow()
+    {
+      UpsertSettingRow();
+
+    }
+
+    private static void UpsertSettingRow()
+    {
+      string SETTINGS_QUERY = "SELECT * FROM M_SETTINGS WHERE [KEY] = '{0}' AND [GROUP] = '{1}'";
+      string SETTINGS_INSERT = "INSERT INTO M_SETTINGS([KEY], [GROUP], [VALUE], [DEFAULT]) VALUES ('{0}','{1}','{2}','{2}')";
+
+      string query = string.Format(SETTINGS_QUERY, "HEADER", "GENERAL");
+      var result = ExecuteScalar(query);
+      if(result == null)
+      {
+        string insert = string.Format(SETTINGS_INSERT, "HEADER", "GENERAL", 
+          "FIDELIS CAKE AND BAKERY" +
+          "%NEW_LINE%" +
+          "JL MAYJEND SUTOYO NO 1" +
+          "%NEW_LINE%" +
+          "BANJARNEGARA" +
+          "%NEW_LINE%" +
+          "(0286) 594573");
+        ExecuteNonQuery(insert);
+      }
+
+      query = string.Format(SETTINGS_QUERY, "FOOTER", "GENERAL");
+      result = ExecuteScalar(query);
+      if(result == null)
+      {
+        string insert = string.Format(SETTINGS_INSERT, "FOOTER", "GENERAL",
+          "TERIMA KASIH" +
+          "%NEW_LINE%" +
+          "SELAMAT MENIKMATI");
+        ExecuteNonQuery(insert);
+      }
     }
 
     private static void CheckTable()
     {
       StringBuilder sb = new StringBuilder();
+      if (!CheckIfTableExist("M_SETTINGS"))
+      {                                                             
+        sb.Append("  CREATE TABLE [dbo].[M_SETTINGS](       ");
+        sb.Append("      [Id] [int] IDENTITY(1,1) NOT NULL, ");
+        sb.Append("      [Key] [varchar](80) NOT NULL,      ");
+        sb.Append("      [Group] [varchar](80) NULL,        ");
+        sb.Append("      [Value] [text] NULL,               ");
+        sb.Append("      [Default] [text] NOT NULL          ");
+        sb.Append("  )                                      ");
+        ExecuteNonQuery(sb.ToString());
+      }
+
       if (!CheckIfTableExist("M_PRODUCTS"))
       {
         sb.Append("  CREATE TABLE [dbo].[M_PRODUCTS](                                                  ");
@@ -177,47 +248,6 @@ namespace InventoryAndSales.Database
         connection.Close();
       return obj;
     }
-
-    /*
-    internal  bool ExecuteNonQueries(string[] nonQueryCommands)
-    {
-      return ExecuteNonQueries(IsolationLevel.ReadCommitted, nonQueryCommands);
-    }
-    internal  bool ExecuteNonQueries(IsolationLevel isolationLevel, string[] nonQueryCommands)
-    {
-      bool commandSuccess = false;
-      using (SqlConnection connection = DBFactory.GetInstance().GetConnection())
-      {
-        connection.Open();
-        SqlCommand command = connection.CreateCommand();
-        SqlTransaction transaction = connection.BeginTransaction(isolationLevel);
-        command.Transaction = transaction;
-        try
-        {
-          foreach (string nonQueryCommand in nonQueryCommands)
-          {
-            command.CommandText = nonQueryCommand;
-            command.ExecuteNonQuery();
-          }
-          transaction.Commit();
-          commandSuccess = true;
-        }
-        catch (Exception e)
-        {
-          try
-          {
-            transaction.Rollback();
-          }
-          catch (SqlException ex)
-          {
-            throw;
-          }
-        }
-      }
-      return commandSuccess;
-    }
-    */
-
 
   }
 }

@@ -42,6 +42,7 @@
       this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.daftarBarangToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.daftarUserToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.pengaturanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.laporanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.laporanTransaksiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.checkKasirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -62,7 +63,6 @@
       this.toolStripStatusLabelEmpty = new System.Windows.Forms.ToolStripStatusLabel();
       this.toolStripStatusLabelActiveUser = new System.Windows.Forms.ToolStripStatusLabel();
       this.timerDisplayDate = new System.Windows.Forms.Timer(this.components);
-      this.pengaturanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.menuStripMain.SuspendLayout();
       this.tabControlPage.SuspendLayout();
       this.tabPageLogin.SuspendLayout();
@@ -118,7 +118,7 @@
             this.printUlangTransaksiToolStripMenuItem,
             this.ubahTransaksiToolStripMenuItem});
       this.transaksiToolStripMenuItem.Name = "transaksiToolStripMenuItem";
-      this.transaksiToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
+      this.transaksiToolStripMenuItem.Size = new System.Drawing.Size(66, 20);
       this.transaksiToolStripMenuItem.Text = "Transaksi";
       // 
       // penjualanToolStripMenuItem
@@ -173,6 +173,13 @@
       this.daftarUserToolStripMenuItem.Text = "Daftar Pengguna";
       this.daftarUserToolStripMenuItem.Click += new System.EventHandler(this.daftarUserToolStripMenuItem_Click);
       // 
+      // pengaturanToolStripMenuItem
+      // 
+      this.pengaturanToolStripMenuItem.Name = "pengaturanToolStripMenuItem";
+      this.pengaturanToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+      this.pengaturanToolStripMenuItem.Text = "Pengaturan";
+      this.pengaturanToolStripMenuItem.Click += new System.EventHandler(this.pengaturanToolStripMenuItem_Click);
+      // 
       // laporanToolStripMenuItem
       // 
       this.laporanToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -184,7 +191,7 @@
       // laporanTransaksiToolStripMenuItem
       // 
       this.laporanTransaksiToolStripMenuItem.Name = "laporanTransaksiToolStripMenuItem";
-      this.laporanTransaksiToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+      this.laporanTransaksiToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.laporanTransaksiToolStripMenuItem.Text = "Laporan Transaksi";
       this.laporanTransaksiToolStripMenuItem.Click += new System.EventHandler(this.laporanTransaksiToolStripMenuItem_Click);
       // 
@@ -200,8 +207,9 @@
       // jumlahSetoranToolStripMenuItem
       // 
       this.jumlahSetoranToolStripMenuItem.Name = "jumlahSetoranToolStripMenuItem";
-      this.jumlahSetoranToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+      this.jumlahSetoranToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.jumlahSetoranToolStripMenuItem.Text = "Jumlah Setoran";
+      this.jumlahSetoranToolStripMenuItem.Click += new System.EventHandler(this.jumlahSetoranToolStripMenuItem_Click);
       // 
       // tabControlPage
       // 
@@ -347,13 +355,6 @@
       this.timerDisplayDate.Enabled = true;
       this.timerDisplayDate.Interval = 1000;
       this.timerDisplayDate.Tick += new System.EventHandler(this.timerDisplayDate_Tick);
-      // 
-      // pengaturanToolStripMenuItem
-      // 
-      this.pengaturanToolStripMenuItem.Name = "pengaturanToolStripMenuItem";
-      this.pengaturanToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
-      this.pengaturanToolStripMenuItem.Text = "Pengaturan";
-      this.pengaturanToolStripMenuItem.Click += new System.EventHandler(this.pengaturanToolStripMenuItem_Click);
       // 
       // MainForm
       // 

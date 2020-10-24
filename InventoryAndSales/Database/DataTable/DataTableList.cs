@@ -28,12 +28,14 @@ namespace InventoryAndSales.Database.DataTable
     private static readonly IDataTable TransactionDataTable = new DataTable("T_TRANSACTIONS", "Id", "Factur", "TotalPrice", "TotalDiscount", "Total", "Notes", "UserId", "TransactionTime", "Payment", "Exchange", "CustomerId", "Revision");
     private static readonly IDataTable TransactionDetailDataTable = new DataTable("T_TRANSACTION_DETAILS", "Id", "ProductId", "Quantity", "ProductDiscount", "ProductPrice", "SubtotalDiscount", "SubtotalPrice", "Subtotal", "TransactionId");
     private static readonly IDataTable CustomerDataTable = new DataTable("M_CUSTOMERS", "Id", "Name",  "Address", "Phone", "MemberType");
+    private static readonly IDataTable SettingDataTable = new DataTable("M_SETTINGS", "Id", "Key",  "Group", "Value", "Default");
 
 
     private Dictionary<Type, IDataTable> _dict;
     private DataTableList()
     {
       _dict = new Dictionary<Type, IDataTable>();
+      _dict.Add(typeof(SettingConfiguration), SettingDataTable);
       _dict.Add(typeof(User), UserDataTable);
       _dict.Add(typeof(Product), ItemDataTable);
       _dict.Add(typeof(Transaction), TransactionDataTable);

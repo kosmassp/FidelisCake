@@ -9,12 +9,12 @@ namespace InventoryAndSales.Database.Manager
 {
   public class TransactionManager : BaseManager<Transaction>
   {
-    private TransactionDetailDao _tdDao;
+    private TransactionDetailManager _tdManager;
     private TransactionDao _trxDao;
-    public TransactionManager(TransactionDao dao, TransactionDetailDao tdDao)
+    public TransactionManager(TransactionDao dao, TransactionDetailManager tdManager)
       : base(dao)
     {
-      _tdDao = tdDao;
+      _tdManager = tdManager;
       _trxDao = dao;
     }
     public Transaction GetTransaction(string factur, out List<TransactionDetail> transactionDetails)
@@ -22,7 +22,7 @@ namespace InventoryAndSales.Database.Manager
       Transaction t = _trxDao.FindByFactur(factur);
       if(t!= null)
       {
-        transactionDetails = _tdDao.FindByTransactionId(t.Id);
+        transactionDetails = _tdManager.FindByTransactionId(t.Id);
       } 
       else
       {
@@ -40,7 +40,7 @@ namespace InventoryAndSales.Database.Manager
         foreach (TransactionDetail tDetail in transactionDetails)
         {
           tDetail.TransactionId = transaction.Id;
-          _tdDao.Save(tDetail);
+          _tdManager.Save(tDetail);
         }
         DBFactory.GetInstance().CommitTransaction();
       }
@@ -63,7 +63,7 @@ namespace InventoryAndSales.Database.Manager
         foreach (TransactionDetail tDetail in transactionDetails)
         {
           tDetail.TransactionId = transaction.Id;
-          _tdDao.Save(tDetail);
+          _tdManager.Save(tDetail);
         }
         DBFactory.GetInstance().CommitTransaction();
       }

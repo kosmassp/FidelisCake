@@ -34,10 +34,12 @@ namespace InventoryAndSales.Database
     private TransactionDao TransactionDao { get; set; }
     private TransactionDetailDao TransactionDetailDao { get; set; }
     private CustomerDao CustomerDao { get; set; }
+    private SettingConfigurationDao SettingDao { get; set; }
     private CustomDao CustomDao { get; set; }
 
     public ProductManager ProductManager { get; private set; }
     public UserManager UserManager { get; private set; }
+    public SettingConfigurationManager SettingManager { get; private set; }
     public TransactionDetailManager TransactionDetailManager { get; private set; }
     public TransactionManager TransactionManager { get; private set; }
     public CustomerManager CustomerManager { get; private set; }
@@ -50,6 +52,7 @@ namespace InventoryAndSales.Database
       string connectionString = ConfigurationManager.AppSettings["ConnectionString"];
       ConnectionString = connectionString;
 
+      SettingDao = new SettingConfigurationDao();
       ProductDao = new ProductDao();
       UserDao = new UserDao();
       TransactionDao = new TransactionDao();
@@ -57,10 +60,11 @@ namespace InventoryAndSales.Database
       CustomerDao = new CustomerDao();
       CustomDao = new CustomDao();
 
+      SettingManager = new SettingConfigurationManager(SettingDao);
       ProductManager = new ProductManager(ProductDao);
       UserManager = new UserManager(UserDao);
-      TransactionManager = new TransactionManager(TransactionDao, TransactionDetailDao);
-      TransactionDetailManager = new TransactionDetailManager( TransactionDetailDao);
+      TransactionDetailManager = new TransactionDetailManager( TransactionDetailDao, ProductManager);
+      TransactionManager = new TransactionManager(TransactionDao, TransactionDetailManager);
       CustomerManager = new CustomerManager(CustomerDao);
       CustomManager = new CustomManager(CustomDao);
     }

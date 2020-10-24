@@ -28,31 +28,44 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.listBox1 = new System.Windows.Forms.ListBox();
-            this.SuspendLayout();
-            // 
-            // listBox1
-            // 
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.Location = new System.Drawing.Point(12, 20);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(133, 420);
-            this.listBox1.TabIndex = 0;
-            // 
-            // SettingForm
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.listBox1);
-            this.Name = "SettingForm";
-            this.Text = "SettingForm";
-            this.ResumeLayout(false);
+      this.listBoxSettingSelection = new System.Windows.Forms.ListBox();
+      this.panelSettingPage = new System.Windows.Forms.Panel();
+      this.SuspendLayout();
+      // 
+      // listBoxSettingSelection
+      // 
+      this.listBoxSettingSelection.Dock = System.Windows.Forms.DockStyle.Left;
+      this.listBoxSettingSelection.FormattingEnabled = true;
+      this.listBoxSettingSelection.Location = new System.Drawing.Point(0, 0);
+      this.listBoxSettingSelection.Name = "listBoxSettingSelection";
+      this.listBoxSettingSelection.Size = new System.Drawing.Size(141, 450);
+      this.listBoxSettingSelection.TabIndex = 0;
+      this.listBoxSettingSelection.SelectedIndexChanged += new System.EventHandler(this.listBoxSettingSelection_SelectedIndexChanged);
+      // 
+      // panelSettingPage
+      // 
+      this.panelSettingPage.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.panelSettingPage.Location = new System.Drawing.Point(141, 0);
+      this.panelSettingPage.Name = "panelSettingPage";
+      this.panelSettingPage.Size = new System.Drawing.Size(659, 450);
+      this.panelSettingPage.TabIndex = 1;
+      // 
+      // SettingForm
+      // 
+      this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+      this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+      this.ClientSize = new System.Drawing.Size(800, 450);
+      this.Controls.Add(this.panelSettingPage);
+      this.Controls.Add(this.listBoxSettingSelection);
+      this.Name = "SettingForm";
+      this.Text = "SettingForm";
+      this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.ListBox listBox1;
-    }
+        private System.Windows.Forms.ListBox listBoxSettingSelection;
+    private System.Windows.Forms.Panel panelSettingPage;
+  }
 }

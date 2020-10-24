@@ -72,13 +72,13 @@ namespace InventoryAndSales.Database.DataAccess
           continue;
         if(first)
         {
-          columns.AppendFormat("{0}", column);
+          columns.AppendFormat("[{0}]", column);
           values.AppendFormat("'{0}'", dataObject[column]);
           first = false;
         }
         else
         {
-          columns.AppendFormat(",{0}", column);
+          columns.AppendFormat(",[{0}]", column);
           values.AppendFormat(",'{0}'", dataObject[column]);
         }
       }
@@ -109,12 +109,12 @@ namespace InventoryAndSales.Database.DataAccess
           continue;
         if(first)
         {
-          columnValuePair.AppendFormat("{0}='{1}'", column, dataObject[column]);
+          columnValuePair.AppendFormat("[{0}]='{1}'", column, dataObject[column]);
           first = false;
         }
         else
         {
-          columnValuePair.AppendFormat(",{0}='{1}'", column, dataObject[column]);
+          columnValuePair.AppendFormat(",[{0}]='{1}'", column, dataObject[column]);
         }
       }
 
@@ -128,7 +128,7 @@ namespace InventoryAndSales.Database.DataAccess
       return DeleteById((int)dataObject[_dataTable.PrimaryKeyColumn]);
     }
 
-    private const string DELETE_SQL = "DELETE FROM {0} WHERE {1} = {2}";
+    private const string DELETE_SQL = "DELETE FROM {0} WHERE [{1}] = {2}";
     public virtual bool DeleteById(int id)
     {
       //TODO execute sql FIND_BY_ID_SQL, WE don't not to describe this everytime

@@ -21,6 +21,8 @@ namespace InventoryAndSales.GUI
       InitializeComponent();
       _viewManager = BusinessFactory.GetInstance().ViewManager;
       this.DialogResult = DialogResult.Cancel;
+      dateTimePickerFrom.Value = DateTime.Now;
+      dateTimePickerTo.Value = DateTime.Now;
     }
 
     private void buttonSearch_Click(object sender, EventArgs e)
