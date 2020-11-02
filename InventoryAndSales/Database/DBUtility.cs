@@ -23,7 +23,7 @@ namespace InventoryAndSales.Database
     {
       try
       {
-        var create_index = "CREATE UNIQUE NONCLUSTERED INDEX[IDX_T_TRANS_TRXTIME] ON[dbo].[T_TRANSACTIONS] ( [TransactionTime] ASC )";
+        var create_index = "CREATE NONCLUSTERED INDEX[IDX_T_TRANS_TRXTIME] ON[dbo].[T_TRANSACTIONS] ( [TransactionTime] DESC )";
         ExecuteNonQuery(create_index);
         create_index = "ALTER TABLE T_TRANSACTIONS ALTER COLUMN [Factur] varchar(18) collate Latin1_General_CS_AS";
         ExecuteNonQuery(create_index);

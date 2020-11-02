@@ -23,16 +23,18 @@ namespace InventoryAndSales.Database.Manager
     }
     public virtual bool Save(T t)
     {
-      DBFactory.GetInstance().BeginTransaction();
+      bool newTransaction = DBFactory.GetInstance().BeginTransaction();
       bool success = false;
       try
       {
         success = BaseDao.Save(t);
-        DBFactory.GetInstance().CommitTransaction();
+        if(newTransaction)
+          DBFactory.GetInstance().CommitTransaction();
       }
       catch (Exception e)
       {
-        DBFactory.GetInstance().RollbackTransaction();
+        if (newTransaction)
+          DBFactory.GetInstance().RollbackTransaction();
         success = false;
         throw e;
       }

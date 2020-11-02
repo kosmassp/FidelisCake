@@ -72,19 +72,22 @@ namespace InventoryAndSales.Database
     private SqlTransaction _activeTransaction;
     private SqlConnection _activeConnection;
     private readonly object _lockTransaction = new object();
-    public void BeginTransaction()
+    public bool BeginTransaction()
     {
-      while(_activeTransaction != null ) //TODO What if a transaction want to be inside another transaction.
-      {
-        //Todo look after this
-        Thread.Sleep(50);
-        //wait until transaction become inactive;
-      }
+      if (_activeTransaction != null)
+        return false;
+      //while (_activeTransaction != null ) //TODO What if a transaction want to be inside another transaction.
+      //{
+      //  //Todo look after this
+      //  Thread.Sleep(50);
+      //  //wait until transaction become inactive;
+      //}
       lock (_lockTransaction)
       {
         _activeConnection = GetConnection(); // in here should be new connection
         _activeConnection.Open();
         _activeTransaction = _activeConnection.BeginTransaction();
+        return true;
       }
     }
 

@@ -33,7 +33,7 @@ namespace InventoryAndSales.Database.Manager
 
     public void SaveCompleteTransaction(Transaction transaction, List<TransactionDetail> transactionDetails)
     {
-      DBFactory.GetInstance().BeginTransaction();
+      bool newTransaction = DBFactory.GetInstance().BeginTransaction();
       try
       {
         _trxDao.Save(transaction);
@@ -42,11 +42,13 @@ namespace InventoryAndSales.Database.Manager
           tDetail.TransactionId = transaction.Id;
           _tdManager.Save(tDetail);
         }
-        DBFactory.GetInstance().CommitTransaction();
+        if(newTransaction)
+          DBFactory.GetInstance().CommitTransaction();
       }
       catch(Exception e)
       {
-        DBFactory.GetInstance().RollbackTransaction();
+        if (newTransaction)
+          DBFactory.GetInstance().RollbackTransaction();
         throw;
       }
     }
@@ -54,7 +56,7 @@ namespace InventoryAndSales.Database.Manager
       Transaction originalTransaction, 
       Transaction transaction, List<TransactionDetail> transactionDetails)
     {
-      DBFactory.GetInstance().BeginTransaction();
+      bool newTransaction = DBFactory.GetInstance().BeginTransaction();
       try
       {
         _trxDao.Save(transaction);
@@ -65,27 +67,31 @@ namespace InventoryAndSales.Database.Manager
           tDetail.TransactionId = transaction.Id;
           _tdManager.Save(tDetail);
         }
-        DBFactory.GetInstance().CommitTransaction();
+        if(newTransaction)
+          DBFactory.GetInstance().CommitTransaction();
       }
       catch(Exception e)
       {
-        DBFactory.GetInstance().RollbackTransaction();
+        if (newTransaction)
+          DBFactory.GetInstance().RollbackTransaction();
         throw;
       }
     }
 
     public void CancelTransaction(Transaction originalTransaction)
     {
-      DBFactory.GetInstance().BeginTransaction();
+      bool newTransaction = DBFactory.GetInstance().BeginTransaction();
       try
       {
         originalTransaction.Revision = -1;
         _trxDao.Update(originalTransaction);
-        DBFactory.GetInstance().CommitTransaction();
+        if(newTransaction)
+          DBFactory.GetInstance().CommitTransaction();
       }
       catch(Exception e)
       {
-        DBFactory.GetInstance().RollbackTransaction();
+        if (newTransaction)
+          DBFactory.GetInstance().RollbackTransaction();
         throw;
       }
     }
