@@ -15,6 +15,7 @@ namespace InventoryAndSales.GUI.Controller
 {
   public class CashierController
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private CashierPage _control;
     private LoginManager _loginManager;
     private CashierManager _cashierManager;
@@ -82,6 +83,7 @@ namespace InventoryAndSales.GUI.Controller
       }
       catch (Exception e)
       {
+        _log.Error(e);
         return e.Message + Environment.NewLine + e.StackTrace;
       }
       return string.Empty;

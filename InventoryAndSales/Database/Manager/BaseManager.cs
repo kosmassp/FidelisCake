@@ -10,6 +10,7 @@ namespace InventoryAndSales.Database.Manager
   public abstract class BaseManager<T> where T:BaseObject, new()
   //public abstract class BaseManager<T,V> when we start to use Int65 as Id
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     //public abstract T FindById(V id);
     protected BaseDao<T> BaseDao;
     public BaseManager(BaseDao<T> baseDao)
@@ -33,6 +34,7 @@ namespace InventoryAndSales.Database.Manager
       }
       catch (Exception e)
       {
+        _log.Error(e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
         success = false;

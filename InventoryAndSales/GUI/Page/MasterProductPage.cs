@@ -285,7 +285,7 @@ namespace InventoryAndSales.GUI.Page
       dataGridViewMasterItemList.Enabled = !edit;
       dataGridViewMasterItemList.ForeColor = edit ? Color.Gray : Color.Black;
 
-      if (!edit ) //on edit item done
+      if (!edit && comboBoxSort != null) //on edit item done
       {
         if (comboBoxSort.SelectedItem == null)
           comboBoxSort.SelectedIndex = 0;

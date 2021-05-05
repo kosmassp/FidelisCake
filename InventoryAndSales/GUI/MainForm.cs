@@ -19,12 +19,14 @@ namespace InventoryAndSales.GUI
 {
   public partial class MainForm : Form
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private MainFormController controller;
 
     public MainForm()
     {
-      Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-      Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+      CultureInfo.DefaultThreadCurrentCulture = Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+      CultureInfo.DefaultThreadCurrentUICulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+
       InitializeComponent();
       ControlUtility.HideTabHeader(tabControlPage);
       controller = new MainFormController(this);
@@ -208,8 +210,9 @@ namespace InventoryAndSales.GUI
         if ( controller.RequestDeleteTransaction())
           MessageBox.Show("Transaksi dihapus.");
       }
-      catch(Exception)
+      catch(Exception ex)
       {
+        _log.Error(ex);
         MessageBox.Show("Terdapat kesalahan sistem. Tolong check kembali. ");
       }
       LoadCashierPage();

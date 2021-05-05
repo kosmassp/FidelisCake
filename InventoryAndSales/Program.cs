@@ -11,7 +11,7 @@ namespace InventoryAndSales
 {
   static class Program
   {
-    private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     /// <summary>
     /// The main entry point for the application.
     /// </summary>
@@ -21,6 +21,7 @@ namespace InventoryAndSales
       Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
       Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
+      AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault(false);
@@ -28,15 +29,27 @@ namespace InventoryAndSales
       Application.Run(splashForm);
       if (splashForm.InitializationCheckSuccess)
       {
-        log.Info("Application started");
-        Application.Run(new MainForm());
+        _log.Info("Application started");
+        try
+        {
+          Application.Run(new MainForm());
+        }
+        catch(Exception e)
+        {
+          _log.Error(e);
+        }
       }
       else
       {
-        log.Info("Application failed to start");
+        _log.Info("Application failed to start");
         Environment.Exit(1);
       }
-          
     }
+
+    private static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
+    {
+      _log.Error(string.Format("*** UNHANDLED APPDOMAIN EXCEPTION ({0}) *****", e.IsTerminating ? "Terminating" : "Non-Terminating"), e.ExceptionObject as Exception);
+    }
+
   }
 }

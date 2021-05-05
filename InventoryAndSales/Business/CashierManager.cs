@@ -13,6 +13,7 @@ namespace InventoryAndSales.Business
 {
   public class CashierManager
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private readonly TransactionManager _transactionManager;
     private readonly UserManager _userManager;
     private readonly SettingConfigurationManager _settingManager;
@@ -91,6 +92,7 @@ namespace InventoryAndSales.Business
         }
         catch (Exception e)
         {
+          _log.Error(e);
           return false;
         }
       }
@@ -121,6 +123,7 @@ namespace InventoryAndSales.Business
         }
         catch (Exception e)
         {
+          _log.Error(e);
           return false;
         }
       }
@@ -150,6 +153,7 @@ namespace InventoryAndSales.Business
         }
         catch (Exception e)
         {
+          _log.Error(e);
           return false;
         }
       }
@@ -167,7 +171,7 @@ namespace InventoryAndSales.Business
       }
       catch(Exception e)
       {
-        
+        _log.Error(e);
       }
     }
 
@@ -208,6 +212,7 @@ namespace InventoryAndSales.Business
       }
       catch(Exception e)
       {
+        _log.Error(e);
         message = "Transaksi berhasil namun gagal mencetak. Pastikan printer terhubung dan cetak laporan melalui menu.";
       }
       return status;
@@ -260,6 +265,7 @@ namespace InventoryAndSales.Business
       }
       catch(Exception e)
       {
+        _log.Error(e);
         return value.ToString();
       }
     }

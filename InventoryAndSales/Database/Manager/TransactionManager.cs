@@ -9,6 +9,7 @@ namespace InventoryAndSales.Database.Manager
 {
   public class TransactionManager : BaseManager<Transaction>
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private TransactionDetailManager _tdManager;
     private TransactionDao _trxDao;
     public TransactionManager(TransactionDao dao, TransactionDetailManager tdManager)
@@ -47,6 +48,7 @@ namespace InventoryAndSales.Database.Manager
       }
       catch(Exception e)
       {
+        _log.Error("Rolling BackTransaction", e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
         throw;
@@ -72,6 +74,7 @@ namespace InventoryAndSales.Database.Manager
       }
       catch(Exception e)
       {
+        _log.Error("Rolling Back Transaction", e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
         throw;
@@ -90,6 +93,7 @@ namespace InventoryAndSales.Database.Manager
       }
       catch(Exception e)
       {
+        _log.Error("Rolling Back Transaction", e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
         throw;

@@ -15,6 +15,7 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
 {
   public partial class HeaderAndFooterForm : UserControl
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private HeaderAndFooterController _controller;
     public HeaderAndFooterForm()
     {
@@ -61,6 +62,7 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
       }
       catch(Exception ex)
       {
+        _log.Error(ex);
         MessageBox.Show("Tampilan Nota Belum Berubah.", "GAGAL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
       }
     }

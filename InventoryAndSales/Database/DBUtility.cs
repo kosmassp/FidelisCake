@@ -8,14 +8,14 @@ namespace InventoryAndSales.Database
 {
   public class DBUtility
   {
-    private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     public static void CheckForDatabaseTable()
     {
-      log.Info("Create Table if not exists");
+      _log.Info("Create Table if not exists");
       CheckTable();
-      log.Info("Update missing column");
+      _log.Info("Update missing column");
       UpdateTableTransaction();
-      log.Info("Create index");
+      _log.Info("Create index");
       CheckIndex();
     }
 
@@ -25,13 +25,13 @@ namespace InventoryAndSales.Database
       {
         var create_index = "CREATE NONCLUSTERED INDEX[IDX_T_TRANS_TRXTIME] ON[dbo].[T_TRANSACTIONS] ( [TransactionTime] DESC )";
         ExecuteNonQuery(create_index);
-        create_index = "ALTER TABLE T_TRANSACTIONS ALTER COLUMN [Factur] varchar(18) collate Latin1_General_CS_AS";
-        ExecuteNonQuery(create_index);
         create_index = "CREATE UNIQUE NONCLUSTERED INDEX[IDX_T_TRANS_FACTUR] ON[dbo].[T_TRANSACTIONS] ( [Factur] ASC )";
         ExecuteNonQuery(create_index);
       }
       catch (Exception e)
       {
+        _log.Error("Create Index Failed");
+        _log.Error(e);
       }
     }
 
@@ -51,12 +51,9 @@ namespace InventoryAndSales.Database
       if(result == null)
       {
         string insert = string.Format(SETTINGS_INSERT, "HEADER", "GENERAL", 
-          "FIDELIS CAKE AND BAKERY" +
-          "%NEW_LINE%" +
-          "JL MAYJEND SUTOYO NO 1" +
-          "%NEW_LINE%" +
-          "BANJARNEGARA" +
-          "%NEW_LINE%" +
+          "FIDELIS CAKE AND BAKERY" + "%NEW_LINE%" +
+          "JL MAYJEND SUTOYO NO 1" + "%NEW_LINE%" +
+          "BANJARNEGARA" + "%NEW_LINE%" +
           "(0286) 594573");
         ExecuteNonQuery(insert);
       }
@@ -66,8 +63,7 @@ namespace InventoryAndSales.Database
       if(result == null)
       {
         string insert = string.Format(SETTINGS_INSERT, "FOOTER", "GENERAL",
-          "TERIMA KASIH" +
-          "%NEW_LINE%" +
+          "TERIMA KASIH" + "%NEW_LINE%" +
           "SELAMAT MENIKMATI");
         ExecuteNonQuery(insert);
       }
@@ -180,6 +176,15 @@ namespace InventoryAndSales.Database
         ExecuteNonQuery(string.Format("ALTER TABLE {0} ADD {1} bigint NULL", tableName, columnName));
         ExecuteNonQuery(string.Format("UPDATE {0} set {1} = 0 where {1} is NULL", tableName, columnName));
       }
+
+      columnName = "Factur";
+      var dataType = "varchar";
+      var charLength = 18;
+      if (IsColumnExist(tableName, columnName) && !IsColumnTypeEquals(tableName, columnName, dataType, charLength)) //Revision will link to transaction id. Revision null when it is new. Revision -1 means deleted.
+      {
+        ExecuteNonQuery( $"ALTER TABLE {tableName} ALTER COLUMN {columnName} {dataType}({charLength})");
+      }
+
       //columnName = "Deleted";
       //if (!IsColumnExist(tableName, columnName))
       //{
@@ -213,9 +218,33 @@ namespace InventoryAndSales.Database
       }
       catch(Exception e)
       {
+        _log.Error(e);
         exists = false;
       }
       return exists;
+    }
+
+
+    private static bool IsColumnTypeEquals(string tableName, string columnName, string dataType, int charLength = 0)
+    {
+      bool dataTypeEquals = true;
+      try
+      {
+        var result = ExecuteScalar(string.Format("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{0}' AND COLUMN_NAME = '{1}'", tableName, columnName));
+        //var obj = ExecuteScalar(string.Format("SELECT {0} from {1}", columnName, tableName)); //barbaric ways
+        dataTypeEquals = result.ToString() == dataType;
+        if (dataTypeEquals && charLength > 0)
+        {
+          result = ExecuteScalar(string.Format("SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{0}' AND COLUMN_NAME = '{1}'", tableName, columnName));
+          return (int)result == charLength;
+        }
+      }
+      catch (Exception e)
+      {
+        _log.Error(e);
+        dataTypeEquals = false;
+      }
+      return dataTypeEquals;
     }
 
 
@@ -225,13 +254,24 @@ namespace InventoryAndSales.Database
       SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
       if (activeTransaction == null)
         connection.Open();
-      SqlCommand command = connection.CreateCommand();
-      command.CommandText = nonQueryCommand;
-      command.Transaction = activeTransaction;
-      int result = command.ExecuteNonQuery();
-      if (activeTransaction == null)
-        connection.Close();
-      return result;
+      try
+      {
+        SqlCommand command = connection.CreateCommand();
+        command.CommandText = nonQueryCommand;
+        command.Transaction = activeTransaction;
+        int result = command.ExecuteNonQuery();
+        return result;
+      }
+      catch(Exception e)
+      {
+        _log.Error( $"Failed to run non-query {nonQueryCommand}", e);
+        return -1;
+      }
+      finally
+      {
+        if (activeTransaction == null)
+          connection.Close();
+      }
     }
 
     internal static object ExecuteScalar(string scalarCommand)
@@ -240,13 +280,24 @@ namespace InventoryAndSales.Database
       SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
       if (activeTransaction == null)
         connection.Open();
-      SqlCommand command = connection.CreateCommand();
-      command.CommandText = scalarCommand;
-      command.Transaction = activeTransaction;
-      object obj = command.ExecuteScalar();
-      if (activeTransaction == null)
-        connection.Close();
-      return obj;
+      try
+      {
+        SqlCommand command = connection.CreateCommand();
+        command.CommandText = scalarCommand;
+        command.Transaction = activeTransaction;
+        object obj = command.ExecuteScalar();
+        return obj;
+      }
+      catch (Exception e)
+      {
+        _log.Error($"Failed to run query {scalarCommand}", e);
+        return null;
+      }
+      finally
+      {
+        if (activeTransaction == null)
+          connection.Close();
+      }
     }
 
   }
