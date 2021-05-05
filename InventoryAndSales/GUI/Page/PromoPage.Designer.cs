@@ -94,16 +94,18 @@ namespace InventoryAndSales.GUI.Page
       this.panel1.Controls.Add(this.textBoxPromoName);
       this.panel1.Location = new System.Drawing.Point(3, 3);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(421, 497);
+      this.panel1.Size = new System.Drawing.Size(432, 497);
       this.panel1.TabIndex = 2;
       this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
       // 
       // groupBoxPromoType
       // 
+      this.groupBoxPromoType.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
       this.groupBoxPromoType.Controls.Add(this.flowLayoutPanelPromoType);
       this.groupBoxPromoType.Location = new System.Drawing.Point(8, 208);
       this.groupBoxPromoType.Name = "groupBoxPromoType";
-      this.groupBoxPromoType.Size = new System.Drawing.Size(400, 277);
+      this.groupBoxPromoType.Size = new System.Drawing.Size(411, 277);
       this.groupBoxPromoType.TabIndex = 34;
       this.groupBoxPromoType.TabStop = false;
       this.groupBoxPromoType.Text = "Promo";
@@ -115,7 +117,7 @@ namespace InventoryAndSales.GUI.Page
       this.flowLayoutPanelPromoType.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanelPromoType.Location = new System.Drawing.Point(3, 16);
       this.flowLayoutPanelPromoType.Name = "flowLayoutPanelPromoType";
-      this.flowLayoutPanelPromoType.Size = new System.Drawing.Size(394, 258);
+      this.flowLayoutPanelPromoType.Size = new System.Drawing.Size(405, 258);
       this.flowLayoutPanelPromoType.TabIndex = 0;
       // 
       // tabControl1
@@ -306,12 +308,14 @@ namespace InventoryAndSales.GUI.Page
       // 
       // groupBox3
       // 
+      this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
       this.groupBox3.Controls.Add(this.radioButton8);
       this.groupBox3.Controls.Add(this.button2);
       this.groupBox3.Controls.Add(this.radioButton7);
       this.groupBox3.Location = new System.Drawing.Point(3, 164);
       this.groupBox3.Name = "groupBox3";
-      this.groupBox3.Size = new System.Drawing.Size(388, 73);
+      this.groupBox3.Size = new System.Drawing.Size(383, 73);
       this.groupBox3.TabIndex = 33;
       this.groupBox3.TabStop = false;
       this.groupBox3.Text = "Promo terhadap barang ";
@@ -349,6 +353,8 @@ namespace InventoryAndSales.GUI.Page
       // 
       // groupBoxPromoFilter
       // 
+      this.groupBoxPromoFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
       this.groupBoxPromoFilter.Controls.Add(this.buttonFilterPromoDateSelection);
       this.groupBoxPromoFilter.Controls.Add(this.checkBoxDateFilter);
       this.groupBoxPromoFilter.Controls.Add(this.checkBoxItemFilter);
@@ -361,18 +367,18 @@ namespace InventoryAndSales.GUI.Page
       this.groupBoxPromoFilter.Controls.Add(this.buttonFilterPromoItemSelection);
       this.groupBoxPromoFilter.Location = new System.Drawing.Point(8, 38);
       this.groupBoxPromoFilter.Name = "groupBoxPromoFilter";
-      this.groupBoxPromoFilter.Size = new System.Drawing.Size(400, 145);
+      this.groupBoxPromoFilter.Size = new System.Drawing.Size(411, 164);
       this.groupBoxPromoFilter.TabIndex = 34;
       this.groupBoxPromoFilter.TabStop = false;
       this.groupBoxPromoFilter.Text = "Syarat && Ketentuan";
       // 
       // buttonFilterPromoDateSelection
       // 
-      this.buttonFilterPromoDateSelection.Location = new System.Drawing.Point(141, 19);
+      this.buttonFilterPromoDateSelection.Location = new System.Drawing.Point(77, 21);
       this.buttonFilterPromoDateSelection.Name = "buttonFilterPromoDateSelection";
-      this.buttonFilterPromoDateSelection.Size = new System.Drawing.Size(109, 23);
+      this.buttonFilterPromoDateSelection.Size = new System.Drawing.Size(32, 23);
       this.buttonFilterPromoDateSelection.TabIndex = 18;
-      this.buttonFilterPromoDateSelection.Text = "Pilih Tanggal ...";
+      this.buttonFilterPromoDateSelection.Text = "...";
       this.buttonFilterPromoDateSelection.UseVisualStyleBackColor = true;
       // 
       // checkBoxDateFilter
@@ -455,11 +461,11 @@ namespace InventoryAndSales.GUI.Page
       // 
       // buttonFilterPromoItemSelection
       // 
-      this.buttonFilterPromoItemSelection.Location = new System.Drawing.Point(141, 44);
+      this.buttonFilterPromoItemSelection.Location = new System.Drawing.Point(77, 44);
       this.buttonFilterPromoItemSelection.Name = "buttonFilterPromoItemSelection";
-      this.buttonFilterPromoItemSelection.Size = new System.Drawing.Size(109, 23);
+      this.buttonFilterPromoItemSelection.Size = new System.Drawing.Size(32, 23);
       this.buttonFilterPromoItemSelection.TabIndex = 11;
-      this.buttonFilterPromoItemSelection.Text = "Pilih Barang ...";
+      this.buttonFilterPromoItemSelection.Text = "...";
       this.buttonFilterPromoItemSelection.UseVisualStyleBackColor = true;
       // 
       // labelPromoName
@@ -528,7 +534,6 @@ namespace InventoryAndSales.GUI.Page
     private System.Windows.Forms.TabPage tabPageVoucher;
     private System.Windows.Forms.TabPage tabPageSpecialPrice;
     private System.Windows.Forms.CheckBox checkBoxFilterPromoAmountInclusive;
-    private System.Windows.Forms.Button buttonFilterPromoDateSelection;
     private System.Windows.Forms.TextBox textBox2;
     private System.Windows.Forms.NumericUpDown numericUpDown1;
     private System.Windows.Forms.CheckBox checkBox1;
@@ -550,5 +555,6 @@ namespace InventoryAndSales.GUI.Page
     private System.Windows.Forms.GroupBox groupBoxPromoFilter;
     private System.Windows.Forms.GroupBox groupBoxPromoType;
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelPromoType;
+    private System.Windows.Forms.Button buttonFilterPromoDateSelection;
   }
 }
