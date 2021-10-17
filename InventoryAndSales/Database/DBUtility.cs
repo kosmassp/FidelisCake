@@ -23,10 +23,21 @@ namespace InventoryAndSales.Database
     {
       try
       {
-        var create_index = "CREATE NONCLUSTERED INDEX[IDX_T_TRANS_TRXTIME] ON[dbo].[T_TRANSACTIONS] ( [TransactionTime] DESC )";
-        ExecuteNonQuery(create_index);
-        create_index = "CREATE UNIQUE NONCLUSTERED INDEX[IDX_T_TRANS_FACTUR] ON[dbo].[T_TRANSACTIONS] ( [Factur] ASC )";
-        ExecuteNonQuery(create_index);
+        if (!IsIndexExist("T_TRANSACTIONS","IDX_T_TRANS_TRXTIME"))
+        {
+          var create_index = "CREATE NONCLUSTERED INDEX[IDX_T_TRANS_TRXTIME] ON[dbo].[T_TRANSACTIONS] ( [TransactionTime] DESC )";
+          ExecuteNonQuery(create_index);
+        }
+        if (!IsIndexExist("T_TRANSACTIONS", "IDX_T_TRANS_FACTUR"))
+        {
+          var create_index = "CREATE UNIQUE NONCLUSTERED INDEX[IDX_T_TRANS_FACTUR] ON[dbo].[T_TRANSACTIONS] ( [Factur] ASC )";
+          ExecuteNonQuery(create_index);
+        }
+        if (!IsIndexExist("T_TRANSACTIONS", "IDX_T_TRDETAIL_TRX_ID"))
+        {
+          var create_index = "CREATE NONCLUSTERED INDEX [IDX_T_TRDETAIL_TRX_ID] ON [dbo].[T_TRANSACTION_DETAILS] ( [TransactionId] DESC )";
+          ExecuteNonQuery(create_index);
+        }
       }
       catch (Exception e)
       {
@@ -169,6 +180,7 @@ namespace InventoryAndSales.Database
 
     private static void UpdateTableTransaction()
     {
+      //CHECK COLUMN
       string tableName = "T_TRANSACTIONS";
       string columnName = "Revision";
       if (!IsColumnExist(tableName, columnName)) //Revision will link to transaction id. Revision null when it is new. Revision -1 means deleted.
@@ -177,12 +189,15 @@ namespace InventoryAndSales.Database
         ExecuteNonQuery(string.Format("UPDATE {0} set {1} = 0 where {1} is NULL", tableName, columnName));
       }
 
+      //CHECK DATA TYPE
       columnName = "Factur";
       var dataType = "varchar";
-      var charLength = 18;
+      var charLength = 20;
       if (IsColumnExist(tableName, columnName) && !IsColumnTypeEquals(tableName, columnName, dataType, charLength)) //Revision will link to transaction id. Revision null when it is new. Revision -1 means deleted.
       {
-        ExecuteNonQuery( $"ALTER TABLE {tableName} ALTER COLUMN {columnName} {dataType}({charLength})");
+        var indexName = "IDX_T_TRANS_FACTUR";
+        ExecuteNonQuery( $"DROP INDEX IF EXISTS {indexName} ON {tableName}");
+        ExecuteNonQuery( $"ALTER TABLE [{tableName}] ALTER COLUMN {columnName} {dataType}({charLength})");
       }
 
       //columnName = "Deleted";
@@ -205,6 +220,23 @@ namespace InventoryAndSales.Database
       //  ExecuteNonQuery(string.Format("ALTER TABLE {0} ADD {1} bigint NULL", tableName, columnName));
       //  ExecuteNonQuery(string.Format("UPDATE {0} set {1} = 0 where {1} is NULL", tableName, columnName));
       //}
+    }
+
+    private static bool IsIndexExist(string tableName, string indexName)
+    {
+      bool exists = true;
+      try
+      {
+        string checkIndex = $"SELECT * FROM SYS.INDEXES WHERE NAME = '{indexName}' AND OBJECT_ID = (SELECT OBJECT_ID FROM SYS.OBJECTS WHERE NAME = '{tableName}')";
+        var result = ExecuteScalar(checkIndex);
+        return result != null;
+      }
+      catch(Exception e)
+      {
+        _log.Error(e);
+        exists = false;
+      }
+      return exists;
     }
 
     private static bool IsColumnExist(string tableName, string columnName)
@@ -258,6 +290,7 @@ namespace InventoryAndSales.Database
       {
         SqlCommand command = connection.CreateCommand();
         command.CommandText = nonQueryCommand;
+        command.CommandTimeout = 600;
         command.Transaction = activeTransaction;
         int result = command.ExecuteNonQuery();
         return result;
@@ -284,6 +317,7 @@ namespace InventoryAndSales.Database
       {
         SqlCommand command = connection.CreateCommand();
         command.CommandText = scalarCommand;
+        command.CommandTimeout = 600;
         command.Transaction = activeTransaction;
         object obj = command.ExecuteScalar();
         return obj;

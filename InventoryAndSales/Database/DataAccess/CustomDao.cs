@@ -7,6 +7,7 @@ namespace InventoryAndSales.Database.DataAccess
 {
   public class CustomDao : BaseDao<CustomQuery>
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     public CustomDao() 
     {
     }
@@ -154,31 +155,40 @@ namespace InventoryAndSales.Database.DataAccess
 
     protected override List<CustomQuery> ExecuteReader(String commandText, params SqlParameter[] parameters)
     {
-      List<CustomQuery> returnList = new List<CustomQuery>();
-      SqlConnection connection = DBFactory.GetInstance().GetConnection();
-      SqlCommand command = connection.CreateCommand();
-      command.CommandText = commandText;
-      command.Parameters.AddRange(parameters);
-      SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      if (activeTransaction == null)
-        connection.Open();
-      command.Transaction = activeTransaction;
-      // When using CommandBehavior.CloseConnection, the connection will be closed when the 
-      // IDataReader is closed.
-      SqlDataReader reader = command.ExecuteReader();
-      while (reader.Read())
+      try
       {
-        CustomQuery t = new CustomQuery();
-        //This one should pick from the query since each query will return different column.
-        for (int i = 0; i < reader.FieldCount; i++)
+        List<CustomQuery> returnList = new List<CustomQuery>();
+        SqlConnection connection = DBFactory.GetInstance().GetConnection();
+        SqlCommand command = connection.CreateCommand();
+        command.CommandText = commandText;
+        command.CommandTimeout = 600;
+        command.Parameters.AddRange(parameters);
+        SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
+        if (activeTransaction == null)
+          connection.Open();
+        command.Transaction = activeTransaction;
+        // When using CommandBehavior.CloseConnection, the connection will be closed when the 
+        // IDataReader is closed.
+        SqlDataReader reader = command.ExecuteReader();
+        while (reader.Read())
         {
-          if (!(reader.GetValue(i) is DBNull))
-            t[reader.GetName(i)] = reader.GetValue(i);
+          CustomQuery t = new CustomQuery();
+          //This one should pick from the query since each query will return different column.
+          for (int i = 0; i < reader.FieldCount; i++)
+          {
+            if (!(reader.GetValue(i) is DBNull))
+              t[reader.GetName(i)] = reader.GetValue(i);
+          }
+          returnList.Add(t);
         }
-        returnList.Add(t);
+        reader.Close();
+        return returnList;
       }
-      reader.Close();
-      return returnList;
+      catch (Exception ex)
+      {
+        _log.Error( $"Trying to execute: {commandText}", ex);
+        throw;
+      }
     }
 
 

@@ -245,96 +245,66 @@ namespace InventoryAndSales.Business
 
     private string GenerateFactur()
     {
-      DateTime Now = DateTime.Now;
-      string factur = ConvertToChar(Now.Year) + ConvertToChar(Now.DayOfYear) + "_" + 
-                      ConvertToChar(Now.Hour) + ConvertToChar(Now.Minute) + ConvertToChar(Now.Second) + ConvertToChar(Now.Millisecond);
+      string factur = DateTime.Now.Ticks.ToString();
       return factur;
 
     }
 
-
-    public string ConvertToChar(int value)
-    {
-      try
-      {
-        if (value >= StringNumber.Length)
-        {
-          return ConvertToChar(value/StringNumber.Length) + ConvertToChar(value%StringNumber.Length);
-        }
-        return StringNumber[value];
-      }
-      catch(Exception e)
-      {
-        _log.Error(e);
-        return value.ToString();
-      }
-    }
-
-    private string[] StringNumber = new string[]
-                                      {
-                                        "A", 
-                                        "B",
-                                        "C",
-                                        "D",
-                                        "E",
-                                        "F",
-                                        "G",
-                                        "H",
-                                        "I",
-                                        "J",
-                                        "K",
-                                        "L",
-                                        "M",
-                                        "N",
-                                        "O",
-                                        "P",
-                                        "Q",
-                                        "R",
-                                        "S",
-                                        "T",
-                                        "U",
-                                        "V",
-                                        "W",
-                                        "X",
-                                        "Y",
-                                        "Z",
-                                        "0",
-                                        "1",
-                                        "2",
-                                        "3",
-                                        "4",
-                                        "5",
-                                        "6",
-                                        "7",
-                                        "8",
-                                        "9",
-                                        "a",
-                                        "b",
-                                        "c",
-                                        "d",
-                                        "e",
-                                        "f",
-                                        "g",
-                                        "h",
-                                        "i",
-                                        "j",
-                                        "k",
-                                        "l",
-                                        "m",
-                                        "n",
-                                        "o",
-                                        "p",
-                                        "q",
-                                        "r",
-                                        "s",
-                                        "t",
-                                        "u",
-                                        "v",
-                                        "w",
-                                        "x",
-                                        "y",
-                                        "z"
-                                      };
+    //public string ConvertToChar(long value)
+    //{
+    //  try
+    //  {
+    //    if (value >= StringNumber.Length)
+    //    {
+    //      return ConvertToChar(value/StringNumber.Length) + ConvertToChar(value%StringNumber.Length);
+    //    }
+    //    return StringNumber[value];
+    //  }
+    //  catch(Exception e)
+    //  {
+    //    _log.Error(e);
+    //    return value.ToString();
+    //  }
+    //}
+    //private string[] StringNumber = new string[]
+    //                                  {
+    //                                    "A", 
+    //                                    "B",
+    //                                    "C",
+    //                                    "D",
+    //                                    "E",
+    //                                    "F",
+    //                                    "G",
+    //                                    "H",
+    //                                    "I",
+    //                                    "J",
+    //                                    "K",
+    //                                    "L",
+    //                                    "M",
+    //                                    "N",
+    //                                    "O",
+    //                                    "P",
+    //                                    "Q",
+    //                                    "R",
+    //                                    "S",
+    //                                    "T",
+    //                                    "U",
+    //                                    "V",
+    //                                    "W",
+    //                                    "X",
+    //                                    "Y",
+    //                                    "Z",
+    //                                    "0",
+    //                                    "1",
+    //                                    "2",
+    //                                    "3",
+    //                                    "4",
+    //                                    "5",
+    //                                    "6",
+    //                                    "7",
+    //                                    "8",
+    //                                    "9",
+    //                                  };
 
     public Transaction GetTransaction(string facturNumber, out List<TransactionDetail> details)
     {
@@ -379,6 +349,8 @@ namespace InventoryAndSales.Business
       centerString.Alignment = StringAlignment.Center;
       StringFormat leftString = new StringFormat();
       leftString.Alignment = StringAlignment.Near;
+      StringFormat rightString = new StringFormat();
+      rightString.Alignment = StringAlignment.Far;
       //Todo customize this
       var headers = headerNotes.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
       foreach(var header in headers)
@@ -386,24 +358,25 @@ namespace InventoryAndSales.Business
         stringToPrint.Add(new StringPrint(header, centerString));
       }
       stringToPrint.Add(new StringPrint(lineSeparator, leftString));
-      stringToPrint.Add(new StringPrint(transaction.Time.ToString("dd-MM-yyyy HH:mm") + "  ID:" + transaction.Factur));
-      stringToPrint.Add(new StringPrint("KASIR:" + cashier.Name));
+      stringToPrint.Add(new StringPrint("TANGGAL : " + transaction.Time.ToString("dd-MM-yyyy HH:mm")) );
+      stringToPrint.Add(new StringPrint("FACTUR  : " + transaction.Factur));
+      stringToPrint.Add(new StringPrint("KASIR   : " + cashier.Name));
       stringToPrint.Add(new StringPrint(lineSeparator, leftString));
 
       foreach (TransactionDetail tDetail in transactionDetails)
       {
         stringToPrint.Add(new StringPrint(tDetail.ProductName, leftString));
-        stringToPrint.Add(new StringPrint(tDetail.Quantity + " x Rp. " + tDetail.ProductPrice + " = " + tDetail.SubtotalPrice, leftString));
+        stringToPrint.Add(new StringPrint(tDetail.Quantity + " x Rp." + tDetail.ProductPrice.ToString("N") + " = " + tDetail.SubtotalPrice.ToString("N"), leftString));
         if (tDetail.ProductDiscount > 0)
-          stringToPrint.Add(new StringPrint("Discount: Rp. " + tDetail.SubtotalDiscount, leftString));
+          stringToPrint.Add(new StringPrint("Discount: Rp." + tDetail.SubtotalDiscount.ToString("N"), leftString));
       }
       stringToPrint.Add(new StringPrint(lineSeparator, leftString));
-      stringToPrint.Add(new StringPrint("TOTAL BELANJA : Rp. " + transaction.TotalPrice, leftString));
-      stringToPrint.Add(new StringPrint("TOTAL DISCOUNT: Rp. " + transaction.TotalDiscount, leftString));
-      stringToPrint.Add(new StringPrint("TOTAL         : Rp. " + transaction.Total, leftString));
+      stringToPrint.Add(new StringPrint("Total Item   : Rp. " + transaction.TotalPrice.ToString("N"), leftString));
+      stringToPrint.Add(new StringPrint("Total Disc   : Rp. " + transaction.TotalDiscount.ToString("N"), leftString));
+      stringToPrint.Add(new StringPrint("Total Belanja: Rp. " + transaction.Total.ToString("N"), leftString));
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
-      stringToPrint.Add(new StringPrint("PEMBAYARAN    : Rp. " + transaction.Payment, leftString));
-      stringToPrint.Add(new StringPrint("KEMBALI       : Rp. " + transaction.Exchange, leftString));
+      stringToPrint.Add(new StringPrint("Tunai        : Rp. " + transaction.Payment.ToString("N"), leftString));
+      stringToPrint.Add(new StringPrint("Kembalian    : Rp. " + transaction.Exchange.ToString("N"), leftString));
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
       var footers = footerNotes.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
       foreach (var footer in footers)

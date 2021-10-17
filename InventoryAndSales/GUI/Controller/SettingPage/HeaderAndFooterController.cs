@@ -38,21 +38,21 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
       transaction.TotalPrice = 0;
       transaction.TotalDiscount = 0;
       transaction.Total = 0;
-      transaction.Notes = "EXAMPLE";
+      transaction.Notes = "CONTOH";
       transaction.Time = DateTime.Now;
-      transaction.Factur = "DUM";
+      transaction.Factur = "KODE_UNIK_FACTUR";
       transaction.Payment = 0;
       transaction.UserId = 0;
       transaction.CustomerId = 0;
       var transactionDetails = new List<TransactionDetail>();
-      for(int i = 3; i >= 1; i--)
+      for(int i = 1; i <= 3; i++)
       {
         TransactionDetail td = new TransactionDetail();
-        td.ProductName = "DUMMY" + i;
+        td.ProductName = "NAMA_PRODUK " + i;
         td.ProductId = 0;
-        td.ProductDiscount = i/3;
-        td.ProductPrice = i;
-        td.Quantity = i;
+        td.ProductDiscount = ( i / 3 ) * 500;
+        td.ProductPrice = i * 5000;
+        td.Quantity = i * 2;
         td.SubtotalDiscount = td.ProductDiscount * td.Quantity;
         td.SubtotalPrice = td.ProductPrice * td.Quantity;
         td.Subtotal = td.SubtotalPrice - td.SubtotalDiscount;
@@ -66,7 +66,7 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
 
       User user = new User();
       user.Id = 0;
-      user.Name = "USER_DUMMY";
+      user.Name = "NAMA_KASIR";
       user.Role = 1;
       return  CashierManager.GeneratePaymentNote(headers, footers, transaction, transactionDetails, user);
     }

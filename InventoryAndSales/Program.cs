@@ -18,7 +18,8 @@ namespace InventoryAndSales
     [STAThread]
     static void Main()
     {
-      Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+      CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+      Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
       Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
       AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);

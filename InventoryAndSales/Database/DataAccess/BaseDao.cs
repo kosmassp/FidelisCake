@@ -13,6 +13,7 @@ namespace InventoryAndSales.Database.DataAccess
 {
   public class BaseDao<T> where T : BaseObject, new()
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private readonly IDataTable _dataTable;
 
     public BaseDao()
@@ -140,31 +141,40 @@ namespace InventoryAndSales.Database.DataAccess
     //TODO: This might need to be moved to DBUtil. Need to rethink about it.
     protected virtual List<T> ExecuteReader(String commandText, params SqlParameter[] parameters)
     {
-      List<T> returnList = new List<T>();
-      SqlConnection connection = DBFactory.GetInstance().GetConnection();
-      SqlCommand command = connection.CreateCommand();
-      command.CommandText = commandText;
-      command.Parameters.AddRange(parameters);
-      SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      if (activeTransaction == null)
-        connection.Open();
-      command.Transaction = activeTransaction;
-      // When using CommandBehavior.CloseConnection, the connection will be closed when the 
-      // IDataReader is closed.
-      SqlDataReader reader = command.ExecuteReader();
-      while (reader.Read())
+      try
       {
-        T t = new T();
-        //This one should pick from dataTable so some new column or unspecified column in the code will be ignored.
-        foreach (string columnName in _dataTable.Columns)
+        List<T> returnList = new List<T>();
+        SqlConnection connection = DBFactory.GetInstance().GetConnection();
+        SqlCommand command = connection.CreateCommand();
+        command.CommandText = commandText;
+        command.CommandTimeout = 600;
+        command.Parameters.AddRange(parameters);
+        SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
+        if (activeTransaction == null)
+          connection.Open();
+        command.Transaction = activeTransaction;
+        // When using CommandBehavior.CloseConnection, the connection will be closed when the 
+        // IDataReader is closed.
+        SqlDataReader reader = command.ExecuteReader();
+        while (reader.Read())
         {
-          if (!(reader[columnName] is DBNull))
-            t[columnName] = reader[columnName];
+          T t = new T();
+          //This one should pick from dataTable so some new column or unspecified column in the code will be ignored.
+          foreach (string columnName in _dataTable.Columns)
+          {
+            if (!(reader[columnName] is DBNull))
+              t[columnName] = reader[columnName];
+          }
+          returnList.Add(t);
         }
-        returnList.Add(t);
+        reader.Close();
+        return returnList;
       }
-      reader.Close();
-      return returnList;
+      catch (Exception ex)
+      {
+        _log.Error($"Trying to execute: {commandText}", ex);
+        throw;
+      }
     }
   }
 }
