@@ -8,6 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 using InventoryAndSales.Database.Model;
 using InventoryAndSales.GUI.Controller;
+using InventoryAndSales.Database.DataTable;
+using System.IO;
 
 namespace InventoryAndSales.GUI.Page
 {
@@ -389,5 +391,153 @@ namespace InventoryAndSales.GUI.Page
       Reset();
     }
 
+    private void buttonExportItems_Click(object sender, EventArgs e)
+    {
+      using (SaveFileDialog sfd = new SaveFileDialog())
+      {
+        sfd.Filter = "CSV Files|*.csv";
+        if (sfd.ShowDialog() == DialogResult.OK)
+        {
+          StringBuilder csvContent = new StringBuilder();
+
+          // Write the header row
+          var columnNames = new string[]
+          {
+            "Id","Code","Barcode","Name","Price","Discount"
+          };
+          csvContent.AppendLine(string.Join(",", columnNames));
+
+          // Write the data rows
+          List<Product> products = controller.GetItemsForExport();
+          foreach (Product p in products)
+          {
+            // Manually build each line using the selected properties.
+            var fields = new string[]
+            {
+                QuoteField(p.Id.ToString()),
+                QuoteField(p.Code),
+                QuoteField(p.Barcode),
+                QuoteField(p.Name),
+                QuoteField(p.Price.ToString()),
+                QuoteField(p.Discount.ToString())
+            };
+            
+            csvContent.AppendLine(string.Join(",", fields));
+          }
+
+          // Write to file
+          File.WriteAllText(sfd.FileName, csvContent.ToString(), Encoding.UTF8);
+          MessageBox.Show("File saved successfully!", "CSV Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+      }
+    }
+
+    private string QuoteField(string field)
+    {
+      if (field.Contains(",") || field.Contains("\"") || field.Contains("\n"))
+      {
+        field = field.Replace("\"", "\"\"");
+        return $"\"{field}\"";
+      }
+      return field;
+    }
+
+    // Import products from CSV file.
+    private List<Product> ImportProductsFromCsv(string filePath)
+    {
+      List<Product> products = new List<Product>();
+
+      // Read all lines from the CSV file.
+      string[] lines = File.ReadAllLines(filePath);
+      if (lines.Length < 2)
+        return products; // No data if there's only the header.
+
+      // Skip the header row.
+      for (int i = 1; i < lines.Length; i++)
+      {
+        string line = lines[i];
+        if (string.IsNullOrWhiteSpace(line))
+          continue;
+
+        string[] fields = ParseCsvLine(line);
+        // Expecting exactly 6 fields: Id, Code, Barcode, Name, Price, Discount.
+        if (fields.Length < 6)
+          continue;
+
+        try
+        {
+          Product product = new Product
+          {
+            Id = fields[0] == "" ? 0 : int.Parse(fields[0]),
+            Code = fields[1],
+            Barcode = fields[2],
+            Name = fields[3],
+            Price = decimal.Parse(fields[4]),
+            Discount = decimal.Parse(fields[5])
+          };
+
+          products.Add(product);
+        }
+        catch (Exception ex)
+        {
+          // Handle any conversion errors (e.g., log or notify the user).
+          MessageBox.Show($"Error parsing line {i + 1}: {ex.Message}", "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+      }
+      return products;
+    }
+
+    // A basic CSV line parser that supports quotes and escaped quotes.
+    private string[] ParseCsvLine(string line)
+    {
+      List<string> fields = new List<string>();
+      bool inQuotes = false;
+      StringBuilder field = new StringBuilder();
+      for (int i = 0; i < line.Length; i++)
+      {
+        char c = line[i];
+        if (c == '\"')
+        {
+          // If in quotes and next char is also a quote, then it's an escaped quote.
+          if (inQuotes && i + 1 < line.Length && line[i + 1] == '\"')
+          {
+            field.Append('\"');
+            i++; // Skip the escaped quote.
+          }
+          else
+          {
+            inQuotes = !inQuotes; // Toggle the quoting flag.
+          }
+        }
+        else if (c == ',' && !inQuotes)
+        {
+          fields.Add(field.ToString());
+          field.Clear();
+        }
+        else
+        {
+          field.Append(c);
+        }
+      }
+      fields.Add(field.ToString());
+      return fields.ToArray();
+    }
+
+    private void buttonImport_Click(object sender, EventArgs e)
+    {
+      using (OpenFileDialog ofd = new OpenFileDialog())
+      {
+        ofd.Filter = "CSV Files|*.csv";
+        if (ofd.ShowDialog() == DialogResult.OK)
+        {
+          List<Product> products = ImportProductsFromCsv(ofd.FileName);
+
+          // Pass the imported products to your controller.
+          controller.SetItemForImport(products);
+
+          MessageBox.Show("File imported successfully!", "CSV Import", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+      }
+    }
   }
 }

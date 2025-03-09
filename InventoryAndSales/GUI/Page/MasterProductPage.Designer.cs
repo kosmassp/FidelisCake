@@ -93,13 +93,12 @@
       this.groupBoxExportImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
       this.groupBoxExportImport.Controls.Add(this.buttonImport);
       this.groupBoxExportImport.Controls.Add(this.buttonExportItems);
-      this.groupBoxExportImport.Location = new System.Drawing.Point(608, 278);
+      this.groupBoxExportImport.Location = new System.Drawing.Point(608, 14);
       this.groupBoxExportImport.Name = "groupBoxExportImport";
       this.groupBoxExportImport.Size = new System.Drawing.Size(385, 84);
       this.groupBoxExportImport.TabIndex = 14;
       this.groupBoxExportImport.TabStop = false;
       this.groupBoxExportImport.Text = "Export / Import";
-      this.groupBoxExportImport.Visible = false;
       // 
       // buttonImport
       // 
@@ -109,6 +108,7 @@
       this.buttonImport.TabIndex = 1;
       this.buttonImport.Text = "Update barang dari file";
       this.buttonImport.UseVisualStyleBackColor = true;
+      this.buttonImport.Click += new System.EventHandler(this.buttonImport_Click);
       // 
       // buttonExportItems
       // 
@@ -118,6 +118,7 @@
       this.buttonExportItems.TabIndex = 0;
       this.buttonExportItems.Text = "Simpan barang ke file";
       this.buttonExportItems.UseVisualStyleBackColor = true;
+      this.buttonExportItems.Click += new System.EventHandler(this.buttonExportItems_Click);
       // 
       // groupBoxMasterItemDetail
       // 
@@ -141,7 +142,7 @@
       this.groupBoxMasterItemDetail.Controls.Add(this.textBoxDetailItemDiscountAmount);
       this.groupBoxMasterItemDetail.Controls.Add(this.textBoxDetailItemName);
       this.groupBoxMasterItemDetail.Controls.Add(this.textBoxDetailItemPrice);
-      this.groupBoxMasterItemDetail.Location = new System.Drawing.Point(608, 15);
+      this.groupBoxMasterItemDetail.Location = new System.Drawing.Point(608, 104);
       this.groupBoxMasterItemDetail.Name = "groupBoxMasterItemDetail";
       this.groupBoxMasterItemDetail.Size = new System.Drawing.Size(394, 257);
       this.groupBoxMasterItemDetail.TabIndex = 13;
@@ -330,9 +331,9 @@
       this.dataGridViewMasterItemList.AllowUserToDeleteRows = false;
       this.dataGridViewMasterItemList.AllowUserToOrderColumns = true;
       this.dataGridViewMasterItemList.AllowUserToResizeRows = false;
-      this.dataGridViewMasterItemList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                  | System.Windows.Forms.AnchorStyles.Left)
-                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.dataGridViewMasterItemList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
       this.dataGridViewMasterItemList.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
       this.dataGridViewMasterItemList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
       this.dataGridViewMasterItemList.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
