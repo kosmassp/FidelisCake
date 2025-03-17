@@ -127,6 +127,24 @@
     <Compile Include="GUI\Popup\AuthenticationForm.Designer.cs">
       <DependentUpon>AuthenticationForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\Popup\PromoCreationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\PromoCreationForm.Designer.cs">
+      <DependentUpon>PromoCreationForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Popup\Promo\PromoRuleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\Promo\PromoRuleForm.Designer.cs">
+      <DependentUpon>PromoRuleForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Popup\Promo\PromoRuleControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\Promo\PromoRuleControl.Designer.cs">
+      <DependentUpon>PromoRuleControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Popup\SettingForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -214,6 +232,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Page\PromoPage.resx">
       <DependentUpon>PromoPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Popup\PromoCreationForm.resx">
+      <DependentUpon>PromoCreationForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Popup\Promo\PromoRuleForm.resx">
+      <DependentUpon>PromoRuleForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Popup\Promo\PromoRuleControl.resx">
+      <DependentUpon>PromoRuleControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Popup\SettingForm.resx">
       <DependentUpon>SettingForm.cs</DependentUpon>

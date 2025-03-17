@@ -162,21 +162,21 @@
       // daftarBarangToolStripMenuItem
       // 
       this.daftarBarangToolStripMenuItem.Name = "daftarBarangToolStripMenuItem";
-      this.daftarBarangToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+      this.daftarBarangToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.daftarBarangToolStripMenuItem.Text = "Daftar Barang";
       this.daftarBarangToolStripMenuItem.Click += new System.EventHandler(this.daftarBarangToolStripMenuItem_Click);
       // 
       // daftarUserToolStripMenuItem
       // 
       this.daftarUserToolStripMenuItem.Name = "daftarUserToolStripMenuItem";
-      this.daftarUserToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+      this.daftarUserToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.daftarUserToolStripMenuItem.Text = "Daftar Pengguna";
       this.daftarUserToolStripMenuItem.Click += new System.EventHandler(this.daftarUserToolStripMenuItem_Click);
       // 
       // pengaturanToolStripMenuItem
       // 
       this.pengaturanToolStripMenuItem.Name = "pengaturanToolStripMenuItem";
-      this.pengaturanToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+      this.pengaturanToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
       this.pengaturanToolStripMenuItem.Text = "Pengaturan";
       this.pengaturanToolStripMenuItem.Click += new System.EventHandler(this.pengaturanToolStripMenuItem_Click);
       // 
