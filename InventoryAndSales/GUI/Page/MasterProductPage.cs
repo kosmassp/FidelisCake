@@ -10,6 +10,7 @@ using InventoryAndSales.Database.Model;
 using InventoryAndSales.GUI.Controller;
 using InventoryAndSales.Database.DataTable;
 using System.IO;
+using System.Globalization;
 
 namespace InventoryAndSales.GUI.Page
 {
@@ -26,6 +27,7 @@ namespace InventoryAndSales.GUI.Page
       comboBoxSort.Items.Clear();
       comboBoxSort.Items.AddRange(controller.GetSortableColumns().ToArray());
       //comboBoxSort.SelectedIndex = 0;
+      Reset();
     }
 
     public void Reset()
@@ -408,7 +410,8 @@ namespace InventoryAndSales.GUI.Page
           csvContent.AppendLine(string.Join(",", columnNames));
 
           // Write the data rows
-          List<Product> products = controller.GetItemsForExport();
+          string orderBy = comboBoxSort.SelectedItem?.ToString();
+          List<Product> products = controller.GetItems(String.Empty, orderBy);
           foreach (Product p in products)
           {
             // Manually build each line using the selected properties.
@@ -426,14 +429,20 @@ namespace InventoryAndSales.GUI.Page
           }
 
           // Write to file
-          File.WriteAllText(sfd.FileName, csvContent.ToString(), Encoding.UTF8);
-          MessageBox.Show("File saved successfully!", "CSV Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+          try { 
+            File.WriteAllText(sfd.FileName, csvContent.ToString(), Encoding.UTF8);
+            MessageBox.Show("File saved successfully!", "CSV Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+          }
+          catch(Exception ex) {
+            MessageBox.Show("Gagal menyimpan file !!! Pastikan File tidak sedang dibuka atau disk tidak penuh", "Export Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+          }
         }
       }
     }
 
     private string QuoteField(string field)
     {
+      field = field.Trim();
       if (field.Contains(",") || field.Contains("\"") || field.Contains("\n"))
       {
         field = field.Replace("\"", "\"\"");
@@ -448,7 +457,16 @@ namespace InventoryAndSales.GUI.Page
       List<Product> products = new List<Product>();
 
       // Read all lines from the CSV file.
-      string[] lines = File.ReadAllLines(filePath);
+      string[] lines;
+      try {
+        lines = File.ReadAllLines(filePath);
+      }
+      catch (Exception e) {
+        MessageBox.Show($"Gagal membuka file: {filePath}. Pastikan File tidak sedang dibuka oleh program lainnya", "Failed To Read Files", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return products;
+      }
+
+
       if (lines.Length < 2)
         return products; // No data if there's only the header.
 
@@ -471,7 +489,7 @@ namespace InventoryAndSales.GUI.Page
             Id = fields[0] == "" ? 0 : int.Parse(fields[0]),
             Code = fields[1],
             Barcode = fields[2],
-            Name = fields[3],
+            Name = ConvertToTitleCase(fields[3]),
             Price = decimal.Parse(fields[4]),
             Discount = decimal.Parse(fields[5])
           };
@@ -486,6 +504,13 @@ namespace InventoryAndSales.GUI.Page
       }
       return products;
     }
+
+
+    public static string ConvertToTitleCase(string text) {
+      TextInfo myTI = new CultureInfo("en-US", false).TextInfo;
+      return myTI.ToTitleCase(text);
+    }
+
 
     // A basic CSV line parser that supports quotes and escaped quotes.
     private string[] ParseCsvLine(string line)
@@ -538,6 +563,7 @@ namespace InventoryAndSales.GUI.Page
           MessageBox.Show("File imported successfully!", "CSV Import", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
       }
+      Reset();
     }
   }
 }

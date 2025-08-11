@@ -48,11 +48,7 @@ namespace InventoryAndSales.GUI.Controller
     {
       return _masterManager.GetAllAvailable(nameLike, orderBy);
     }
-    public List<Product> GetItemsForExport()
-    {
-      return _masterManager.GetAllProduct();
-    }
-
+ 
     public void SetItemForImport(List<Product> products)
     {
       foreach (Product product in products)
