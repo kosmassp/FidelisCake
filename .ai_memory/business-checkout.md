@@ -159,7 +159,7 @@ column — because it decides what the rest of them mean.
 |---|---|---|---|
 | Amount | Cashier types what was handed over | The total, always | The total, always |
 | Change | `tendered − total`, must not be negative | Always zero | Always zero |
-| Extra input | — | Which terminal | Which provider, and Statis or Dinamis |
+| Extra input | — | Which terminal | Which provider (its code type comes with it) |
 | Stored | `PaymentMethod = CASH` | `EDC` + `PaymentReference` | `QRIS` + `PaymentReference` + `PaymentVariant` |
 
 Default is **Tunai**. Shortcuts: **Ctrl+1** cash, **Ctrl+2** EDC, **Ctrl+3** QRIS, handled in
@@ -170,6 +170,11 @@ method that is not on offer says why rather than doing nothing.
 four more parameters on `Checkout`, and owns the change rule (`ChangeFor`) — zero for anything that
 takes the exact total. `PaymentDetail.Parse` reads a stored code, treating anything unrecognised
 (including the blank on sales that predate this) as cash.
+
+**The QRIS code type belongs to the provider, not the sale.** A shop.s arrangement with a provider is
+either a printed sticker at the till or codes generated per transaction, and that does not change
+from one customer to the next - so Statis/Dinamis is set once against the provider in settings, and
+the cashier only picks the provider. The dropdown shows it, e.g. "GoPay (Statis)".
 
 **Terminals and providers are configured, not typed.** `EDC_TERMINALS` and `QRIS_PROVIDERS` each hold
 one name per line, edited under *Pengaturan → Pembayaran* (requires `Master`). A method whose list is
@@ -194,3 +199,14 @@ so a database where the backfill did not run still reports correctly.
 back to a single figure when everything was cash. Only the cash is money the cashier physically hands
 over at the end of the day — card and QRIS takings settle through the bank — so a single combined
 figure would tell them to hand over more than they hold.
+
+### How the QRIS provider list is stored
+
+`QRIS_PROVIDERS` holds one entry per line as `Name|MODE`, e.g. `GoPay|STATIC`. A line with no `|` —
+which is what a build before this wrote — reads as **static**, since a shop's first QRIS arrangement
+is normally the printed sticker. A provider name may not contain `|`, and the settings page rejects
+one that does.
+
+⚠ Changing a provider's code type affects **future** sales only. What was recorded against a past
+sale stays as it was, which is what makes the stored `PaymentVariant` worth having rather than
+looking the type up from settings at report time.

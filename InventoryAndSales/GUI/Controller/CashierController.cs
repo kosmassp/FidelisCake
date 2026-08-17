@@ -60,8 +60,11 @@ namespace InventoryAndSales.GUI.Controller
       return _paymentOptions.GetEdcTerminals();
     }
 
-    /// <summary>The QRIS providers a cashier can choose from. Empty means this shop takes no QRIS.</summary>
-    public List<string> GetQrisProviders()
+    /// <summary>
+    /// The QRIS providers a cashier can choose from, each carrying its own code type. Empty means
+    /// this shop takes no QRIS.
+    /// </summary>
+    public List<QrisProvider> GetQrisProviders()
     {
       return _paymentOptions.GetQrisProviders();
     }
@@ -94,7 +97,8 @@ namespace InventoryAndSales.GUI.Controller
     /// <param name="tendered">Cash handed over. Ignored for a card payment, which takes the total.</param>
     /// <param name="terminal">Terminal for a card payment.</param>
     /// <returns>An Indonesian error message, or an empty string when the sale went through.</returns>
-    public string Checkout(PaymentMethod method, decimal tendered, string reference, QrisMode qrisMode,
+    /// <param name="reference">EDC terminal or QRIS provider name, whichever the method needs.</param>
+    public string Checkout(PaymentMethod method, decimal tendered, string reference,
                            string notes, out string successMessage)
     {
       successMessage = string.Empty;
@@ -123,9 +127,12 @@ namespace InventoryAndSales.GUI.Controller
         case PaymentMethod.Qris:
           if (string.IsNullOrWhiteSpace(reference))
             return "Silahkan pilih provider QRIS.";
-          if (!_paymentOptions.IsKnownQrisProvider(reference))
+          // The code type comes from the provider's own configuration, not from the till - it is a
+          // property of the arrangement with that provider, the same for every sale through it.
+          QrisProvider provider = _paymentOptions.FindQrisProvider(reference);
+          if (provider == null)
             return "Provider QRIS tersebut tidak terdaftar. Silahkan pilih ulang.";
-          payment = PaymentDetail.Qris(total, reference, qrisMode);
+          payment = PaymentDetail.Qris(total, provider.Name, provider.Mode);
           break;
 
         default:

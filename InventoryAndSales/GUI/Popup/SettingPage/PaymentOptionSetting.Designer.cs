@@ -25,6 +25,7 @@
       this.labelQris = new System.Windows.Forms.Label();
       this.listBoxQris = new System.Windows.Forms.ListBox();
       this.textBoxNewQris = new System.Windows.Forms.TextBox();
+      this.comboBoxQrisMode = new System.Windows.Forms.ComboBox();
       this.buttonAddQris = new System.Windows.Forms.Button();
       this.buttonRemoveQris = new System.Windows.Forms.Button();
       this.labelDescription = new System.Windows.Forms.Label();
@@ -92,6 +93,7 @@
       this.listBoxQris.Name = "listBoxQris";
       this.listBoxQris.Size = new System.Drawing.Size(175, 160);
       this.listBoxQris.TabIndex = 6;
+      this.listBoxQris.SelectedIndexChanged += new System.EventHandler(this.listBoxQris_SelectedIndexChanged);
       //
       // textBoxNewQris
       //
@@ -101,11 +103,20 @@
       this.textBoxNewQris.TabIndex = 7;
       this.textBoxNewQris.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxNewQris_KeyDown);
       //
+      // comboBoxQrisMode
+      //
+      this.comboBoxQrisMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxQrisMode.Location = new System.Drawing.Point(280, 223);
+      this.comboBoxQrisMode.Name = "comboBoxQrisMode";
+      this.comboBoxQrisMode.Size = new System.Drawing.Size(90, 21);
+      this.comboBoxQrisMode.TabIndex = 8;
+      this.comboBoxQrisMode.SelectedIndexChanged += new System.EventHandler(this.comboBoxQrisMode_SelectedIndexChanged);
+      //
       // buttonAddQris
       //
-      this.buttonAddQris.Location = new System.Drawing.Point(280, 223);
+      this.buttonAddQris.Location = new System.Drawing.Point(376, 223);
       this.buttonAddQris.Name = "buttonAddQris";
-      this.buttonAddQris.Size = new System.Drawing.Size(85, 23);
+      this.buttonAddQris.Size = new System.Drawing.Size(79, 23);
       this.buttonAddQris.TabIndex = 8;
       this.buttonAddQris.Text = "Tambah";
       this.buttonAddQris.UseVisualStyleBackColor = true;
@@ -113,7 +124,7 @@
       //
       // buttonRemoveQris
       //
-      this.buttonRemoveQris.Location = new System.Drawing.Point(370, 223);
+      this.buttonRemoveQris.Location = new System.Drawing.Point(280, 250);
       this.buttonRemoveQris.Name = "buttonRemoveQris";
       this.buttonRemoveQris.Size = new System.Drawing.Size(85, 23);
       this.buttonRemoveQris.TabIndex = 9;
@@ -125,12 +136,12 @@
       //
       this.labelDescription.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.labelDescription.Location = new System.Drawing.Point(9, 260);
+      this.labelDescription.Location = new System.Drawing.Point(9, 285);
       this.labelDescription.Name = "labelDescription";
-      this.labelDescription.Size = new System.Drawing.Size(516, 60);
+      this.labelDescription.Size = new System.Drawing.Size(516, 45);
       this.labelDescription.TabIndex = 10;
       this.labelDescription.Text = "Yang terdaftar di sini dapat dipilih kasir saat pembayaran. Bila daftar kosong, me" +
-    "tode tersebut tidak ditawarkan di layar kasir.";
+    "tode tersebut tidak ditawarkan di layar kasir. Tipe kode QRIS mengikuti providernya.";
       //
       // buttonSave
       //
@@ -150,6 +161,7 @@
       this.Controls.Add(this.buttonSave);
       this.Controls.Add(this.labelDescription);
       this.Controls.Add(this.buttonRemoveQris);
+      this.Controls.Add(this.comboBoxQrisMode);
       this.Controls.Add(this.buttonAddQris);
       this.Controls.Add(this.textBoxNewQris);
       this.Controls.Add(this.listBoxQris);
@@ -178,6 +190,7 @@
     private System.Windows.Forms.Label labelQris;
     private System.Windows.Forms.ListBox listBoxQris;
     private System.Windows.Forms.TextBox textBoxNewQris;
+    private System.Windows.Forms.ComboBox comboBoxQrisMode;
     private System.Windows.Forms.Button buttonAddQris;
     private System.Windows.Forms.Button buttonRemoveQris;
     private System.Windows.Forms.Label labelDescription;

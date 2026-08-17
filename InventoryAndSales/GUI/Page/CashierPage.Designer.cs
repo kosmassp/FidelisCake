@@ -53,7 +53,6 @@
       this.comboBoxPaymentMethod = new System.Windows.Forms.ComboBox();
       this.labelReference = new System.Windows.Forms.Label();
       this.comboBoxReference = new System.Windows.Forms.ComboBox();
-      this.comboBoxQrisMode = new System.Windows.Forms.ComboBox();
       this.buttonCheckout = new System.Windows.Forms.Button();
       this.labelTotal = new System.Windows.Forms.Label();
       this.groupBoxItemList = new System.Windows.Forms.GroupBox();
@@ -183,7 +182,6 @@
       this.groupBoxSummary.Controls.Add(this.comboBoxPaymentMethod);
       this.groupBoxSummary.Controls.Add(this.labelReference);
       this.groupBoxSummary.Controls.Add(this.comboBoxReference);
-      this.groupBoxSummary.Controls.Add(this.comboBoxQrisMode);
       this.groupBoxSummary.Location = new System.Drawing.Point(432, 321);
       this.groupBoxSummary.Name = "groupBoxSummary";
       this.groupBoxSummary.Size = new System.Drawing.Size(630, 185);
@@ -315,16 +313,8 @@
       this.comboBoxReference.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
       this.comboBoxReference.Location = new System.Drawing.Point(272, 49);
       this.comboBoxReference.Name = "comboBoxReference";
-      this.comboBoxReference.Size = new System.Drawing.Size(105, 21);
+      this.comboBoxReference.Size = new System.Drawing.Size(183, 21);
       this.comboBoxReference.TabIndex = 23;
-      //
-      // comboBoxQrisMode
-      //
-      this.comboBoxQrisMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.comboBoxQrisMode.Location = new System.Drawing.Point(382, 49);
-      this.comboBoxQrisMode.Name = "comboBoxQrisMode";
-      this.comboBoxQrisMode.Size = new System.Drawing.Size(73, 21);
-      this.comboBoxQrisMode.TabIndex = 24;
       //
       // labelTotal
       // 
@@ -478,7 +468,6 @@
     private System.Windows.Forms.ComboBox comboBoxPaymentMethod;
     private System.Windows.Forms.Label labelReference;
     private System.Windows.Forms.ComboBox comboBoxReference;
-    private System.Windows.Forms.ComboBox comboBoxQrisMode;
     private System.Windows.Forms.Button buttonCheckout;
     private System.Windows.Forms.Label labelTotal;
     private System.Windows.Forms.GroupBox groupBoxItemList;

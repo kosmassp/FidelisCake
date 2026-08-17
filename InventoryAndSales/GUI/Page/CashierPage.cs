@@ -353,11 +353,6 @@ namespace InventoryAndSales.GUI.Page
         if (controller.IsMethodAvailable(PaymentMethod.Qris))
           comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Qris, "QRIS (Ctrl+3)"));
 
-        comboBoxQrisMode.Items.Clear();
-        comboBoxQrisMode.Items.Add("Statis");
-        comboBoxQrisMode.Items.Add("Dinamis");
-        comboBoxQrisMode.SelectedIndex = 0;
-
         comboBoxPaymentMethod.SelectedIndex = 0;
       }
       finally
@@ -376,9 +371,22 @@ namespace InventoryAndSales.GUI.Page
       }
     }
 
-    private QrisMode SelectedQrisMode
+    /// <summary>
+    /// The terminal or provider name the cashier picked, or empty for cash.
+    ///
+    /// A QRIS entry displays as "GoPay (Statis)", so the name is taken from the object rather than
+    /// from what is on screen.
+    /// </summary>
+    private string SelectedReference
     {
-      get { return comboBoxQrisMode.SelectedIndex == 1 ? QrisMode.Dynamic : QrisMode.Static; }
+      get
+      {
+        object selected = comboBoxReference.SelectedItem;
+        if (selected == null)
+          return string.Empty;
+        QrisProvider provider = selected as QrisProvider;
+        return provider != null ? provider.Name : selected.ToString();
+      }
     }
 
     /// <summary>
@@ -415,7 +423,6 @@ namespace InventoryAndSales.GUI.Page
 
       labelReference.Visible = exact;
       comboBoxReference.Visible = exact;
-      comboBoxQrisMode.Visible = qris;
       labelReference.Text = qris ? "Provider" : "Terminal";
       textBoxPayment.ReadOnly = exact;
 
@@ -425,9 +432,14 @@ namespace InventoryAndSales.GUI.Page
         try
         {
           comboBoxReference.Items.Clear();
-          List<string> options = qris ? controller.GetQrisProviders() : controller.GetEdcTerminals();
-          foreach (string option in options)
-            comboBoxReference.Items.Add(option);
+          // QRIS entries go in as objects so the code type shows in the list and the name can be
+          // read back without parsing the label.
+          if (qris)
+            foreach (QrisProvider provider in controller.GetQrisProviders())
+              comboBoxReference.Items.Add(provider);
+          else
+            foreach (string terminal in controller.GetEdcTerminals())
+              comboBoxReference.Items.Add(terminal);
           if (comboBoxReference.Items.Count > 0)
             comboBoxReference.SelectedIndex = 0;
         }
@@ -473,8 +485,7 @@ namespace InventoryAndSales.GUI.Page
       string errorMessage = controller.Checkout(
         method,
         tendered,
-        comboBoxReference.SelectedItem as string,
-        SelectedQrisMode,
+        SelectedReference,
         textBoxNotes.Text,
         out successMessage);
       if (!string.IsNullOrEmpty(errorMessage))

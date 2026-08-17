@@ -25,7 +25,7 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
       return _options.GetEdcTerminals();
     }
 
-    public List<string> GetQrisProviders()
+    public List<QrisProvider> GetQrisProviders()
     {
       return _options.GetQrisProviders();
     }
@@ -48,7 +48,23 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
       return string.Empty;
     }
 
-    public void Save(IEnumerable<string> edcTerminals, IEnumerable<string> qrisProviders)
+    /// <summary>
+    /// As <see cref="ValidateNew"/>, plus the one thing a provider name may not contain: the
+    /// character that separates a name from its code type in storage.
+    /// </summary>
+    public string ValidateNewProvider(string name, IEnumerable<string> currentNames)
+    {
+      string problem = ValidateNew(name, currentNames);
+      if (!string.IsNullOrEmpty(problem))
+        return problem;
+
+      if (!PaymentOptionService.IsValidProviderName(name))
+        return "Nama provider tidak boleh mengandung karakter '|'.";
+
+      return string.Empty;
+    }
+
+    public void Save(IEnumerable<string> edcTerminals, IEnumerable<QrisProvider> qrisProviders)
     {
       _options.SetEdcTerminals(edcTerminals);
       _options.SetQrisProviders(qrisProviders);

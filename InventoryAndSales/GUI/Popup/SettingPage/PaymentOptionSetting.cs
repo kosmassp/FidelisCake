@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using InventoryAndSales.Business;
 using InventoryAndSales.GUI.Controller.SettingPage;
 
 namespace InventoryAndSales.GUI.Popup.SettingPage
@@ -29,16 +30,35 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
 
       _controller = new PaymentOptionSettingController(this);
 
-      Fill(listBoxEdc, _controller.GetEdcTerminals());
-      Fill(listBoxQris, _controller.GetQrisProviders());
+      _loading = true;
+      try
+      {
+        listBoxEdc.Items.Clear();
+        foreach (string terminal in _controller.GetEdcTerminals())
+          listBoxEdc.Items.Add(terminal);
+
+        listBoxQris.Items.Clear();
+        foreach (QrisProvider provider in _controller.GetQrisProviders())
+          listBoxQris.Items.Add(provider);
+
+        comboBoxQrisMode.Items.Clear();
+        comboBoxQrisMode.Items.Add("Statis");
+        comboBoxQrisMode.Items.Add("Dinamis");
+        comboBoxQrisMode.SelectedIndex = 0;
+      }
+      finally
+      {
+        _loading = false;
+      }
+
       buttonSave.Enabled = false;
     }
 
-    private static void Fill(ListBox list, List<string> values)
+    private bool _loading;
+
+    private QrisMode SelectedMode
     {
-      list.Items.Clear();
-      foreach (string value in values)
-        list.Items.Add(value);
+      get { return comboBoxQrisMode.SelectedIndex == 1 ? QrisMode.Dynamic : QrisMode.Static; }
     }
 
     private static List<string> ItemsOf(ListBox list)
@@ -49,19 +69,91 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
       return values;
     }
 
-    /// <summary>Shared by both lists - the only difference is which controls they use.</summary>
-    private void Add(TextBox input, ListBox list)
+    private List<QrisProvider> QrisItems()
     {
-      string problem = _controller.ValidateNew(input.Text, ItemsOf(list));
+      List<QrisProvider> providers = new List<QrisProvider>();
+      foreach (object item in listBoxQris.Items)
+        providers.Add(item as QrisProvider);
+      return providers;
+    }
+
+    private List<string> QrisNames()
+    {
+      List<string> names = new List<string>();
+      foreach (QrisProvider provider in QrisItems())
+        names.Add(provider.Name);
+      return names;
+    }
+
+    /// <summary>Shows the selected provider's code type, so the combo always reflects the list.</summary>
+    private void listBoxQris_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      QrisProvider provider = listBoxQris.SelectedItem as QrisProvider;
+      if (provider == null)
+        return;
+
+      _loading = true;
+      try
+      {
+        comboBoxQrisMode.SelectedIndex = provider.Mode == QrisMode.Dynamic ? 1 : 0;
+      }
+      finally
+      {
+        _loading = false;
+      }
+    }
+
+    /// <summary>
+    /// Changing the type while a provider is selected edits that provider, so an existing entry can
+    /// be corrected without removing and re-adding it.
+    /// </summary>
+    private void comboBoxQrisMode_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      if (_loading)
+        return;
+
+      int index = listBoxQris.SelectedIndex;
+      if (index < 0)
+        return;
+
+      QrisProvider selected = listBoxQris.Items[index] as QrisProvider;
+      if (selected == null || selected.Mode == SelectedMode)
+        return;
+
+      listBoxQris.Items[index] = new QrisProvider(selected.Name, SelectedMode);
+      listBoxQris.SelectedIndex = index;
+      buttonSave.Enabled = true;
+    }
+
+    /// <summary>Adds an EDC terminal, which is only a name.</summary>
+    private void AddEdc()
+    {
+      string problem = _controller.ValidateNew(textBoxNewEdc.Text, ItemsOf(listBoxEdc));
       if (!string.IsNullOrEmpty(problem))
       {
         MessageBox.Show(problem, "Tidak Dapat Ditambahkan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         return;
       }
 
-      list.Items.Add(input.Text.Trim());
-      input.Clear();
-      input.Focus();
+      listBoxEdc.Items.Add(textBoxNewEdc.Text.Trim());
+      textBoxNewEdc.Clear();
+      textBoxNewEdc.Focus();
+      buttonSave.Enabled = true;
+    }
+
+    /// <summary>Adds a QRIS provider together with the code type it issues.</summary>
+    private void AddQris()
+    {
+      string problem = _controller.ValidateNewProvider(textBoxNewQris.Text, QrisNames());
+      if (!string.IsNullOrEmpty(problem))
+      {
+        MessageBox.Show(problem, "Tidak Dapat Ditambahkan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        return;
+      }
+
+      listBoxQris.Items.Add(new QrisProvider(textBoxNewQris.Text.Trim(), SelectedMode));
+      textBoxNewQris.Clear();
+      textBoxNewQris.Focus();
       buttonSave.Enabled = true;
     }
 
@@ -88,7 +180,7 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
 
     private void buttonAddEdc_Click(object sender, EventArgs e)
     {
-      Add(textBoxNewEdc, listBoxEdc);
+      AddEdc();
     }
 
     private void buttonRemoveEdc_Click(object sender, EventArgs e)
@@ -98,7 +190,7 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
 
     private void buttonAddQris_Click(object sender, EventArgs e)
     {
-      Add(textBoxNewQris, listBoxQris);
+      AddQris();
     }
 
     private void buttonRemoveQris_Click(object sender, EventArgs e)
@@ -112,7 +204,7 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
       if (e.KeyCode != Keys.Enter)
         return;
       e.SuppressKeyPress = true;
-      Add(textBoxNewEdc, listBoxEdc);
+      AddEdc();
     }
 
     private void textBoxNewQris_KeyDown(object sender, KeyEventArgs e)
@@ -120,14 +212,14 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
       if (e.KeyCode != Keys.Enter)
         return;
       e.SuppressKeyPress = true;
-      Add(textBoxNewQris, listBoxQris);
+      AddQris();
     }
 
     private void buttonSave_Click(object sender, EventArgs e)
     {
       try
       {
-        _controller.Save(ItemsOf(listBoxEdc), ItemsOf(listBoxQris));
+        _controller.Save(ItemsOf(listBoxEdc), QrisItems());
         buttonSave.Enabled = false;
         MessageBox.Show("Pengaturan pembayaran berhasil disimpan.", "BERHASIL",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
