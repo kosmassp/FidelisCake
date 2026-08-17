@@ -25,6 +25,7 @@ namespace InventoryAndSales.GUI.Controller
     private readonly CashierManager _cashierManager;
     private readonly MasterManager _masterManager;
     private readonly PaymentOptionService _paymentOptions;
+    private readonly HeldCartService _heldCarts;
 
     /// <summary>This screen's basket. Not shared with the correction screen.</summary>
     private readonly Cart _cart = new Cart();
@@ -37,6 +38,7 @@ namespace InventoryAndSales.GUI.Controller
       _masterManager = BusinessFactory.GetInstance().MasterManager;
       _cashierManager = BusinessFactory.GetInstance().CashierManager;
       _paymentOptions = BusinessFactory.GetInstance().PaymentOptions;
+      _heldCarts = BusinessFactory.GetInstance().HeldCarts;
 
       _cart.CartChange += CartChange;
     }
@@ -89,6 +91,65 @@ namespace InventoryAndSales.GUI.Controller
       decimal totalPrice, totalDiscount;
       return _cart.GetTotal(out totalPrice, out totalDiscount);
     }
+
+    #region Held carts
+
+    /// <summary>Baskets currently set aside, lowest slot first.</summary>
+    public List<HeldCart> GetHeldCarts()
+    {
+      return _heldCarts.GetAll();
+    }
+
+    /// <summary>
+    /// Sets the current basket aside and clears the till, so the next customer can be served.
+    /// </summary>
+    /// <param name="label">Free text identifying whose basket it is - the notes box.</param>
+    /// <returns>An Indonesian error message, or empty on success.</returns>
+    public string HoldCart(string label, out HeldCart held)
+    {
+      held = null;
+      if (_cart.IsEmpty)
+        return "Keranjang masih kosong, tidak ada yang disimpan.";
+      if (_heldCarts.IsFull)
+        return string.Format("Sudah ada {0} keranjang tersimpan. Selesaikan atau hapus salah satu dulu.",
+                             HeldCartService.MaxSlots);
+
+      held = _heldCarts.Hold(_cart.TakeSnapshot(), label);
+      if (held == null)
+        return "Keranjang gagal disimpan.";
+
+      NewCart();
+      return string.Empty;
+    }
+
+    /// <summary>
+    /// Puts a held basket back on the till.
+    ///
+    /// Refuses while something is already being rung up rather than merging or silently discarding
+    /// it - either outcome would lose a sale the cashier had started.
+    /// </summary>
+    public string RecallCart(int slot, out HeldCart recalled)
+    {
+      recalled = null;
+      if (!_cart.IsEmpty)
+        return "Selesaikan atau simpan dulu keranjang yang sedang aktif.";
+
+      recalled = _heldCarts.Recall(slot);
+      if (recalled == null)
+        return "Keranjang tersimpan tersebut sudah tidak ada.";
+
+      _control.ResetCart();
+      _cart.Restore(recalled.Lines);
+      return string.Empty;
+    }
+
+    /// <summary>Throws a held basket away without putting it back on the till.</summary>
+    public bool DiscardHeldCart(int slot)
+    {
+      return _heldCarts.Discard(slot);
+    }
+
+    #endregion
 
     /// <summary>
     /// Validates and completes the sale.

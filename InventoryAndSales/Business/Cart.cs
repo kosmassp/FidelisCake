@@ -22,6 +22,13 @@ namespace InventoryAndSales.Business
     private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
     private readonly Dictionary<int, TransactionDetail> _items = new Dictionary<int, TransactionDetail>();
+
+    /// <summary>
+    /// The product behind each line, kept so a cart can be put aside and picked up again - the line
+    /// alone does not carry enough to redraw the screen or to re-price it.
+    /// </summary>
+    private readonly Dictionary<int, Product> _products = new Dictionary<int, Product>();
+
     private readonly object _lockItems = new object();
 
     public delegate void CartChangeDelegate(object sender, KeyValuePair<Product, int> args);
@@ -51,6 +58,7 @@ namespace InventoryAndSales.Business
               return true;
             line = new TransactionDetail(product, quantityDelta);
             _items.Add(product.Id, line);
+            _products[product.Id] = product;
           }
           RaiseCartChange(product, line.Quantity);
           return true;
@@ -81,6 +89,7 @@ namespace InventoryAndSales.Business
             line.UpdateQuantity(quantity);
           else
             _items.Add(product.Id, new TransactionDetail(product, quantity));
+          _products[product.Id] = product;
 
           RaiseCartChange(product, quantity);
           return true;
@@ -108,6 +117,7 @@ namespace InventoryAndSales.Business
       try
       {
         _items.Remove(product.Id);
+        _products.Remove(product.Id);
         RaiseCartChange(product, 0);
         return true;
       }
@@ -127,6 +137,7 @@ namespace InventoryAndSales.Business
       lock (_lockItems)
       {
         _items.Clear();
+        _products.Clear();
       }
     }
 
@@ -174,6 +185,43 @@ namespace InventoryAndSales.Business
           return _items.Count == 0;
         }
       }
+    }
+
+    /// <summary>
+    /// The cart as product-and-quantity pairs, for putting it aside and picking it up again.
+    ///
+    /// Quantities rather than the lines themselves: restoring replays them through
+    /// <see cref="SetQuantity"/>, which rebuilds each line from the product exactly as adding it by
+    /// hand would.
+    /// </summary>
+    public List<KeyValuePair<Product, int>> TakeSnapshot()
+    {
+      lock (_lockItems)
+      {
+        List<KeyValuePair<Product, int>> snapshot = new List<KeyValuePair<Product, int>>();
+        foreach (KeyValuePair<int, TransactionDetail> item in _items)
+        {
+          Product product;
+          if (_products.TryGetValue(item.Key, out product) && item.Value.Quantity > 0)
+            snapshot.Add(new KeyValuePair<Product, int>(product, item.Value.Quantity));
+        }
+        return snapshot;
+      }
+    }
+
+    /// <summary>
+    /// Replaces the contents with a snapshot, raising a change per line so the screen redraws.
+    ///
+    /// The caller resets its grid first; <see cref="Clear"/> is silent, so without that the old rows
+    /// would still be on screen.
+    /// </summary>
+    public void Restore(IEnumerable<KeyValuePair<Product, int>> snapshot)
+    {
+      Clear();
+      if (snapshot == null)
+        return;
+      foreach (KeyValuePair<Product, int> line in snapshot)
+        SetQuantity(line.Key, line.Value);
     }
 
     private void RaiseCartChange(Product product, int quantity)

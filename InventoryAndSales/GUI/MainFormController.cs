@@ -28,6 +28,7 @@ namespace InventoryAndSales.GUI
     private readonly CashierManager _cashierManager;
     private readonly LoginManager _loginManager;
     private readonly ReportManager _reportManager;
+    private readonly HeldCartService _heldCarts;
 
     public MainFormController(MainForm mainForm)
     {
@@ -35,12 +36,17 @@ namespace InventoryAndSales.GUI
       _loginManager = BusinessFactory.GetInstance().LoginManager;
       _cashierManager = BusinessFactory.GetInstance().CashierManager;
       _reportManager = BusinessFactory.GetInstance().ReportManager;
+      _heldCarts = BusinessFactory.GetInstance().HeldCarts;
 
       _loginManager.OnActiveUserChanged += OnActiveUserChanged;
     }
 
     public void OnActiveUserChanged(object sender, User activeUser)
     {
+      // Held baskets belong to whoever is signed in. Dropped on any change of user, so nothing
+      // survives a logout and no cashier inherits another's holds.
+      _heldCarts.Clear();
+
       if (activeUser == null)
       {
         _mainForm.UpdateActiveUser(string.Empty);
@@ -57,6 +63,7 @@ namespace InventoryAndSales.GUI
 
     public void Logout()
     {
+      _heldCarts.Clear();
       _mainForm.EnableMenu(0);
       _mainForm.UpdateActiveUser("");
       _loginManager.Logout();

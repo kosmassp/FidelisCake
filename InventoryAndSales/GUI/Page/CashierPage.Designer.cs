@@ -41,6 +41,10 @@
       this.CartItemDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.CartItemSubtotal = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.groupBoxSummary = new System.Windows.Forms.GroupBox();
+      this.comboBoxHeldCart = new System.Windows.Forms.ComboBox();
+      this.buttonHoldCart = new System.Windows.Forms.Button();
+      this.buttonRecallCart = new System.Windows.Forms.Button();
+      this.buttonDiscardHeldCart = new System.Windows.Forms.Button();
       this.buttonClearCart = new System.Windows.Forms.Button();
       this.labelNotes = new System.Windows.Forms.Label();
       this.textBoxNotes = new System.Windows.Forms.TextBox();
@@ -168,6 +172,10 @@
       // 
       this.groupBoxSummary.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                   | System.Windows.Forms.AnchorStyles.Right)));
+      this.groupBoxSummary.Controls.Add(this.comboBoxHeldCart);
+      this.groupBoxSummary.Controls.Add(this.buttonHoldCart);
+      this.groupBoxSummary.Controls.Add(this.buttonRecallCart);
+      this.groupBoxSummary.Controls.Add(this.buttonDiscardHeldCart);
       this.groupBoxSummary.Controls.Add(this.buttonClearCart);
       this.groupBoxSummary.Controls.Add(this.labelNotes);
       this.groupBoxSummary.Controls.Add(this.textBoxNotes);
@@ -188,11 +196,53 @@
       this.groupBoxSummary.TabIndex = 4;
       this.groupBoxSummary.TabStop = false;
       this.groupBoxSummary.Text = "Total";
-      // 
+      //
+      // comboBoxHeldCart
+      //
+      this.comboBoxHeldCart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.comboBoxHeldCart.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxHeldCart.Location = new System.Drawing.Point(481, 22);
+      this.comboBoxHeldCart.Name = "comboBoxHeldCart";
+      this.comboBoxHeldCart.Size = new System.Drawing.Size(130, 21);
+      this.comboBoxHeldCart.TabIndex = 30;
+      //
+      // buttonHoldCart
+      //
+      this.buttonHoldCart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonHoldCart.Location = new System.Drawing.Point(481, 47);
+      this.buttonHoldCart.Name = "buttonHoldCart";
+      this.buttonHoldCart.Size = new System.Drawing.Size(62, 23);
+      this.buttonHoldCart.TabIndex = 31;
+      this.buttonHoldCart.Text = "Simpan";
+      this.buttonHoldCart.UseVisualStyleBackColor = true;
+      this.buttonHoldCart.Click += new System.EventHandler(this.buttonHoldCart_Click);
+      //
+      // buttonRecallCart
+      //
+      this.buttonRecallCart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonRecallCart.Location = new System.Drawing.Point(549, 47);
+      this.buttonRecallCart.Name = "buttonRecallCart";
+      this.buttonRecallCart.Size = new System.Drawing.Size(62, 23);
+      this.buttonRecallCart.TabIndex = 32;
+      this.buttonRecallCart.Text = "Ambil";
+      this.buttonRecallCart.UseVisualStyleBackColor = true;
+      this.buttonRecallCart.Click += new System.EventHandler(this.buttonRecallCart_Click);
+      //
+      // buttonDiscardHeldCart
+      //
+      this.buttonDiscardHeldCart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonDiscardHeldCart.Location = new System.Drawing.Point(481, 73);
+      this.buttonDiscardHeldCart.Name = "buttonDiscardHeldCart";
+      this.buttonDiscardHeldCart.Size = new System.Drawing.Size(130, 23);
+      this.buttonDiscardHeldCart.TabIndex = 33;
+      this.buttonDiscardHeldCart.Text = "Hapus Simpanan";
+      this.buttonDiscardHeldCart.UseVisualStyleBackColor = true;
+      this.buttonDiscardHeldCart.Click += new System.EventHandler(this.buttonDiscardHeldCart_Click);
+      //
       // buttonClearCart
-      // 
+      //
       this.buttonClearCart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonClearCart.Location = new System.Drawing.Point(481, 31);
+      this.buttonClearCart.Location = new System.Drawing.Point(481, 102);
       this.buttonClearCart.Name = "buttonClearCart";
       this.buttonClearCart.Size = new System.Drawing.Size(130, 23);
       this.buttonClearCart.TabIndex = 2;
@@ -273,7 +323,7 @@
       // 
       this.buttonCheckout.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                   | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonCheckout.Location = new System.Drawing.Point(481, 67);
+      this.buttonCheckout.Location = new System.Drawing.Point(481, 130);
       this.buttonCheckout.Name = "buttonCheckout";
       this.buttonCheckout.Size = new System.Drawing.Size(130, 50);
       this.buttonCheckout.TabIndex = 3;
@@ -456,6 +506,10 @@
     private System.Windows.Forms.DataGridViewTextBoxColumn CartItemDiscount;
     private System.Windows.Forms.DataGridViewTextBoxColumn CartItemSubtotal;
     private System.Windows.Forms.GroupBox groupBoxSummary;
+    private System.Windows.Forms.ComboBox comboBoxHeldCart;
+    private System.Windows.Forms.Button buttonHoldCart;
+    private System.Windows.Forms.Button buttonRecallCart;
+    private System.Windows.Forms.Button buttonDiscardHeldCart;
     private System.Windows.Forms.Button buttonClearCart;
     private System.Windows.Forms.Label labelNotes;
     private System.Windows.Forms.TextBox textBoxNotes;

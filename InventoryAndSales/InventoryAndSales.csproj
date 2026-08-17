@@ -122,6 +122,7 @@
     <Compile Include="GUI\Controller\SettingPage\HeaderAndFooterController.cs" />
     <Compile Include="Business\PaymentDetail.cs" />
     <Compile Include="Business\PaymentOptionService.cs" />
+    <Compile Include="Business\HeldCartService.cs" />
     <Compile Include="GUI\Controller\SettingPage\PaymentOptionSettingController.cs" />
     <Compile Include="GUI\Popup\SettingPage\PaymentOptionSetting.cs">
       <SubType>UserControl</SubType>
