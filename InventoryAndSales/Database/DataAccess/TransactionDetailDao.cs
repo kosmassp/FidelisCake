@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataTable;
@@ -18,9 +18,9 @@ namespace InventoryAndSales.Database.DataAccess
     public List<TransactionDetail> FindByTransactionId(long id)
     {
       return FindByQuery(
-        "WHERE TransactionId = @transactionId",
+        string.Format("WHERE {0} = @transactionId", Dialect.Quote("TransactionId")),
         string.Empty,
-        new SqlParameter("@transactionId", id));
+        DbParam.Of("@transactionId", id));
     }
   }
 }

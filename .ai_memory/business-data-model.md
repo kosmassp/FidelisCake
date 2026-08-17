@@ -1,7 +1,28 @@
 # Data Model and Persistence
 
-Database: **SQL Server**, catalogue `SalesInventory`, connection string in `App.config`.
 Naming: `M_` = master data, `T_` = transactional data.
+
+## Which database
+
+Three are supported, chosen by the `DatabaseProvider` setting in `App.config`:
+
+| Value | Product | Provider assembly | Status |
+|---|---|---|---|
+| `SqlServer` *(default)* | Microsoft SQL Server | in the framework | verified end-to-end |
+| `Sqlite` | SQLite — a single file | `System.Data.SQLite` | verified end-to-end |
+| `PostgreSql` | PostgreSQL | `Npgsql` | **generated SQL reviewed; not yet run against a live server** |
+
+The application holds **no compile-time reference** to Npgsql or System.Data.SQLite. The provider is
+resolved at runtime through `DbProviderFactories`, so the shipped binary is identical everywhere and
+a site that wants one copies the assembly beside the executable and uncomments its entry in
+`App.config`.
+
+Everything product-specific lives in `Database/Dialect/`; the schema is declared once, without DDL,
+in `Database/Schema/DatabaseSchema.cs`. See
+[index/InventoryAndSales.Database.Dialect.md](index/InventoryAndSales.Database.Dialect.md).
+
+The column types below are the SQL Server rendering; each dialect maps the same declaration to its
+own type names.
 
 ## Tables
 
@@ -121,13 +142,20 @@ main fragility of this design — the compiler cannot check the mapping.
 
 - `Save` and `Update` write **every** mapped column. Always load → modify → save; never construct a
   partial entity and update it.
-- `SCOPE_IDENTITY()` comes back as a `decimal`. `BaseDao.NormalizeIdentity` boxes it as an `int`
-  when it fits and a `long` otherwise, because the `int`-keyed models unbox with a direct `(int)`
-  cast (which throws on a boxed decimal) while the `bigint`-keyed ones parse whatever they get.
-- Values are passed as `SqlParameter`s. String parameters on **indexed** lookups are explicitly
-  typed `SqlDbType.VarChar` to match the columns — a default string parameter infers `NVarChar`,
-  which makes SQL Server convert the column rather than the value and gives up the seek on
-  `IDX_T_TRANS_FACTUR`.
+- **The generated key is read back by the statement that inserts the row**
+  (`ISqlDialect.AppendIdentityRetrieval`). Asking for it afterwards, as a separate command, looks
+  right and is not: a parameterised insert reaches SQL Server as `sp_executesql` and runs in its own
+  scope, so a later `SELECT SCOPE_IDENTITY()` returns NULL and every row comes back with an id of
+  zero.
+- Providers disagree about the CLR type a value comes back as — SQLite returns `Int64` for
+  everything, including flags. The models convert rather than cast (`BaseObject.ToInt`, `ToBool`,
+  `ToDecimal`, …), and `BaseDao.NormalizeIdentity` boxes a generated key as `int` when it fits and
+  `long` otherwise.
+- Values are passed as parameters via `DbParam`. On **indexed** lookups use `DbParam.AnsiText` to
+  match a non-Unicode column — left to infer, a string parameter becomes Unicode, which makes the
+  server convert the column rather than the value and gives up the seek on `IDX_T_TRANS_FACTUR`.
+- **Identifiers in hand-written clauses must go through `Dialect.Quote`.** Unquoted names are folded
+  to lower case on PostgreSQL and stop matching the schema.
 - `CustomQuery` is registered with a **null** `IDataTable` — `CustomDao` projects by reader ordinal
   instead, and overrides every CRUD method to throw.
 

@@ -69,22 +69,22 @@ namespace InventoryAndSales.Database.Model
         switch (columnName)
         {
           case "Id":
-            Id = (int)value;
+            Id = ToInt(value);
             break;
           case "Username":
-            Username = (string)value;
+            Username = ToText(value);
             break;
           case "Password":
-            Password = (string)value;
+            Password = ToText(value);
             break;
           case "Name":
-            Name = (string)value;
+            Name = ToText(value);
             break;
           case "Role":
-            Role = (int)value;
+            Role = ToInt(value);
             break;
           case "Deleted":
-            Deleted = (bool)value;
+            Deleted = ToBool(value);
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

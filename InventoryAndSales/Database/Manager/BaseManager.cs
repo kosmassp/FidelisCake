@@ -17,6 +17,16 @@ namespace InventoryAndSales.Database.Manager
       BaseDao = baseDao;
     }
 
+    /// <summary>
+    /// What this installation's database understands. Any identifier a manager writes into a where
+    /// clause has to go through <c>Dialect.Quote</c> - unquoted names are folded to lower case on
+    /// PostgreSQL and would not match the schema.
+    /// </summary>
+    protected static Dialect.ISqlDialect Dialect
+    {
+      get { return DBFactory.GetInstance().Dialect; }
+    }
+
     public virtual T FindById(int id)
     {
       return BaseDao.FindById(id);

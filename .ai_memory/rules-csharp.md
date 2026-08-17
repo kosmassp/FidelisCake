@@ -23,9 +23,15 @@ pre-existing exception: **`log4net`** (already shipped — keep using it, do not
 
 Reach for the framework first:
 
+**The one sanctioned exception is an ADO.NET provider.** PostgreSQL and SQLite are not in the
+framework, so `Database/Dialect/SqlDialectFactory.cs` resolves the provider at runtime through
+`DbProviderFactories` and the project references neither. The shipped binary stays framework-only;
+a site that wants one installs it and edits `App.config`. Follow that pattern rather than adding a
+reference.
+
 | Temptation | Use instead |
 |---|---|
-| Dapper / EF / an ORM | The existing `BaseDao<T>` + `DataTableList` map, or `SqlCommand` directly |
+| Dapper / EF / an ORM | The existing `BaseDao<T>` + `DataTableList` map, or `DbCommand` directly |
 | Newtonsoft.Json | `System.Runtime.Serialization.Json`, or don't serialise |
 | CsvHelper | `MasterProductPage.ParseCsvLine` already exists — extract and reuse it |
 | A PDF/report library | `HtmlReportGenerator` writes HTML the browser prints |
@@ -189,12 +195,24 @@ Simple beats clever. Some concrete calls for this codebase:
 
 ## 6. Data access
 
-- **Parameterise.** Use `FindByQuery(where, orderBy, params SqlParameter[])` and the `SqlParameter`
-  overloads on `DBUtility`. Never interpolate a value into SQL. On an **indexed** column, type the
-  parameter explicitly (`new SqlParameter("@factur", SqlDbType.VarChar, 20)`) — a bare string
-  parameter infers `NVarChar` and costs you the index seek.
+**Nothing outside `Database/Dialect/` may name a database product.** No `SqlConnection`,
+no `SqlParameter`, no `sp_rename`, no `INFORMATION_SCHEMA`. Three products are supported and the
+provider is resolved at runtime; code that assumes one of them breaks the other two silently.
+
+- **Parameterise.** Use `DbParam.Of` and the `params DbParameter[]` overloads on `FindByQuery` and
+  `DBUtility`. Never interpolate a value into SQL. On an **indexed** column use
+  `DbParam.AnsiText("@factur", 20, value)` — a bare string parameter infers Unicode and costs you the
+  index seek.
+- **Quote every identifier you write by hand** with `Dialect.Quote`. PostgreSQL folds unquoted names
+  to lower case, so `WHERE Name = @n` stops matching a column created as `"Name"`. Result aliases go
+  through `Dialect.QuoteAlias` — the `'Jumlah Transaksi'` form SQL Server accepts is a string literal
+  elsewhere.
 - **Identifiers cannot be parameters.** If a column or table name comes from anywhere near user
   input, validate it against `DataTableList` first, as `ProductManager.SanitizeOrderBy` does.
+- **Write no DDL.** Declare the table or column in `Database/Schema/DatabaseSchema.cs`; the dialects
+  render it.
+- **Convert, do not cast, when reading a column** — `BaseObject.ToInt`, `ToBool`, `ToDecimal`. SQLite
+  returns `Int64` for everything, so `(int)value` throws there.
 - **Let write failures throw.** `DBUtility.ExecuteNonQuery` / `ExecuteScalar` rethrow;
   `TryExecuteNonQuery` / `TryExecuteScalar` are for schema probes and optional maintenance only.
   Never use a `Try*` for a write that matters.

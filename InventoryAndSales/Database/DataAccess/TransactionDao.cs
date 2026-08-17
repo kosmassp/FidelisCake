@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataTable;
@@ -21,13 +21,13 @@ namespace InventoryAndSales.Database.DataAccess
       if (string.IsNullOrEmpty(factur))
         return null;
 
-      // Typed as VarChar to match the column. A string parameter would default to NVarChar, which
-      // makes SQL Server convert the column instead of the value and gives up the seek on
+      // AnsiText to match the column. Left to infer, a string parameter becomes Unicode, which makes
+      // the server convert the column instead of the value and gives up the seek on
       // IDX_T_TRANS_FACTUR - a table scan on every reprint once a shop has years of sales.
       List<Transaction> trx = FindByQuery(
-        "WHERE Factur = @factur",
+        string.Format("WHERE {0} = @factur", Dialect.Quote("Factur")),
         string.Empty,
-        new SqlParameter("@factur", SqlDbType.VarChar, 20) { Value = factur });
+        DbParam.AnsiText("@factur", 20, factur));
       if (trx.Count > 0)
         return trx[0];
       return null;

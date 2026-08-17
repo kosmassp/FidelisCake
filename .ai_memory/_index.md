@@ -32,8 +32,11 @@ edit them through the WinForms designer, not by hand.
 | Where reports are written / their assets | `InventoryAndSales/Business/ReportService.cs` |
 | A new configurable setting | `InventoryAndSales/Business/SettingKeys.cs` → `Seed()` |
 | A table's columns as the app sees them | `InventoryAndSales/Database/DataTable/DataTableList.cs` |
+| The schema itself (tables, indexes, migrations) | `InventoryAndSales/Database/Schema/DatabaseSchema.cs` |
+| Anything database-product specific | `InventoryAndSales/Database/Dialect/` |
+| Support for another database | Add an `ISqlDialect`; nothing else changes |
 | Auto table creation / migration on startup | `InventoryAndSales/Database/DBUtility.cs` |
-| Connection string, printer name | `InventoryAndSales/App.config` |
+| Which database, connection string, printer | `InventoryAndSales/App.config` |
 | Product CSV import/export | `InventoryAndSales/GUI/Page/MasterProductPage.cs` |
 | The physical print routine | `SimpleCommon/Utility/PrinterUtility.cs` |
 
@@ -76,8 +79,25 @@ edit them through the WinForms designer, not by hand.
 
 | File | Purpose |
 |---|---|
-| `Database/DBFactory.cs` | Singleton. Owns connection string, DAOs, managers, and the single ambient `SqlTransaction`. |
-| `Database/DBUtility.cs` | Boot-time schema check/create/migrate; `ExecuteNonQuery` / `ExecuteScalar` helpers. |
+| `Database/DBFactory.cs` | Singleton. Resolves the provider, owns DAOs, managers, and the single ambient transaction. Also `DbParam`, the parameter helper. |
+| `Database/DBUtility.cs` | Boot-time schema reconciliation, driven by the dialect; `ExecuteNonQuery` / `ExecuteScalar` and their best-effort `Try*` variants. |
+
+### Database/Schema — [index/InventoryAndSales.Database.Schema.md](index/InventoryAndSales.Database.Schema.md)
+
+| File | Purpose |
+|---|---|
+| `Database/Schema/DatabaseSchema.cs` | **The schema declared once, product-independent** — tables, columns, indexes, and the columns older installations may be missing. |
+
+### Database/Dialect — [index/InventoryAndSales.Database.Dialect.md](index/InventoryAndSales.Database.Dialect.md)
+
+| File | Purpose |
+|---|---|
+| `Database/Dialect/ISqlDialect.cs` | Everything that differs between database products. |
+| `Database/Dialect/SqlDialectBase.cs` | The parts that are the same everywhere. |
+| `Database/Dialect/SqlServerDialect.cs` | Microsoft SQL Server — the default. |
+| `Database/Dialect/PostgreSqlDialect.cs` | PostgreSQL, via Npgsql. |
+| `Database/Dialect/SqliteDialect.cs` | SQLite, via System.Data.SQLite. |
+| `Database/Dialect/SqlDialectFactory.cs` | Picks the dialect from config and resolves the ADO.NET provider at runtime. |
 
 ### Database/DataAccess — [index/InventoryAndSales.Database.DataAccess.md](index/InventoryAndSales.Database.DataAccess.md)
 

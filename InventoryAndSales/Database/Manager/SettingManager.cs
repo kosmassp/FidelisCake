@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataAccess;
@@ -16,13 +16,13 @@ namespace InventoryAndSales.Database.Manager
     {
     }
 
-    /// <summary>Rows for a setting key. KEY is a reserved word, hence the brackets.</summary>
+    /// <summary>Rows for a setting key. Key is a reserved word everywhere, hence the quoting.</summary>
     public List<SettingConfiguration> FindByKey(string key)
     {
       return BaseDao.FindByQuery(
-        "WHERE [KEY] = @key",
+        string.Format("WHERE {0} = @key", Dialect.Quote("Key")),
         string.Empty,
-        new SqlParameter("@key", SqlDbType.VarChar, 80) { Value = key });
+        DbParam.AnsiText("@key", 80, key));
     }
   }
 }

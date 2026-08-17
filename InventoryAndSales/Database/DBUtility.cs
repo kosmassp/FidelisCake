@@ -1,33 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Business;
+using InventoryAndSales.Database.Dialect;
+using InventoryAndSales.Database.Schema;
 
 namespace InventoryAndSales.Database
 {
   /// <summary>
-  /// Startup schema maintenance and the low level SQL helpers.
+  /// Startup schema reconciliation and the low level command helpers.
   ///
-  /// Installations are spread across many sites on different versions and there is no migration
-  /// history, so the schema is reconciled on every startup instead: each step checks first and only
-  /// then applies. Every step must therefore stay guarded, idempotent and additive - never drop a
-  /// column an older installation may still hold data in.
+  /// Installations are spread across many sites on different versions with no migration history, so
+  /// the schema is reconciled on every startup instead: each step checks first and only then
+  /// applies. Every step must stay guarded, idempotent and additive - never drop a column an older
+  /// installation may still hold data in.
+  ///
+  /// Nothing here is written for a particular database. The tables come from
+  /// <see cref="DatabaseSchema"/> and the SQL to express them comes from the configured
+  /// <see cref="ISqlDialect"/>.
   /// </summary>
   public class DBUtility
   {
     private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+    private static ISqlDialect Dialect
+    {
+      get { return DBFactory.GetInstance().Dialect; }
+    }
+
     public static void CheckForDatabaseTable()
     {
-      _log.Info("Create Table if not exists");
-      CheckTable();
+      _log.InfoFormat("Reconciling schema for {0}", Dialect.Name);
+      CreateMissingTables();
       _log.Info("Update missing column");
-      UpdateTableTransaction();
-      UpdateTableCustomer();
+      AddMissingColumns();
+      RenameLegacyCustomerColumn();
+      WidenFacturColumn();
       _log.Info("Create index");
-      CheckIndex();
+      CreateMissingIndexes();
     }
 
     public static void CheckForDatabaseRow()
@@ -35,30 +47,101 @@ namespace InventoryAndSales.Database
       UpsertSettingRow();
     }
 
-    private static void CheckIndex()
+    #region Schema reconciliation
+
+    private static void CreateMissingTables()
     {
-      try
+      foreach (TableDefinition table in DatabaseSchema.Tables())
       {
-        if (!IsIndexExist("T_TRANSACTIONS", "IDX_T_TRANS_TRXTIME"))
-        {
-          var create_index = "CREATE NONCLUSTERED INDEX[IDX_T_TRANS_TRXTIME] ON[dbo].[T_TRANSACTIONS] ( [TransactionTime] DESC )";
-          TryExecuteNonQuery(create_index);
-        }
-        if (!IsIndexExist("T_TRANSACTIONS", "IDX_T_TRANS_FACTUR"))
-        {
-          var create_index = "CREATE UNIQUE NONCLUSTERED INDEX[IDX_T_TRANS_FACTUR] ON[dbo].[T_TRANSACTIONS] ( [Factur] ASC )";
-          TryExecuteNonQuery(create_index);
-        }
-        if (!IsIndexExist("T_TRANSACTIONS", "IDX_T_TRDETAIL_TRX_ID"))
-        {
-          var create_index = "CREATE NONCLUSTERED INDEX [IDX_T_TRDETAIL_TRX_ID] ON [dbo].[T_TRANSACTION_DETAILS] ( [TransactionId] DESC )";
-          TryExecuteNonQuery(create_index);
-        }
+        if (TableExists(table.Name))
+          continue;
+        _log.InfoFormat("Creating missing table {0}", table.Name);
+        ExecuteNonQuery(Dialect.CreateTableStatement(table));
       }
-      catch (Exception e)
+    }
+
+    private static void AddMissingColumns()
+    {
+      foreach (ColumnAddition addition in DatabaseSchema.ColumnAdditions())
       {
-        _log.Error("Create Index Failed");
-        _log.Error(e);
+        if (!TableExists(addition.Table) || ColumnExists(addition.Table, addition.Column.Name))
+          continue;
+
+        _log.InfoFormat("Adding missing column {0}.{1}", addition.Table, addition.Column.Name);
+        TryExecuteNonQuery(Dialect.AddColumnStatement(addition.Table, addition.Column));
+
+        if (!string.IsNullOrEmpty(addition.BackfillLiteral))
+          TryExecuteNonQuery(Dialect.BackfillStatement(addition.Table, addition.Column.Name, addition.BackfillLiteral));
+      }
+    }
+
+    /// <summary>
+    /// Early builds created M_CUSTOMERS with a column called Type while the application has always
+    /// mapped it as MemberType, so reading a customer failed. Rename where the old name is present;
+    /// a database created from the current schema already has the right name and skips this.
+    /// </summary>
+    private static void RenameLegacyCustomerColumn()
+    {
+      const string table = "M_CUSTOMERS";
+      if (!TableExists(table) || ColumnExists(table, "MemberType"))
+        return;
+
+      if (ColumnExists(table, "Type"))
+      {
+        _log.Info("Renaming M_CUSTOMERS.Type to MemberType");
+        TryExecuteNonQuery(Dialect.RenameColumnStatement(table, "Type", "MemberType"));
+      }
+      else
+      {
+        _log.Info("Adding missing M_CUSTOMERS.MemberType");
+        TryExecuteNonQuery(Dialect.AddColumnStatement(table, ColumnDefinition.Column("MemberType", DbColumnType.Int)));
+      }
+    }
+
+    /// <summary>
+    /// Factur started life as varchar(18) but holds an 18 digit tick count, leaving no headroom.
+    /// Widen it where the database both reports and enforces column widths.
+    /// </summary>
+    private static void WidenFacturColumn()
+    {
+      const string table = "T_TRANSACTIONS";
+      const string column = "Factur";
+      const int wanted = 20;
+
+      if (!Dialect.SupportsColumnTypeInspection)
+        return;
+      if (!TableExists(table) || !ColumnExists(table, column))
+        return;
+      if (ColumnLength(table, column) >= wanted)
+        return;
+
+      ColumnDefinition widened = ColumnDefinition.Text(column, wanted);
+      string alter = Dialect.AlterColumnTypeStatement(table, widened);
+      if (alter == null)
+        return;
+
+      _log.InfoFormat("Widening {0}.{1} to {2} characters", table, column, wanted);
+      // The unique index has to come off first on databases that will not alter an indexed column.
+      TryExecuteNonQuery(Dialect.DropIndexStatement("IDX_T_TRANS_FACTUR", table));
+      TryExecuteNonQuery(alter);
+    }
+
+    private static void CreateMissingIndexes()
+    {
+      foreach (IndexDefinition index in DatabaseSchema.Indexes())
+      {
+        try
+        {
+          if (IndexExists(index.Table, index.Name))
+            continue;
+          _log.InfoFormat("Creating missing index {0}", index.Name);
+          TryExecuteNonQuery(Dialect.CreateIndexStatement(index));
+        }
+        catch (Exception e)
+        {
+          // An index is a performance concern, never a correctness one - never block startup for it.
+          _log.Error(string.Format("Could not create index {0}", index.Name), e);
+        }
       }
     }
 
@@ -69,22 +152,29 @@ namespace InventoryAndSales.Database
     /// </summary>
     private static void UpsertSettingRow()
     {
-      const string SETTINGS_QUERY = "SELECT [Id] FROM M_SETTINGS WHERE [KEY] = @key";
-      const string SETTINGS_INSERT = "INSERT INTO M_SETTINGS([KEY], [GROUP], [VALUE], [DEFAULT]) VALUES (@key, @group, @value, @value)";
+      string query = string.Format("SELECT {0} FROM {1} WHERE {2} = @key",
+                                   Dialect.Quote("Id"), Dialect.Quote("M_SETTINGS"), Dialect.Quote("Key"));
+      // Value and Default get their own parameters rather than repeating one: providers disagree
+      // about whether a named parameter may appear twice in a statement.
+      string insert = string.Format("INSERT INTO {0} ({1}, {2}, {3}, {4}) VALUES (@key, @group, @value, @default)",
+                                    Dialect.Quote("M_SETTINGS"), Dialect.Quote("Key"), Dialect.Quote("Group"),
+                                    Dialect.Quote("Value"), Dialect.Quote("Default"));
 
       foreach (SettingKeys.SettingSeed seed in SettingKeys.Seed())
       {
         try
         {
-          object existing = TryExecuteScalar(SETTINGS_QUERY, new SqlParameter("@key", seed.Key));
-          if (existing != null)
+          if (TryExecuteScalar(query, DbParam.Of("@key", seed.Key)) != null)
             continue;
 
           _log.InfoFormat("Seeding missing setting '{0}'.", seed.Key);
-          TryExecuteNonQuery(SETTINGS_INSERT,
-            new SqlParameter("@key", seed.Key),
-            new SqlParameter("@group", seed.Group),
-            new SqlParameter("@value", seed.Value));
+          int seeded = ExecuteNonQuery(insert,
+            DbParam.Of("@key", seed.Key),
+            DbParam.Of("@group", seed.Group),
+            DbParam.Of("@value", seed.Value),
+            DbParam.Of("@default", seed.Value));
+          if (seeded <= 0)
+            _log.WarnFormat("Seeding setting '{0}' affected no rows.", seed.Key);
         }
         catch (Exception e)
         {
@@ -93,272 +183,62 @@ namespace InventoryAndSales.Database
       }
     }
 
-    private static void CheckTable()
+    #endregion
+
+    #region Schema probes
+
+    private static bool TableExists(string tableName)
     {
-      if (!CheckIfTableExist("M_SETTINGS"))
-      {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("  CREATE TABLE [dbo].[M_SETTINGS](       ");
-        sb.Append("      [Id] [int] IDENTITY(1,1) NOT NULL, ");
-        sb.Append("      [Key] [varchar](80) NOT NULL,      ");
-        sb.Append("      [Group] [varchar](80) NULL,        ");
-        sb.Append("      [Value] [text] NULL,               ");
-        sb.Append("      [Default] [text] NOT NULL          ");
-        sb.Append("  )                                      ");
-        ExecuteNonQuery(sb.ToString());
-      }
-
-      if (!CheckIfTableExist("M_PRODUCTS"))
-      {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("  CREATE TABLE [dbo].[M_PRODUCTS](                                                  ");
-        sb.Append("      [Id] [int] IDENTITY(1,1) NOT NULL,                                            ");
-        sb.Append("      [Code] [varchar](10) NULL,                                                    ");
-        sb.Append("      [Name] [varchar](70) NOT NULL,                                                ");
-        sb.Append("      [Price] [decimal](18, 0) NOT NULL,                                            ");
-        sb.Append("      [Discount] [decimal](18, 0) NULL,                                             ");
-        sb.Append("      [Deleted] [bit] NOT NULL CONSTRAINT [DF_M_PRODUCTS_Deleted]  DEFAULT ((0)),   ");
-        sb.Append("      [Barcode] [varchar](20) NULL                                                  ");
-        sb.Append("  )                                                                                 ");
-        ExecuteNonQuery(sb.ToString());
-      }
-
-      if (!CheckIfTableExist("M_USERS"))
-      {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("  CREATE TABLE [dbo].[M_USERS](                                                     ");
-        sb.Append("      [Id] [int] IDENTITY(1,1) NOT NULL,                                            ");
-        sb.Append("      [Username] [varchar](50) NULL,                                                ");
-        sb.Append("      [Role] [int] NULL,                                                            ");
-        sb.Append("      [Deleted] [bit] NOT NULL CONSTRAINT [DF_M_USERS_Deleted]  DEFAULT ((0)),      ");
-        sb.Append("      [Name] [varchar](50) NULL,                                                    ");
-        sb.Append("      [Password] [varchar](256) NULL                                                ");
-        sb.Append("  )                                                                                 ");
-        ExecuteNonQuery(sb.ToString());
-      }
-
-      if (!CheckIfTableExist("T_TRANSACTION_DETAILS"))
-      {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("  CREATE TABLE [dbo].[T_TRANSACTION_DETAILS](                                       ");
-        sb.Append("      [Id] [bigint] IDENTITY(1,1) NOT NULL,                                         ");
-        sb.Append("      [ProductId] [int] NULL,                                                       ");
-        sb.Append("      [Quantity] [int] NULL,                                                        ");
-        sb.Append("      [ProductDiscount] [decimal](18, 0) NULL,                                      ");
-        sb.Append("      [ProductPrice] [decimal](18, 0) NULL,                                         ");
-        sb.Append("      [Subtotal] [decimal](18, 0) NULL,                                             ");
-        sb.Append("      [TransactionId] [bigint] NULL,                                                ");
-        sb.Append("      [SubtotalDiscount] [decimal](18, 0) NULL,                                     ");
-        sb.Append("      [SubtotalPrice] [decimal](18, 0) NULL                                         ");
-        sb.Append("  )                                                                                 ");
-        ExecuteNonQuery(sb.ToString());
-      }
-
-      if (!CheckIfTableExist("T_TRANSACTIONS"))
-      {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("  CREATE TABLE [dbo].[T_TRANSACTIONS](                                              ");
-        sb.Append("      [Id] [bigint] IDENTITY(1,1) NOT NULL,                                         ");
-        sb.Append("      [TotalPrice] [decimal](18, 0) NULL,                                           ");
-        sb.Append("      [TotalDiscount] [decimal](18, 0) NULL,                                        ");
-        sb.Append("      [Total] [decimal](18, 0) NULL,                                                ");
-        sb.Append("      [Notes] [varchar](100) NULL,                                                  ");
-        sb.Append("      [TransactionTime] [datetime] NULL,                                            ");
-        sb.Append("      [Payment] [decimal](18, 0) NULL,                                              ");
-        sb.Append("      [Exchange] [decimal](18, 0) NULL,                                             ");
-        sb.Append("      [UserId] [int] NULL,                                                          ");
-        sb.Append("      [Factur] [varchar](20) NULL,                                                  ");
-        sb.Append("      [CustomerId] [bigint] NULL                                                    ");
-        sb.Append("  )                                                                                 ");
-        ExecuteNonQuery(sb.ToString());
-      }
-
-      if (!CheckIfTableExist("M_CUSTOMERS"))
-      {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("  CREATE TABLE [dbo].[M_CUSTOMERS](                                                 ");
-        sb.Append("      [Id] [int] IDENTITY(1,1) NOT NULL,                                            ");
-        sb.Append("      [Name] [varchar](50) NULL,                                                    ");
-        sb.Append("      [Address] [varchar](50) NULL,                                                 ");
-        sb.Append("      [Phone] [varchar](50) NULL,                                                   ");
-        sb.Append("      [MemberType] [int] NULL                                                       ");
-        sb.Append("  )                                                                                 ");
-        ExecuteNonQuery(sb.ToString());
-      }
+      return TryExecuteScalar(Dialect.TableExistsQuery, DbParam.Of("@tableName", tableName)) != null;
     }
 
-    private static bool CheckIfTableExist(string tableName)
+    private static bool ColumnExists(string tableName, string columnName)
     {
-      object result = TryExecuteScalar(
-        "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tableName",
-        new SqlParameter("@tableName", tableName));
-      return result != null;
+      return TryExecuteScalar(Dialect.ColumnExistsQuery,
+                              DbParam.Of("@tableName", tableName),
+                              DbParam.Of("@columnName", columnName)) != null;
     }
 
-    private static void UpdateTableTransaction()
+    private static bool IndexExists(string tableName, string indexName)
     {
-      const string tableName = "T_TRANSACTIONS";
-
-      // Revision links a superseded transaction to the one that replaced it.
-      // NULL/0 = active, > 0 = replaced by that Id, -1 = cancelled.
-      if (!IsColumnExist(tableName, "Revision"))
-      {
-        TryExecuteNonQuery(string.Format("ALTER TABLE {0} ADD Revision bigint NULL", tableName));
-        TryExecuteNonQuery(string.Format("UPDATE {0} SET Revision = 0 WHERE Revision IS NULL", tableName));
-      }
-
-      // Who cancelled a transaction and when. Older installations recorded neither, so existing
-      // rows keep NULL and only cancellations made from this version onwards are attributed.
-      if (!IsColumnExist(tableName, "CancelledBy"))
-        TryExecuteNonQuery(string.Format("ALTER TABLE {0} ADD CancelledBy int NULL", tableName));
-
-      if (!IsColumnExist(tableName, "CancelledAt"))
-        TryExecuteNonQuery(string.Format("ALTER TABLE {0} ADD CancelledAt datetime NULL", tableName));
-
-      // Factur started life as varchar(18) but holds an 18 digit tick count; widen it so the value
-      // can never be silently truncated.
-      const string columnName = "Factur";
-      const string dataType = "varchar";
-      const int charLength = 20;
-      if (IsColumnExist(tableName, columnName) && !IsColumnTypeEquals(tableName, columnName, dataType, charLength))
-      {
-        const string indexName = "IDX_T_TRANS_FACTUR";
-        TryExecuteNonQuery(string.Format("DROP INDEX IF EXISTS {0} ON {1}", indexName, tableName));
-        TryExecuteNonQuery(string.Format("ALTER TABLE [{0}] ALTER COLUMN {1} {2}({3})", tableName, columnName, dataType, charLength));
-      }
+      return TryExecuteScalar(Dialect.IndexExistsQuery,
+                              DbParam.Of("@indexName", indexName),
+                              DbParam.Of("@tableName", tableName)) != null;
     }
 
-    /// <summary>
-    /// Early builds created M_CUSTOMERS with a column called Type while the application has always
-    /// mapped it as MemberType, so reading a customer failed. Rename where the old name is present,
-    /// otherwise add the column.
-    /// </summary>
-    private static void UpdateTableCustomer()
+    /// <summary>Declared length of a text column, or 0 when unknown or unlimited.</summary>
+    private static int ColumnLength(string tableName, string columnName)
     {
-      const string tableName = "M_CUSTOMERS";
-      if (!CheckIfTableExist(tableName))
-        return;
-      if (IsColumnExist(tableName, "MemberType"))
-        return;
-
-      if (IsColumnExist(tableName, "Type"))
-      {
-        _log.Info("Renaming M_CUSTOMERS.Type to MemberType");
-        TryExecuteNonQuery("EXEC sp_rename 'dbo.M_CUSTOMERS.Type', 'MemberType', 'COLUMN'");
-      }
-      else
-      {
-        _log.Info("Adding missing M_CUSTOMERS.MemberType");
-        TryExecuteNonQuery(string.Format("ALTER TABLE {0} ADD MemberType int NULL", tableName));
-      }
-    }
-
-    private static bool IsIndexExist(string tableName, string indexName)
-    {
-      object result = TryExecuteScalar(
-        "SELECT NAME FROM SYS.INDEXES WHERE NAME = @indexName " +
-        "AND OBJECT_ID = (SELECT OBJECT_ID FROM SYS.OBJECTS WHERE NAME = @tableName)",
-        new SqlParameter("@indexName", indexName),
-        new SqlParameter("@tableName", tableName));
-      return result != null;
-    }
-
-    private static bool IsColumnExist(string tableName, string columnName)
-    {
-      object result = TryExecuteScalar(
-        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tableName AND COLUMN_NAME = @columnName",
-        new SqlParameter("@tableName", tableName),
-        new SqlParameter("@columnName", columnName));
-      return result != null;
-    }
-
-    private static bool IsColumnTypeEquals(string tableName, string columnName, string dataType, int charLength = 0)
-    {
-      object result = TryExecuteScalar(
-        "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tableName AND COLUMN_NAME = @columnName",
-        new SqlParameter("@tableName", tableName),
-        new SqlParameter("@columnName", columnName));
+      object result = TryExecuteScalar(Dialect.ColumnLengthQuery,
+                                       DbParam.Of("@tableName", tableName),
+                                       DbParam.Of("@columnName", columnName));
       if (result == null)
-        return false;
-      if (!string.Equals(result.ToString(), dataType, StringComparison.OrdinalIgnoreCase))
-        return false;
-      if (charLength <= 0)
-        return true;
-
-      object length = TryExecuteScalar(
-        "SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tableName AND COLUMN_NAME = @columnName",
-        new SqlParameter("@tableName", tableName),
-        new SqlParameter("@columnName", columnName));
-      if (length == null)
-        return false;
-      int actual;
-      return int.TryParse(length.ToString(), out actual) && actual == charLength;
+        return 0;
+      int length;
+      return int.TryParse(result.ToString(), out length) ? length : 0;
     }
 
-    /// <summary>
-    /// Runs a statement. Throws on failure so that a caller inside a database transaction rolls back
-    /// instead of committing a partial write.
-    /// </summary>
-    internal static int ExecuteNonQuery(string nonQueryCommand, params SqlParameter[] parameters)
-    {
-      SqlConnection connection = DBFactory.GetInstance().GetConnection();
-      SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      if (activeTransaction == null)
-        connection.Open();
-      try
-      {
-        using (SqlCommand command = connection.CreateCommand())
-        {
-          command.CommandText = nonQueryCommand;
-          command.CommandTimeout = 600;
-          command.Transaction = activeTransaction;
-          AddParameters(command, parameters);
-          return command.ExecuteNonQuery();
-        }
-      }
-      catch (Exception e)
-      {
-        _log.Error(string.Format("Failed to run non-query {0}", nonQueryCommand), e);
-        throw;
-      }
-      finally
-      {
-        if (activeTransaction == null)
-          connection.Close();
-      }
-    }
+    #endregion
+
+    #region Command helpers
 
     /// <summary>
-    /// Runs a scalar query. Throws on failure - see <see cref="ExecuteNonQuery"/>.
+    /// Runs a statement. Throws on failure so that a caller inside a transaction rolls back instead
+    /// of committing a partial write.
     /// </summary>
-    internal static object ExecuteScalar(string scalarCommand, params SqlParameter[] parameters)
+    internal static int ExecuteNonQuery(string nonQueryCommand, params DbParameter[] parameters)
     {
-      SqlConnection connection = DBFactory.GetInstance().GetConnection();
-      SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      if (activeTransaction == null)
-        connection.Open();
-      try
+      return Execute(nonQueryCommand, parameters, command => command.ExecuteNonQuery());
+    }
+
+    /// <summary>Runs a scalar query. Throws on failure - see <see cref="ExecuteNonQuery"/>.</summary>
+    internal static object ExecuteScalar(string scalarCommand, params DbParameter[] parameters)
+    {
+      return Execute(scalarCommand, parameters, command =>
       {
-        using (SqlCommand command = connection.CreateCommand())
-        {
-          command.CommandText = scalarCommand;
-          command.CommandTimeout = 600;
-          command.Transaction = activeTransaction;
-          AddParameters(command, parameters);
-          object result = command.ExecuteScalar();
-          return result == DBNull.Value ? null : result;
-        }
-      }
-      catch (Exception e)
-      {
-        _log.Error(string.Format("Failed to run query {0}", scalarCommand), e);
-        throw;
-      }
-      finally
-      {
-        if (activeTransaction == null)
-          connection.Close();
-      }
+        object result = command.ExecuteScalar();
+        return result == DBNull.Value ? null : result;
+      });
     }
 
     /// <summary>
@@ -366,7 +246,7 @@ namespace InventoryAndSales.Database
     /// because a missing permission or an already-applied change must not stop the application from
     /// starting. Never use this for a write that matters.
     /// </summary>
-    internal static int TryExecuteNonQuery(string nonQueryCommand, params SqlParameter[] parameters)
+    internal static int TryExecuteNonQuery(string nonQueryCommand, params DbParameter[] parameters)
     {
       try
       {
@@ -379,7 +259,7 @@ namespace InventoryAndSales.Database
     }
 
     /// <summary>See <see cref="TryExecuteNonQuery"/>. Returns null when the query fails.</summary>
-    internal static object TryExecuteScalar(string scalarCommand, params SqlParameter[] parameters)
+    internal static object TryExecuteScalar(string scalarCommand, params DbParameter[] parameters)
     {
       try
       {
@@ -391,16 +271,48 @@ namespace InventoryAndSales.Database
       }
     }
 
-    private static void AddParameters(SqlCommand command, SqlParameter[] parameters)
+    private static T Execute<T>(string commandText, DbParameter[] parameters, Func<DbCommand, T> run)
+    {
+      DbConnection connection = DBFactory.GetInstance().GetConnection();
+      DbTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
+      bool ownsConnection = activeTransaction == null;
+      if (ownsConnection)
+        connection.Open();
+      try
+      {
+        using (DbCommand command = connection.CreateCommand())
+        {
+          command.CommandText = commandText;
+          command.CommandTimeout = 600;
+          command.Transaction = activeTransaction;
+          AddParameters(command, parameters);
+          return run(command);
+        }
+      }
+      catch (Exception e)
+      {
+        _log.Error(string.Format("Failed to run: {0}", commandText), e);
+        throw;
+      }
+      finally
+      {
+        if (ownsConnection)
+          connection.Close();
+      }
+    }
+
+    internal static void AddParameters(DbCommand command, DbParameter[] parameters)
     {
       if (parameters == null || parameters.Length == 0)
         return;
-      foreach (SqlParameter parameter in parameters)
+      foreach (DbParameter parameter in parameters)
       {
         if (parameter.Value == null)
           parameter.Value = DBNull.Value;
         command.Parameters.Add(parameter);
       }
     }
+
+    #endregion
   }
 }

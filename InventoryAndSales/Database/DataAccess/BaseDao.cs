@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataTable;
+using InventoryAndSales.Database.Dialect;
 using InventoryAndSales.Database.Model;
 
 namespace InventoryAndSales.Database.DataAccess
@@ -13,9 +14,12 @@ namespace InventoryAndSales.Database.DataAccess
   /// <summary>
   /// Generic CRUD driven by the column metadata in <see cref="DataTableList"/>.
   ///
-  /// Values are always passed as SqlParameters, never concatenated into the statement: it keeps a
-  /// product name containing an apostrophe from corrupting the SQL, and it lets the driver deal with
-  /// decimal, bit and datetime conversion instead of relying on the thread culture.
+  /// Values are always passed as parameters, never concatenated into the statement: it keeps a
+  /// product name containing an apostrophe from corrupting the SQL, and it lets the provider deal
+  /// with decimal, boolean and timestamp conversion instead of relying on the thread culture.
+  ///
+  /// Identifiers are quoted through the dialect, which is what makes reserved words such as Key and
+  /// Group usable and keeps identifier case intact on PostgreSQL.
   /// </summary>
   public class BaseDao<T> where T : BaseObject, new()
   {
@@ -27,12 +31,17 @@ namespace InventoryAndSales.Database.DataAccess
       _dataTable = DataTableList.Instance.GetDataTable(typeof(T));
     }
 
+    protected static ISqlDialect Dialect
+    {
+      get { return DBFactory.GetInstance().Dialect; }
+    }
+
     public virtual T FindById(int id)
     {
       var result = FindByQuery(
-        string.Format("WHERE [{0}] = @id", _dataTable.PrimaryKeyColumn),
+        string.Format("WHERE {0} = @id", Dialect.Quote(_dataTable.PrimaryKeyColumn)),
         string.Empty,
-        new SqlParameter("@id", id));
+        DbParam.Of("@id", id));
       if (result.Count > 0)
         return result[0];
       return null;
@@ -47,14 +56,14 @@ namespace InventoryAndSales.Database.DataAccess
 
     public virtual List<T> FindByQuery(string whereClause, string orderbyClause)
     {
-      return FindByQuery(whereClause, orderbyClause, new SqlParameter[0]);
+      return FindByQuery(whereClause, orderbyClause, new DbParameter[0]);
     }
 
     /// <summary>
     /// Runs a SELECT against this DAO's table. Any value inside <paramref name="whereClause"/> must
     /// be supplied as a named parameter - do not build the clause by interpolating user input.
     /// </summary>
-    public virtual List<T> FindByQuery(string whereClause, string orderbyClause, params SqlParameter[] parameters)
+    public virtual List<T> FindByQuery(string whereClause, string orderbyClause, params DbParameter[] parameters)
     {
       if (!string.IsNullOrEmpty(whereClause))
       {
@@ -69,7 +78,7 @@ namespace InventoryAndSales.Database.DataAccess
           orderbyClause = "ORDER BY " + orderbyClause;
         orderbyClause = " " + orderbyClause;
       }
-      string preparedSql = string.Format(FIND_BY_QUERY, _dataTable.TableName, whereClause + orderbyClause);
+      string preparedSql = string.Format(FIND_BY_QUERY, Dialect.Quote(_dataTable.TableName), whereClause + orderbyClause);
       return ExecuteReader(preparedSql, parameters);
     }
 
@@ -79,7 +88,7 @@ namespace InventoryAndSales.Database.DataAccess
     {
       StringBuilder columns = new StringBuilder();
       StringBuilder values = new StringBuilder();
-      List<SqlParameter> parameters = new List<SqlParameter>();
+      List<DbParameter> parameters = new List<DbParameter>();
 
       foreach (string column in _dataTable.Columns)
       {
@@ -91,29 +100,36 @@ namespace InventoryAndSales.Database.DataAccess
           columns.Append(",");
           values.Append(",");
         }
-        columns.AppendFormat("[{0}]", column);
+        columns.Append(Dialect.Quote(column));
         values.Append(parameterName);
-        parameters.Add(new SqlParameter(parameterName, ToParameterValue(dataObject[column])));
+        parameters.Add(DbParam.Of(parameterName, ToParameterValue(dataObject[column])));
       }
 
-      string insertSql = string.Format(INSERT_SQL, _dataTable.TableName, columns, values);
-      int insert = DBUtility.ExecuteNonQuery(insertSql, parameters.ToArray());
-      if (insert > 0)
+      string insertSql = string.Format(INSERT_SQL, Dialect.Quote(_dataTable.TableName), columns, values);
+
+      // The generated key is read back by the same statement that inserts the row. Asking for it
+      // afterwards, as a separate command, is the obvious shape and is wrong: a parameterised insert
+      // travels as sp_executesql on SQL Server, so a later SCOPE_IDENTITY() is outside that scope
+      // and comes back NULL - leaving every new row with an id of zero and every foreign key that
+      // depends on it pointing at nothing.
+      string insertWithIdentity = Dialect.AppendIdentityRetrieval(insertSql, _dataTable.PrimaryKeyColumn);
+      object generatedId = DBUtility.ExecuteScalar(insertWithIdentity, parameters.ToArray());
+      if (generatedId == null)
       {
-        object lastId = DBUtility.ExecuteScalar("SELECT SCOPE_IDENTITY()");
-        if (lastId != null)
-          dataObject[_dataTable.PrimaryKeyColumn] = NormalizeIdentity(lastId);
+        _log.ErrorFormat("Insert into {0} did not return a generated key.", _dataTable.TableName);
+        return false;
       }
 
-      return insert > 0;
+      dataObject[_dataTable.PrimaryKeyColumn] = NormalizeIdentity(generatedId);
+      return true;
     }
 
-    private const string UPDATE_SQL = "UPDATE {0} SET {1} WHERE [{2}] = @id";
+    private const string UPDATE_SQL = "UPDATE {0} SET {1} WHERE {2} = @id";
 
     public virtual int Update(T dataObject)
     {
       StringBuilder columnValuePair = new StringBuilder();
-      List<SqlParameter> parameters = new List<SqlParameter>();
+      List<DbParameter> parameters = new List<DbParameter>();
 
       foreach (string column in _dataTable.Columns)
       {
@@ -122,12 +138,13 @@ namespace InventoryAndSales.Database.DataAccess
         string parameterName = "@p" + parameters.Count;
         if (parameters.Count > 0)
           columnValuePair.Append(",");
-        columnValuePair.AppendFormat("[{0}]={1}", column, parameterName);
-        parameters.Add(new SqlParameter(parameterName, ToParameterValue(dataObject[column])));
+        columnValuePair.AppendFormat("{0}={1}", Dialect.Quote(column), parameterName);
+        parameters.Add(DbParam.Of(parameterName, ToParameterValue(dataObject[column])));
       }
-      parameters.Add(new SqlParameter("@id", dataObject[_dataTable.PrimaryKeyColumn]));
+      parameters.Add(DbParam.Of("@id", dataObject[_dataTable.PrimaryKeyColumn]));
 
-      string updateSql = string.Format(UPDATE_SQL, _dataTable.TableName, columnValuePair, _dataTable.PrimaryKeyColumn);
+      string updateSql = string.Format(UPDATE_SQL, Dialect.Quote(_dataTable.TableName), columnValuePair,
+                                       Dialect.Quote(_dataTable.PrimaryKeyColumn));
       return DBUtility.ExecuteNonQuery(updateSql, parameters.ToArray());
     }
 
@@ -136,12 +153,13 @@ namespace InventoryAndSales.Database.DataAccess
       return DeleteById((int)dataObject[_dataTable.PrimaryKeyColumn]);
     }
 
-    private const string DELETE_SQL = "DELETE FROM {0} WHERE [{1}] = @id";
+    private const string DELETE_SQL = "DELETE FROM {0} WHERE {1} = @id";
 
     public virtual bool DeleteById(int id)
     {
-      string preparedSql = string.Format(DELETE_SQL, _dataTable.TableName, _dataTable.PrimaryKeyColumn);
-      int delete = DBUtility.ExecuteNonQuery(preparedSql, new SqlParameter("@id", id));
+      string preparedSql = string.Format(DELETE_SQL, Dialect.Quote(_dataTable.TableName),
+                                         Dialect.Quote(_dataTable.PrimaryKeyColumn));
+      int delete = DBUtility.ExecuteNonQuery(preparedSql, DbParam.Of("@id", id));
       return delete > 0;
     }
 
@@ -160,9 +178,10 @@ namespace InventoryAndSales.Database.DataAccess
     /// <summary>
     /// Boxes a generated identity as the type the model's indexer expects.
     ///
-    /// SCOPE_IDENTITY() comes back as decimal. The int keyed models unbox it with a direct (int)
-    /// cast, which throws on a boxed decimal, while the bigint keyed ones parse whatever they are
-    /// given - so box an int whenever the value fits and fall back to long.
+    /// Providers disagree about what the last-identity query returns - SQL Server hands back a
+    /// decimal, SQLite a long. The int keyed models unbox with a direct (int) cast, which throws on
+    /// anything else, while the bigint keyed ones parse whatever they are given, so box an int
+    /// whenever the value fits and fall back to long.
     /// </summary>
     private static object NormalizeIdentity(object identity)
     {
@@ -172,23 +191,23 @@ namespace InventoryAndSales.Database.DataAccess
       return value;
     }
 
-    protected virtual List<T> ExecuteReader(String commandText, params SqlParameter[] parameters)
+    protected virtual List<T> ExecuteReader(String commandText, params DbParameter[] parameters)
     {
-      SqlConnection connection = DBFactory.GetInstance().GetConnection();
-      SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
+      DbConnection connection = DBFactory.GetInstance().GetConnection();
+      DbTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
       bool ownsConnection = activeTransaction == null;
       if (ownsConnection)
         connection.Open();
       try
       {
         List<T> returnList = new List<T>();
-        using (SqlCommand command = connection.CreateCommand())
+        using (DbCommand command = connection.CreateCommand())
         {
           command.CommandText = commandText;
           command.CommandTimeout = 600;
           command.Transaction = activeTransaction;
-          AddParameters(command, parameters);
-          using (SqlDataReader reader = command.ExecuteReader())
+          DBUtility.AddParameters(command, parameters);
+          using (DbDataReader reader = command.ExecuteReader())
           {
             while (reader.Read())
             {
@@ -197,8 +216,9 @@ namespace InventoryAndSales.Database.DataAccess
               // database but is not mapped is simply ignored.
               foreach (string columnName in _dataTable.Columns)
               {
-                if (!(reader[columnName] is DBNull))
-                  t[columnName] = reader[columnName];
+                object value = reader[columnName];
+                if (!(value is DBNull))
+                  t[columnName] = value;
               }
               returnList.Add(t);
             }
@@ -217,18 +237,6 @@ namespace InventoryAndSales.Database.DataAccess
         // trading day would eventually exhaust it.
         if (ownsConnection)
           connection.Close();
-      }
-    }
-
-    protected static void AddParameters(SqlCommand command, SqlParameter[] parameters)
-    {
-      if (parameters == null || parameters.Length == 0)
-        return;
-      foreach (SqlParameter parameter in parameters)
-      {
-        if (parameter.Value == null)
-          parameter.Value = DBNull.Value;
-        command.Parameters.Add(parameter);
       }
     }
   }

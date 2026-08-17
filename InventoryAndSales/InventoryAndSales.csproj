@@ -78,6 +78,13 @@
     <Compile Include="Business\ViewManager.cs" />
     <Compile Include="Business\ReportManager.cs" />
     <Compile Include="Business\MasterManager.cs" />
+    <Compile Include="Database\Dialect\ISqlDialect.cs" />
+    <Compile Include="Database\Dialect\PostgreSqlDialect.cs" />
+    <Compile Include="Database\Dialect\SqlDialectBase.cs" />
+    <Compile Include="Database\Dialect\SqlDialectFactory.cs" />
+    <Compile Include="Database\Dialect\SqliteDialect.cs" />
+    <Compile Include="Database\Dialect\SqlServerDialect.cs" />
+    <Compile Include="Database\Schema\DatabaseSchema.cs" />
     <Compile Include="Database\DataAccess\CustomDao.cs" />
     <Compile Include="Database\DataAccess\SettingDao.cs" />
     <Compile Include="Database\DBUtility.cs" />

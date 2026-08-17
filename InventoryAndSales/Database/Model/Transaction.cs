@@ -60,40 +60,40 @@ namespace InventoryAndSales.Database.Model
         {
 
           case "Id":
-            Id = long.Parse(value.ToString());
+            Id = ToLong(value);
             break;
           case "Factur":
-            Factur = (string)value;
+            Factur = ToText(value);
             break;
           case "TransactionTime":
-            Time = (DateTime) value;
+            Time = ToDateTime(value);
             break;
           case "TotalPrice":
-            TotalPrice = (decimal)value;
+            TotalPrice = ToDecimal(value);
             break;
           case "TotalDiscount":
-            TotalDiscount = (decimal)value;
+            TotalDiscount = ToDecimal(value);
             break;
           case "Total":
-            Total = (decimal)value;
+            Total = ToDecimal(value);
             break;
           case "Payment":
-            Payment = (decimal)value;
+            Payment = ToDecimal(value);
             break;
           case "Exchange":
-            Exchange = (decimal)value;
+            Exchange = ToDecimal(value);
             break;
           case "Notes":
-            Notes = (string)value;
+            Notes = ToText(value);
             break;
           case "UserId":
-            UserId = (int)value;
+            UserId = ToInt(value);
             break;
           case "CustomerId":
-            CustomerId = long.Parse(value.ToString());
+            CustomerId = ToLong(value);
             break;
           case "Revision":
-            Revision = long.Parse(value.ToString());
+            Revision = ToLong(value);
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

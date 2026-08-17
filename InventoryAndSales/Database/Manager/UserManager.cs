@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataAccess;
@@ -26,12 +26,13 @@ namespace InventoryAndSales.Database.Manager
       if (string.IsNullOrEmpty(username))
         return null;
 
-      // VarChar to match the column type, so no implicit conversion is forced on it.
+      // AnsiText to match the column type, so no implicit conversion is forced on it.
       List<User> users = BaseDao.FindByQuery(
-        "WHERE Username = @username AND Deleted = @deleted",
+        string.Format("WHERE {0} = @username AND {1} = @deleted",
+                      Dialect.Quote("Username"), Dialect.Quote("Deleted")),
         string.Empty,
-        new SqlParameter("@username", SqlDbType.VarChar, 50) { Value = username },
-        new SqlParameter("@deleted", false));
+        DbParam.AnsiText("@username", 50, username),
+        DbParam.Of("@deleted", false));
 
       // More than one row means duplicate usernames, which the application never creates on
       // purpose. Refuse rather than guess which account was meant.
@@ -43,9 +44,9 @@ namespace InventoryAndSales.Database.Manager
     public override List<User> GetAll()
     {
       return BaseDao.FindByQuery(
-        "WHERE Deleted = @deleted",
+        string.Format("WHERE {0} = @deleted", Dialect.Quote("Deleted")),
         string.Empty,
-        new SqlParameter("@deleted", false));
+        DbParam.Of("@deleted", false));
     }
   }
 }

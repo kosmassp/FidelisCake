@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataAccess;
@@ -124,11 +124,15 @@ namespace InventoryAndSales.Database.Manager
     /// </summary>
     private void RecordCancellationAudit(long transactionId, int cancelledByUserId)
     {
-      int affected = DBUtility.TryExecuteNonQuery(
-        "UPDATE T_TRANSACTIONS SET CancelledBy = @cancelledBy, CancelledAt = @cancelledAt WHERE Id = @id",
-        new SqlParameter("@cancelledBy", cancelledByUserId),
-        new SqlParameter("@cancelledAt", DateTime.Now),
-        new SqlParameter("@id", transactionId));
+      string sql = string.Format(
+        "UPDATE {0} SET {1} = @cancelledBy, {2} = @cancelledAt WHERE {3} = @id",
+        Dialect.Quote("T_TRANSACTIONS"), Dialect.Quote("CancelledBy"),
+        Dialect.Quote("CancelledAt"), Dialect.Quote("Id"));
+
+      int affected = DBUtility.TryExecuteNonQuery(sql,
+        DbParam.Of("@cancelledBy", cancelledByUserId),
+        DbParam.Of("@cancelledAt", DateTime.Now),
+        DbParam.Of("@id", transactionId));
 
       if (affected < 0)
         _log.WarnFormat(

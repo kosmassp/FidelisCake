@@ -78,31 +78,31 @@ namespace InventoryAndSales.Database.Model
         switch (columnName)
         {
           case "Id":
-            Id = long.Parse(value.ToString());
+            Id = ToLong(value);
             break;
           case "ProductId":
-            ProductId = (int) value;
+            ProductId = ToInt(value);
             break;
           case "ProductDiscount":
-            ProductDiscount = (decimal) value;
+            ProductDiscount = ToDecimal(value);
             break;
           case "ProductPrice":
-            ProductPrice = (decimal)value;
+            ProductPrice = ToDecimal(value);
             break;
           case "Quantity":
-            Quantity = (int) value;
+            Quantity = ToInt(value);
             break;
           case "SubtotalDiscount":
-            SubtotalDiscount = (decimal)value;
+            SubtotalDiscount = ToDecimal(value);
             break;
           case "SubtotalPrice":
-            SubtotalPrice = (decimal)value;
+            SubtotalPrice = ToDecimal(value);
             break;
           case "Subtotal":
-            Subtotal = (decimal)value;
+            Subtotal = ToDecimal(value);
             break;
           case "TransactionId":
-            TransactionId = long.Parse(value.ToString());
+            TransactionId = ToLong(value);
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

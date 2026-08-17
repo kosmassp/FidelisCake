@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataAccess;
@@ -38,11 +38,14 @@ namespace InventoryAndSales.Database.Manager
     public List<Product> GetAllAvailable(string criteria, string orderBy)
     {
       string pattern = "%" + (criteria ?? string.Empty).Replace(' ', '%') + "%";
+      // CaseInsensitiveLike rather than a bare LIKE: on PostgreSQL that is ILIKE, and without it the
+      // search box would quietly stop matching anything typed in the wrong case.
       return BaseDao.FindByQuery(
-        "WHERE Name LIKE @criteria AND Deleted = @deleted",
+        string.Format("WHERE {0} {1} @criteria AND {2} = @deleted",
+                      Dialect.Quote("Name"), Dialect.CaseInsensitiveLike, Dialect.Quote("Deleted")),
         SanitizeOrderBy(orderBy),
-        new SqlParameter("@criteria", SqlDbType.VarChar, 200) { Value = pattern },
-        new SqlParameter("@deleted", false));
+        DbParam.AnsiText("@criteria", 200, pattern),
+        DbParam.Of("@deleted", false));
     }
 
     private static string SanitizeOrderBy(string orderBy)
@@ -55,7 +58,7 @@ namespace InventoryAndSales.Database.Manager
       foreach (string column in table.Columns)
       {
         if (string.Equals(column, requested, StringComparison.OrdinalIgnoreCase))
-          return "[" + column + "]";
+          return Dialect.Quote(column);
       }
 
       _log.WarnFormat("Ignoring unrecognised sort column '{0}'.", orderBy);

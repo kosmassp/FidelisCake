@@ -1,7 +1,12 @@
 # Directory: `InventoryAndSales/Database/`
 
-Namespace `InventoryAndSales.Database`. Owns the SQL Server connection, the ambient transaction,
-and boot-time schema maintenance.
+Namespace `InventoryAndSales.Database`. Owns the connection, the ambient transaction, and boot-time
+schema maintenance.
+
+**Nothing here names a database product.** Connections, commands and parameters are the
+`System.Data.Common` abstractions, the provider is resolved at runtime from configuration, and what
+differs between products lives in [`Dialect/`](InventoryAndSales.Database.Dialect.md) against a
+schema declared in [`Schema/`](InventoryAndSales.Database.Schema.md).
 
 See also [../business-data-model.md](../business-data-model.md).
 
@@ -10,12 +15,17 @@ See also [../business-data-model.md](../business-data-model.md).
 ## `DBFactory.cs`
 
 `public class DBFactory` — thread-safe lazy singleton. Composition root of the data layer **and**
-the holder of the single ambient `SqlTransaction`.
+the holder of the single ambient transaction.
+
+Also declares **`DbParam`**, the helper managers use to build parameters without naming a provider
+type: `DbParam.Of(name, value)`, and `DbParam.AnsiText(name, size, value)` for a non-Unicode text
+column on an indexed lookup.
 
 ### Construction
 
-Reads `ConfigurationManager.AppSettings["ConnectionString"]`, then instantiates every DAO followed
-by every manager, wiring dependencies by constructor:
+Resolves the dialect from the `DatabaseProvider` setting, resolves its ADO.NET factory, reads
+`ConnectionString`, then instantiates every DAO followed by every manager, wiring dependencies by
+constructor:
 
 ```
 SettingDao → SettingManager
@@ -37,8 +47,10 @@ UserDao     → UserManager
 | `BeginTransaction` | `bool BeginTransaction()` | Opens a new connection and starts a transaction **only if none is active**. Returns `true` if it started one, `false` if one was already running. Callers use the return value to decide whether they own the commit. |
 | `CommitTransaction` | `void CommitTransaction()` | Commits, disposes the transaction and connection, clears both fields. No-op if nothing is active. |
 | `RollbackTransaction` | `void RollbackTransaction()` | Rolls back, same cleanup. No-op if nothing is active. |
-| `GetConnection` | `SqlConnection GetConnection()` | Returns the active connection if a transaction is running, otherwise a **new** `SqlConnection` (caller opens and closes it). |
-| `GetActiveTransaction` | `SqlTransaction GetActiveTransaction()` | The ambient transaction, or `null`. |
+| `GetConnection` | `DbConnection GetConnection()` | Returns the active connection if a transaction is running, otherwise a **new** one (caller opens and closes it). |
+| `GetActiveTransaction` | `DbTransaction GetActiveTransaction()` | The ambient transaction, or `null`. |
+| `Dialect` | `ISqlDialect { get; private set; }` | What this installation's database understands. |
+| `CreateParameter` | `internal DbParameter (…)` | Builds a parameter for the configured provider. Callers use `DbParam`. |
 
 ### The `BeginTransaction` contract
 
@@ -69,8 +81,12 @@ this holds in practice; a background writer would break it.
 
 ## `DBUtility.cs`
 
-`public class DBUtility` — static. Runs at startup from `SplashForm` and provides the two raw SQL
+`public class DBUtility` — static. Runs at startup from `SplashForm` and provides the raw command
 helpers used across the data layer.
+
+It contains **no DDL and no product-specific SQL**. The tables come from `DatabaseSchema` and the
+statements to express them come from the configured `ISqlDialect`, which is what makes one file serve
+all three databases instead of three copies drifting apart.
 
 ### Startup schema maintenance
 
