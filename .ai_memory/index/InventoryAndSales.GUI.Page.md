@@ -14,6 +14,13 @@ Every `*.Designer.cs` / `*.resx` here is Visual Studio generated layout — no l
 
 Layout: a filter text box + product grid on one side, a cart grid + payment fields on the other.
 
+The *Total* group is built from layout panels rather than fixed coordinates: `tableLayoutSummary`
+gives the notes the leftover width and keeps `tableLayoutFields` (Metode / Terminal / Total / Bayar /
+Kembali, one row each) and `panelActions` (held-cart controls, *Bersihkan*, *Bayar (F7)*) against the
+right edge at any window width.
+⚠ `ApplyPaymentMethod` collapses `tableLayoutFields.RowStyles[1]` to hide the terminal row, so
+**reordering the rows in the designer means updating `ReferenceRowIndex` in `CashierPage.cs`.**
+
 State: `_itemDictRowIdToItem` (grid row → product), `_cartDictItemToRow` /`_cartDictRowToItem`
 (cart row ↔ product), `_isUpdatingItemQuantity` re-entrancy guard.
 
@@ -167,11 +174,11 @@ buttons.
 | Member | Signature | Purpose |
 |---|---|---|
 | `RefreshOnDisplay` | `void RefreshOnDisplay()` | Resets both date pickers to today. Called when the shell switches to this tab. Thread-marshalled. |
-| `buttonShowReportSummary_Click` | `private void (object, EventArgs)` | Rebuilds the tab set (cashier, product, transaction), runs the summary reports, and adds the detail tab + report when the checkbox is ticked. |
+| `buttonShowReportSummary_Click` | `private void (object, EventArgs)` | Rebuilds the tab set (cashier, product, transaction, payment), runs the summary reports, and adds the detail tab + report when the checkbox is ticked. |
 | `RunReport` | `private void RunReport(Action action)` | Wait cursor, plus a single place that logs a report failure and shows an Indonesian message instead of letting it escape into the UI. |
-| `UpdateReportDataGridView` | `void UpdateReportDataGridView(DataTable byProduct, DataTable byTransaction, DataTable byCashier)` | Binds the three summary grids. Named parameters replace the earlier `DataTable[]`, whose positional contract depended on the controller assembling the array correctly. Thread-marshalled. |
-| `UpdateReportDetailDataGridView` | `void UpdateReportDetailDataGridView(DataTable dataTable)` | Binds the detail grid. Its `InvokeRequired` branch now marshals to **itself**; it previously handed off to the three-grid overload, which would have bound the wrong grids and thrown had it ever been called from another thread. |
-| `buttonReportPerKasir_Click` / `PerTransaksi` / `PerProduct` / `PerItem` | `private void (object, EventArgs)` | Generate and open the corresponding HTML report, through `RunReport`. |
+| `UpdateReportDataGridView` | `void UpdateReportDataGridView(DataTable byProduct, DataTable byTransaction, DataTable byCashier, DataTable byPayment)` | Binds the four summary grids. Named parameters replace the earlier `DataTable[]`, whose positional contract depended on the controller assembling the array correctly. Thread-marshalled with `Action<…>` rather than a `DelegateUtility` handler. |
+| `UpdateReportDetailDataGridView` | `void UpdateReportDetailDataGridView(DataTable dataTable)` | Binds the detail grid. Its `InvokeRequired` branch now marshals to **itself**; it previously handed off to the multi-grid overload, which would have bound the wrong grids and thrown had it ever been called from another thread. |
+| `buttonReportPerKasir_Click` / `PerTransaksi` / `PerProduct` / `PerItem` / `PerPembayaran` | `private void (object, EventArgs)` | Generate and open the corresponding HTML report, through `RunReport`. |
 
 ---
 

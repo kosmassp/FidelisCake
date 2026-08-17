@@ -95,7 +95,8 @@ Depends on `TransactionDao` and `TransactionDetailManager`.
 | `GetReportSummaryByTransaction` | `List<Dictionary<string,string>> (DateTime, DateTime)` | One row per transaction. |
 | `GetTransaction` | `List<Dictionary<string,string>> (DateTime, DateTime)` | Browsing view with `Id` and `Factur`. |
 | `GetDetailReport` | `List<Dictionary<string,string>> (DateTime, DateTime)` | One row per line. |
-| `GetReportSummaryByCashier` | `List<Dictionary<string,string>> (DateTime, DateTime)` | Sales per cashier per date. |
+| `GetReportSummaryByCashier` | `List<Dictionary<string,string>> (DateTime, DateTime)` | Sales per cashier per date, split by payment method. |
+| `GetReportSummaryByPaymentMethod` | `List<Dictionary<string,string>> (DateTime, DateTime)` | Takings per method, terminal/provider and code type. |
 | `GetTodaySummaryByCashier` | `string (User activeUser, DateTime date)` | Pre-formatted daily total. |
 | `ConvertToList` | `private static List<Dictionary<string,string>> (List<CustomQuery>)` | Unwraps each `CustomQuery` into its underlying dictionary. |
 

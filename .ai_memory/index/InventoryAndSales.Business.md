@@ -196,8 +196,54 @@ Unchanged. Master data façade over `ProductManager` and `UserManager`; everythi
 ## `ReportManager.cs`
 
 Thin façade over `CustomManager`. `GetSummaryReportProduct`, `GetReportSummaryByTransaction`,
-`GetDetailReport`, `GetReportSummaryByCashier` (each `start`/`stop` → `List<Dictionary<string,string>>`),
-and `GetTodaySummaryByCashier(User, DateTime)` → a pre-formatted `"Rp. n"`.
+`GetDetailReport`, `GetReportSummaryByCashier`, `GetReportSummaryByPaymentMethod` (each `start`/`stop`
+→ `List<Dictionary<string,string>>`), and `GetTodaySummaryByCashier(User, DateTime)` → a
+pre-formatted `"Rp. n"`.
+
+---
+
+## `ReportTable.cs`
+
+`public class ReportTable` — a report's rows worked out into something that can be laid out. Built
+with `static ReportTable From(List<Dictionary<string,string>>)`; an empty result gives an empty table,
+never null.
+
+| Member | Purpose |
+|---|---|
+| `Headers` | Column headings, i.e. the SQL aliases from `CustomDao`. |
+| `Rows` | Values formatted for display, in `Headers` order. |
+| `ColumnKinds` | `ReportColumnKind` per column — what it holds. |
+| `Totals` | Formatted column total, empty where a total means nothing. |
+| `HasTotals` / `RowCount` / `ColumnCount` | |
+
+Everything is inferred from the values, because the query layer hands over stringified database
+values with no types attached (`"100000.0000"` for money, `"3"` for a count):
+
+- a column is **Number** only when *every* value in it parses, so invoice numbers stay text;
+- a decimal point anywhere in the column means money → `#,##0.00`; otherwise a count → `#,##0`;
+- a column is **Date** when every value matches how `CustomQuery` writes one (`dd MMM yyyy`, with or
+  without `HH:mm:ss`);
+- a numeric column is totalled **unless** its heading contains `Satuan` or `Rata-rata` — see the
+  naming rule documented on `CustomDao`.
+
+⚠ Adding a per-unit column to a report query without naming it that way puts a meaningless sum in the
+totals row.
+
+---
+
+## `ReportDocument.cs`
+
+`public class ReportDocument` — title, shop name, period, who generated it and when, plus the
+`ReportTable`. Immutable; built by `ReportDisplayController` and consumed by `HtmlReportGenerator`.
+`PeriodText` collapses to a single date when both ends are the same day; dates are formatted
+invariantly so a saved report never depends on the machine's culture.
+
+---
+
+## `ReportColumnKind.cs`
+
+`public enum ReportColumnKind` — `Text`, `Number`, `Date`. Deliberately only the distinctions the
+presentation needs; the renderer maps them to alignment and wrapping.
 
 ---
 

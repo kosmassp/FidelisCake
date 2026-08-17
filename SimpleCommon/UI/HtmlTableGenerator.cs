@@ -1,7 +1,5 @@
-﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Web.UI;
 
 namespace SimpleCommon.UI
@@ -12,31 +10,70 @@ namespace SimpleCommon.UI
   /// </summary>
   public class HtmlTableGenerator
   {
-    public static string GenerateTable(string id, string[] headers, List<string[]> dataRows)
+    /// <param name="columnClasses">
+    /// One CSS class per column, or null for none. It is put on that column's cells in the head, the
+    /// body and the foot; what the class means is the caller's stylesheet's business.
+    /// </param>
+    /// <param name="footerTotals">
+    /// One value per column to draw in a footer row, or null for no footer. An empty entry leaves
+    /// that cell blank, which is how a column that cannot be totalled is shown.
+    /// </param>
+    public static string GenerateTable(string id, string[] headers, List<string[]> dataRows,
+                                       string[] columnClasses, string[] footerTotals)
     {
       StringWriter stringWriter = new StringWriter();
       using (HtmlTextWriter writer = new HtmlTextWriter(stringWriter))
       {
-        GenerateTable(writer, id, headers, dataRows);
+        GenerateTable(writer, id, headers, dataRows, columnClasses, footerTotals);
 
         // Initialised after the markup so the element exists, and guarded so a page opened without
         // the assets still shows a readable table instead of a script error.
         writer.RenderBeginTag(HtmlTextWriterTag.Script);
-        writer.Write(
-          "if (window.jQuery && jQuery.fn.DataTable) {" +
-          "  jQuery(function () {" +
-          "    jQuery('#" + id + "').DataTable({ dom: 'Bfrtip', buttons: ['excelHtml5', 'pdfHtml5'] });" +
-          "  });" +
-          "}");
+        writer.Write(InitScript(id));
         writer.RenderEndTag();
       }
 
       return stringWriter.ToString();
     }
 
-    private static void GenerateTable(HtmlTextWriter writer, string id, string[] headers, List<string[]> dataRows)
+    /// <summary>
+    /// Turns the table interactive: sort, search, page and export. The export buttons are only asked
+    /// for when the Buttons extension is actually loaded, because requesting them without it stops
+    /// DataTables from initialising at all and leaves the operator with no table.
+    /// </summary>
+    private static string InitScript(string id)
     {
-      writer.AddAttribute(HtmlTextWriterAttribute.Style, "width:80%");
+      return
+        "if (window.jQuery && jQuery.fn.DataTable) {" +
+        "  jQuery(function () {" +
+        "    var hasButtons = !!jQuery.fn.dataTable.Buttons;" +
+        "    jQuery('#" + id + "').DataTable({" +
+        // 'l' is the rows-per-page menu: picking 'Semua' is what makes the whole report printable.
+        "      dom: hasButtons ? 'Blfrtip' : 'lfrtip'," +
+        "      buttons: hasButtons ? ['copyHtml5', 'excelHtml5', 'pdfHtml5', 'print'] : []," +
+        // The report arrives already ordered the way its query meant it to be read.
+        "      order: []," +
+        "      pageLength: 25," +
+        "      lengthMenu: [[25, 50, 100, -1], ['25', '50', '100', 'Semua']]," +
+        "      language: {" +
+        "        search: 'Cari:'," +
+        "        lengthMenu: 'Tampilkan _MENU_ baris'," +
+        "        info: 'Baris _START_ sampai _END_ dari _TOTAL_'," +
+        "        infoEmpty: 'Tidak ada data'," +
+        "        infoFiltered: '(disaring dari _MAX_ baris)'," +
+        "        zeroRecords: 'Tidak ada baris yang cocok'," +
+        "        emptyTable: 'Tidak ada data'," +
+        "        paginate: { first: 'Awal', previous: 'Sebelumnya', next: 'Berikutnya', last: 'Akhir' }" +
+        "      }" +
+        "    });" +
+        "  });" +
+        "}";
+    }
+
+    private static void GenerateTable(HtmlTextWriter writer, string id, string[] headers,
+                                      List<string[]> dataRows, string[] columnClasses, string[] footerTotals)
+    {
+      writer.AddAttribute(HtmlTextWriterAttribute.Class, "table-wrap");
       writer.RenderBeginTag(HtmlTextWriterTag.Div);
 
       writer.AddAttribute(HtmlTextWriterAttribute.Id, id);
@@ -46,33 +83,57 @@ namespace SimpleCommon.UI
 
       writer.RenderBeginTag(HtmlTextWriterTag.Thead);
       writer.RenderBeginTag(HtmlTextWriterTag.Tr);
-      foreach (string header in headers)
+      for (int i = 0; i < headers.Length; i++)
       {
-        writer.RenderBeginTag(HtmlTextWriterTag.Th);
-        // Encoded: report data is free text, and a product name containing < or & would otherwise
-        // corrupt the page.
-        writer.WriteEncodedText(header ?? string.Empty);
-        writer.RenderEndTag(); //th
+        WriteCell(writer, HtmlTextWriterTag.Th, headers[i], ClassAt(columnClasses, i));
       }
       writer.RenderEndTag(); //tr
       writer.RenderEndTag(); //thead
 
       writer.RenderBeginTag(HtmlTextWriterTag.Tbody);
-      foreach (var dataRow in dataRows)
+      foreach (string[] dataRow in dataRows)
       {
         writer.RenderBeginTag(HtmlTextWriterTag.Tr);
-        foreach (string datumRow in dataRow)
+        for (int i = 0; i < dataRow.Length; i++)
         {
-          writer.RenderBeginTag(HtmlTextWriterTag.Td);
-          writer.WriteEncodedText(datumRow ?? string.Empty);
-          writer.RenderEndTag(); //td
+          WriteCell(writer, HtmlTextWriterTag.Td, dataRow[i], ClassAt(columnClasses, i));
         }
         writer.RenderEndTag(); //tr
       }
       writer.RenderEndTag(); //tbody
 
+      if (footerTotals != null && footerTotals.Length > 0)
+      {
+        writer.RenderBeginTag(HtmlTextWriterTag.Tfoot);
+        writer.RenderBeginTag(HtmlTextWriterTag.Tr);
+        for (int i = 0; i < footerTotals.Length; i++)
+        {
+          WriteCell(writer, HtmlTextWriterTag.Th, footerTotals[i], ClassAt(columnClasses, i));
+        }
+        writer.RenderEndTag(); //tr
+        writer.RenderEndTag(); //tfoot
+      }
+
       writer.RenderEndTag(); //table
       writer.RenderEndTag(); //div
+    }
+
+    private static string ClassAt(string[] columnClasses, int column)
+    {
+      if (columnClasses == null || column >= columnClasses.Length)
+        return null;
+      return columnClasses[column];
+    }
+
+    private static void WriteCell(HtmlTextWriter writer, HtmlTextWriterTag tag, string text, string cssClass)
+    {
+      if (!string.IsNullOrEmpty(cssClass))
+        writer.AddAttribute(HtmlTextWriterAttribute.Class, cssClass);
+      writer.RenderBeginTag(tag);
+      // Encoded: report data is free text, and a product name containing < or & would otherwise
+      // corrupt the page.
+      writer.WriteEncodedText(text ?? string.Empty);
+      writer.RenderEndTag();
     }
   }
 }

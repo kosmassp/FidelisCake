@@ -37,6 +37,11 @@ namespace InventoryAndSales.Business
       return _customManager.GetReportSummaryByCashier(start, stop);
     }
 
+    public List<Dictionary<string, string>> GetReportSummaryByPaymentMethod(DateTime start, DateTime stop)
+    {
+      return _customManager.GetReportSummaryByPaymentMethod(start, stop);
+    }
+
     public CashierDayTotals GetTodaySummaryByCashier(User activeUser, DateTime date)
     {
       return _customManager.GetTodaySummaryByCashier(activeUser, date);

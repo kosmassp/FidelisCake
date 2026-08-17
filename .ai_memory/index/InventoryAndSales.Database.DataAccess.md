@@ -65,10 +65,11 @@ overloads, `Save`, `DeleteById`, `Delete`, `Update` — with messages saying why
 
 | Member | Signature | Purpose |
 |---|---|---|
-| `GetReportSummaryByProduct` | `List<CustomQuery> (DateTime start, DateTime stop)` | Per product per date: transaction count, quantity sold, gross, discount, net. |
-| `GetReportSummaryByTransaction` | `List<CustomQuery> (DateTime, DateTime)` | One row per transaction: cashier, faktur, date, total, notes, payment, change. |
-| `GetReportSummaryByUserId` | `List<CustomQuery> (DateTime, DateTime)` | Per cashier per date: distinct transaction count, quantity, gross, discount, net. |
-| `GetReportDetailByTime` | `List<CustomQuery> (DateTime, DateTime)` | One row per transaction line, ordered by time. |
+| `GetReportSummaryByProduct` | `List<CustomQuery> (DateTime start, DateTime stop)` | Per product per date: distinct transaction count, quantity sold, gross, discount, average price, net. |
+| `GetReportSummaryByTransaction` | `List<CustomQuery> (DateTime, DateTime)` | One row per transaction: faktur, timestamp, cashier, method, terminal/provider, item count, gross, discount, total, payment, change, notes. |
+| `GetReportSummaryByUserId` | `List<CustomQuery> (DateTime, DateTime)` | Per cashier per date: distinct transaction count, quantity, gross, discount, **cash/EDC/QRIS split**, net. |
+| `GetReportSummaryByPaymentMethod` | `List<CustomQuery> (DateTime, DateTime)` | Per method, terminal/provider and QRIS code type: transaction count, discount, total. The figures a shop reconciles against its bank and QRIS statements. |
+| `GetReportDetailByTime` | `List<CustomQuery> (DateTime, DateTime)` | One row per transaction line, ordered by time. Carries no transaction total — see below. |
 | `GetTransaction` | `List<CustomQuery> (DateTime, DateTime)` | Browsing view: cashier, `Id`, `Factur`, timestamp, total, notes. Backs the transaction picker. |
 | `GetTodaySummaryByCashier` | `string (User activeUser, DateTime date)` | `SUM(Total)` for one user on one date, returned pre-formatted as `"Rp. {n}"`, or `"Rp. 0"` when empty. |
 | `ExecuteReader` | `protected override List<CustomQuery> (string, params SqlParameter[])` | Overridden to project **by reader ordinal** (`reader.GetName(i)`) rather than by a fixed column list, because every report returns a different shape. |
@@ -87,6 +88,17 @@ overloads, `Save`, `DeleteById`, `Delete`, `Update` — with messages saying why
   `M_USERS` row) renders as `COALESCE(u.Name,'ADMIN')`.
 - Column aliases are Indonesian (`Kasir`, `Jumlah Transaksi`, `Total Diskon`) because they become
   the grid and HTML report headers verbatim.
+- A sale with no `PaymentMethod` predates payment methods and counts as cash:
+  `COALESCE(NULLIF(t.PaymentMethod,''),'CASH')`. Cash is matched as *not EDC and not QRIS*, so a
+  method added later never silently disappears from the takings.
+- **A numeric column is totalled in the generated report unless its heading contains `Satuan` or
+  `Rata-rata`.** That is why the detail report says `Harga Satuan` / `Diskon Satuan`, and why it no
+  longer selects `t.Total`: a header total repeats on every one of its lines, so summing the column
+  would multiply it. Per-transaction figures belong in `GetReportSummaryByTransaction`.
+- Splitting takings by method inside a query grouped over *lines* sums `td.Subtotal`, never `t.Total`
+  — a three-line sale appears three times, and the line subtotals of a sale add up to its total.
+- An item count on a transaction-level query is a scalar subquery, so the row stays one per
+  transaction instead of forcing every selected column into a `GROUP BY`.
 
 ---
 

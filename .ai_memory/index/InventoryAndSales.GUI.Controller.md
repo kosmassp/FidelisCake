@@ -100,25 +100,30 @@ through the UI.
 
 ## `ReportDisplayController.cs`
 
-`public class ReportDisplayController` — reports. Depends on `ReportManager`.
+`public class ReportDisplayController` — reports. Depends on `ReportManager`, `ReportService`,
+`SettingsService` (for the shop name) and `LoginManager` (for who generated it).
 
 | Member | Signature | Purpose |
 |---|---|---|
-| `ShowSummaryReport` | `void (DateTime start, DateTime stop)` | Runs the by-cashier, by-transaction and by-product reports, converts each with `DataTableUtil.GetDataTable`, and pushes them into the page as three **named** arguments (previously a positional array). |
+| `ShowSummaryReport` | `void (DateTime start, DateTime stop)` | Runs the by-cashier, by-transaction, by-product and by-payment-method reports, converts each with `DataTableUtil.GetDataTable`, and pushes them into the page as four **named** arguments (previously a positional array). |
 | `ShowDetailReport` | `void (DateTime start, DateTime stop)` | Line-level report into the detail grid. |
-| `ShowSummaryReportPerKasir` | `void (DateTime, DateTime)` | HTML export, file `SBC{yyyyMMdd}_{yyyyMMdd}.html`, title *Cashier Report*. |
-| `ShowSummaryReportPerTransaksi` | `void (DateTime, DateTime)` | HTML export, `SBT…`, *Transaction Report*. |
-| `ShowSummaryReportPerProduct` | `void (DateTime, DateTime)` | HTML export, `SRP…`, *Product Sales Report*. |
-| `ShowSummaryReportPerDetail` | `void (DateTime, DateTime)` | HTML export, `RDP…`, *Detail Report*. |
-| `ShowSummaryReportInHtml` | `void (List<Dictionary<string,string>> dataReport, string filename, string id, string title)` | Headers from the first row's keys, rows from its values; renders with `SimpleCommon.UI.HtmlTableGenerator`, wraps with `Utility.HtmlReportGenerator`, writes into the **configured** report folder and opens it. |
+| `ShowSummaryReportPerKasir` | `void (DateTime, DateTime)` | HTML export, file `SBC{yyyyMMdd}_{yyyyMMdd}.html`, title *Laporan Per Kasir*. |
+| `ShowSummaryReportPerTransaksi` | `void (DateTime, DateTime)` | HTML export, `SBT…`, *Laporan Per Transaksi*. |
+| `ShowSummaryReportPerProduct` | `void (DateTime, DateTime)` | HTML export, `SRP…`, *Laporan Penjualan Barang*. |
+| `ShowSummaryReportPerDetail` | `void (DateTime, DateTime)` | HTML export, `RDP…`, *Laporan Detail Per Item*. |
+| `ShowSummaryReportPerPembayaran` | `void (DateTime, DateTime)` | HTML export, `SBP…`, *Laporan Metode Pembayaran*. |
+| `WriteAndOpen` | `private void (rows, string filePrefix, string tableId, string title, DateTime, DateTime)` | Builds a `ReportDocument` (`ReportTable.From` + shop, period, operator, timestamp), writes it with `Utility.HtmlReportGenerator` into the **configured** report folder, and opens it. |
+| `GetShopName` | `private string ()` | First non-empty line of the receipt header setting, so a report and a receipt never disagree about who printed them. |
+| `GetOperatorName` | `private string ()` | `LoginManager.ActiveUser.Name`, or empty rather than a guess. |
 | `BuildFileName` | `private static string (string prefix, DateTime, DateTime)` | `{prefix}{yyyyMMdd}_{yyyyMMdd}.html`. |
 | `OpenReport` | `private static void (string fullPath)` | Launches the file; if that fails, tells the operator where it was saved. |
 
 The folder comes from `ReportService.PrepareReportDirectory()` and the DataTables assets are
 unpacked next to it by `ReportService.EnsureAssets`. When the asset bundle is missing the report is
-still written and opened — with the asset links omitted entirely — and the operator is told which
-file is missing rather than being left with a silently inert page. An empty report now says so
-instead of doing nothing, and write or open failures are reported with the path.
+still written and opened — with the asset links omitted entirely, which now costs only sorting,
+searching and export because the styling is embedded in the page — and the operator is told which
+file is missing rather than being left with a silently inert page. An empty report says so instead
+of doing nothing, and write or open failures are reported with the path.
 
 ---
 

@@ -19,6 +19,11 @@ namespace InventoryAndSales.Database.DataAccess
   ///
   /// The alias text itself is the report's column heading, so changing one renames a column in the
   /// grids and the exported HTML.
+  ///
+  /// One naming rule follows from that: a numeric column is totalled at the foot of the generated
+  /// report unless its heading says it is a per-unit or averaged figure, which is spelled
+  /// **"… Satuan"** or **"… Rata-rata"**. Adding a column that must not be added up means naming it
+  /// that way - see <see cref="InventoryAndSales.Business.ReportTable"/>.
   /// </summary>
   public class CustomDao : BaseDao<CustomQuery>
   {
@@ -125,24 +130,81 @@ namespace InventoryAndSales.Database.DataAccess
       return string.Format("COALESCE(p.{0}, 'Telah Dihapus')", Dialect.Quote("Name"));
     }
 
+    /// <summary>
+    /// How the sale was paid. A sale recorded before payment methods existed has no method and was,
+    /// by definition, cash.
+    /// </summary>
+    private static string PaymentMethodValue()
+    {
+      return "COALESCE(NULLIF(" + C("t", "PaymentMethod") + ", ''), '" + PaymentMethodCash + "')";
+    }
+
+    /// <summary>EDC terminal or QRIS provider, dashed when the method does not use one.</summary>
+    private static string PaymentReferenceValue()
+    {
+      return "COALESCE(NULLIF(" + C("t", "PaymentReference") + ", ''), '-')";
+    }
+
+    /// <summary>QRIS code type, dashed for the methods that have none.</summary>
+    private static string PaymentVariantValue()
+    {
+      return "COALESCE(NULLIF(" + C("t", "PaymentVariant") + ", ''), '-')";
+    }
+
+    /// <summary>
+    /// Items on one sale, as a scalar subquery so a transaction-level report stays one row per
+    /// transaction instead of needing a GROUP BY over every selected column.
+    /// </summary>
+    private static string ItemCount()
+    {
+      return "COALESCE((SELECT SUM(d." + Dialect.Quote("Quantity") + ")" +
+             " FROM " + Table("T_TRANSACTION_DETAILS") + " d" +
+             " WHERE d." + Dialect.Quote("TransactionId") + " = " + C("t", "Id") + "), 0)";
+    }
+
+    /// <summary>
+    /// Takings for one payment method inside a query grouped over transaction *lines*.
+    ///
+    /// Summed from the line subtotals rather than from the transaction total, because a sale with
+    /// three lines appears three times here and summing the header total would triple it. The line
+    /// subtotals of a sale add up to that same total, so the figure comes out right either way.
+    /// </summary>
+    private static string LineTotalForMethod(string methodCode)
+    {
+      return "SUM(CASE WHEN " + PaymentMethodValue() + " = '" + methodCode + "'" +
+             " THEN " + C("td", "Subtotal") + " ELSE 0 END)";
+    }
+
+    /// <summary>Cash takings: everything that is not explicitly one of the electronic methods.</summary>
+    private static string LineTotalForCash()
+    {
+      return "SUM(CASE WHEN " + PaymentMethodValue() + " NOT IN ('" + PaymentMethodEdc + "','" + PaymentMethodQris + "')" +
+             " THEN " + C("td", "Subtotal") + " ELSE 0 END)";
+    }
+
     #endregion
 
     #region Reports
 
+    /// <summary>
+    /// Every sold line in the range. Deliberately carries no transaction total: the header total
+    /// repeats on each of its lines, and a column that must not be added up has no place in a report
+    /// that totals its columns. Use <see cref="GetReportSummaryByTransaction"/> for that figure.
+    /// </summary>
     public List<CustomQuery> GetReportDetailByTime(DateTime start, DateTime stop)
     {
       string sql =
-        " SELECT " + CashierName() + " AS " + A("Cashier") + "," +
-        C("t", "Factur") + "," +
-        C("t", "TransactionTime") + "," +
-        ProductName() + " AS " + A("ProductName") + "," +
+        " SELECT " + CashierName() + " AS " + A("Kasir") + "," +
+        C("t", "Factur") + " AS " + A("Faktur") + "," +
+        C("t", "TransactionTime") + " AS " + A("Waktu") + "," +
+        PaymentMethodValue() + " AS " + A("Metode") + "," +
+        ProductName() + " AS " + A("Nama Barang") + "," +
         C("td", "Quantity") + " AS " + A("Jumlah") + "," +
-        C("td", "ProductPrice") + " AS " + A("Harga") + "," +
-        C("td", "ProductDiscount") + " AS " + A("Diskon") + "," +
+        C("td", "ProductPrice") + " AS " + A("Harga Satuan") + "," +
+        C("td", "ProductDiscount") + " AS " + A("Diskon Satuan") + "," +
         C("td", "SubtotalPrice") + " AS " + A("Total Sebelum Diskon") + "," +
         C("td", "SubtotalDiscount") + " AS " + A("Total Diskon") + "," +
-        C("td", "Subtotal") + " AS " + A("SubTotal") + "," +
-        C("t", "Total") + " AS " + A("Total") +
+        C("td", "Subtotal") + " AS " + A("SubTotal") +
         FromDetailsJoined(true) +
         ActiveInRange() +
         " ORDER BY " + C("t", "TransactionTime");
@@ -152,20 +214,27 @@ namespace InventoryAndSales.Database.DataAccess
     public List<CustomQuery> GetReportSummaryByProduct(DateTime start, DateTime stop)
     {
       string sql =
-        " SELECT " + ProductName() + " AS " + A("ProductName") + "," +
-        TransactionDate() + " AS " + A("TransactionDate") + "," +
-        "COUNT(" + C("t", "Id") + ") AS " + A("Jumlah Transaksi") + "," +
+        " SELECT " + ProductName() + " AS " + A("Nama Barang") + "," +
+        TransactionDate() + " AS " + A("Tanggal Transaksi") + "," +
+        "COUNT(DISTINCT " + C("t", "Id") + ") AS " + A("Jumlah Transaksi") + "," +
         "SUM(" + C("td", "Quantity") + ") AS " + A("Jumlah Barang Terjual") + "," +
         "SUM(" + C("td", "SubtotalPrice") + ") AS " + A("Total Sebelum Diskon") + "," +
         "SUM(" + C("td", "SubtotalDiscount") + ") AS " + A("Total Diskon") + "," +
+        // NULLIF guards the day a line was recorded with no quantity; the row then reads blank
+        // rather than failing the whole report with a divide by zero.
+        "SUM(" + C("td", "Subtotal") + ") / NULLIF(SUM(" + C("td", "Quantity") + "), 0) AS " + A("Harga Rata-rata") + "," +
         "SUM(" + C("td", "Subtotal") + ") AS " + A("Total") +
         FromDetailsJoined(false) +
         ActiveInRange() +
         " GROUP BY " + ProductName() + ", " + TransactionDate() +
-        " ORDER BY " + TransactionDate();
+        " ORDER BY " + TransactionDate() + ", " + ProductName();
       return ExecuteReader(sql, DateRange(start, stop));
     }
 
+    /// <summary>
+    /// A cashier's day, split by how it was paid. The split is what a shift hand-over needs: only
+    /// the cash column is money that should physically be in the drawer.
+    /// </summary>
     public List<CustomQuery> GetReportSummaryByUserId(DateTime start, DateTime stop)
     {
       string sql =
@@ -175,27 +244,55 @@ namespace InventoryAndSales.Database.DataAccess
         "SUM(" + C("td", "Quantity") + ") AS " + A("Jumlah Barang Terjual") + "," +
         "SUM(" + C("td", "SubtotalPrice") + ") AS " + A("Total Sebelum Diskon") + "," +
         "SUM(" + C("td", "SubtotalDiscount") + ") AS " + A("Total Diskon") + "," +
+        LineTotalForCash() + " AS " + A("Tunai") + "," +
+        LineTotalForMethod(PaymentMethodEdc) + " AS " + A("EDC") + "," +
+        LineTotalForMethod(PaymentMethodQris) + " AS " + A("QRIS") + "," +
         "SUM(" + C("td", "Subtotal") + ") AS " + A("Total") +
         FromDetailsJoined(true) +
         ActiveInRange() +
         " GROUP BY " + CashierName() + ", " + TransactionDate() +
-        " ORDER BY " + TransactionDate();
+        " ORDER BY " + TransactionDate() + ", " + CashierName();
       return ExecuteReader(sql, DateRange(start, stop));
     }
 
     public List<CustomQuery> GetReportSummaryByTransaction(DateTime start, DateTime stop)
     {
       string sql =
-        " SELECT " + CashierName() + " AS " + A("Kasir") + "," +
-        C("t", "Factur") + "," +
-        TransactionDate() + " AS " + A("Tanggal Transaksi") + "," +
+        " SELECT " + C("t", "Factur") + " AS " + A("Faktur") + "," +
+        C("t", "TransactionTime") + " AS " + A("Waktu") + "," +
+        CashierName() + " AS " + A("Kasir") + "," +
+        PaymentMethodValue() + " AS " + A("Metode") + "," +
+        PaymentReferenceValue() + " AS " + A("Referensi") + "," +
+        ItemCount() + " AS " + A("Jumlah Barang") + "," +
+        C("t", "TotalPrice") + " AS " + A("Total Sebelum Diskon") + "," +
+        C("t", "TotalDiscount") + " AS " + A("Total Diskon") + "," +
         C("t", "Total") + " AS " + A("Total") + "," +
-        C("t", "Notes") + " AS " + A("Catatan") + "," +
         C("t", "Payment") + " AS " + A("Pembayaran") + "," +
-        C("t", "Exchange") + " AS " + A("Kembalian") +
+        C("t", "Exchange") + " AS " + A("Kembalian") + "," +
+        C("t", "Notes") + " AS " + A("Catatan") +
         FromTransactionsJoined() +
         ActiveInRange() +
         " ORDER BY " + C("t", "TransactionTime");
+      return ExecuteReader(sql, DateRange(start, stop));
+    }
+
+    /// <summary>
+    /// Takings grouped by method and by the terminal or provider they came through — the figures a
+    /// shop reconciles against its bank and QRIS statements.
+    /// </summary>
+    public List<CustomQuery> GetReportSummaryByPaymentMethod(DateTime start, DateTime stop)
+    {
+      string sql =
+        " SELECT " + PaymentMethodValue() + " AS " + A("Metode") + "," +
+        PaymentReferenceValue() + " AS " + A("Terminal / Provider") + "," +
+        PaymentVariantValue() + " AS " + A("Tipe") + "," +
+        "COUNT(" + C("t", "Id") + ") AS " + A("Jumlah Transaksi") + "," +
+        "SUM(" + C("t", "TotalDiscount") + ") AS " + A("Total Diskon") + "," +
+        "SUM(" + C("t", "Total") + ") AS " + A("Total") +
+        " FROM " + Table("T_TRANSACTIONS") + " t" +
+        ActiveInRange() +
+        " GROUP BY " + PaymentMethodValue() + ", " + PaymentReferenceValue() + ", " + PaymentVariantValue() +
+        " ORDER BY " + PaymentMethodValue() + ", " + PaymentReferenceValue();
       return ExecuteReader(sql, DateRange(start, stop));
     }
 

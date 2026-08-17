@@ -31,6 +31,8 @@ edit them through the WinForms designer, not by hand.
 | Password hashing | `SimpleCommon/Utility/PasswordHasher.cs` |
 | Who sees which menu | `InventoryAndSales/GUI/MainForm.cs` → `EnableMenu`, `Enumeration/AccessOption.cs` |
 | SQL for a report | `InventoryAndSales/Database/DataAccess/CustomDao.cs` |
+| How a report column is formatted, aligned or totalled | `InventoryAndSales/Business/ReportTable.cs` |
+| What a generated report looks like | `InventoryAndSales/Utility/HtmlReportGenerator.cs` |
 | Where reports are written / their assets | `InventoryAndSales/Business/ReportService.cs` |
 | A new configurable setting | `InventoryAndSales/Business/SettingKeys.cs` → `Seed()` |
 | A table's columns as the app sees them | `InventoryAndSales/Database/DataTable/DataTableList.cs` |
@@ -69,6 +71,9 @@ edit them through the WinForms designer, not by hand.
 | `Business/LoginManager.cs` | Authentication policy: credentials, the built-in recovery account, transparent password re-hashing. |
 | `Business/MasterManager.cs` | Product and user master CRUD (soft delete). |
 | `Business/ReportManager.cs` | Facade over report queries. |
+| `Business/ReportTable.cs` | A report's rows worked out for display: column kinds, formatting, totals. |
+| `Business/ReportDocument.cs` | A report with its title, shop, period and provenance attached. |
+| `Business/ReportColumnKind.cs` | `Text` / `Number` / `Date` — what a report column holds. |
 | `Business/ReportService.cs` | Report folder resolution and copying the DataTables assets out of `Report`. |
 | `Business/SettingKeys.cs` | Every `M_SETTINGS` key, its group and its seeded default. |
 | `Business/SettingsService.cs` | Typed reads/writes over `M_SETTINGS`, with fallbacks instead of throws. |

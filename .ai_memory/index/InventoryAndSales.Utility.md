@@ -30,16 +30,27 @@ Namespace `InventoryAndSales.Utility`. `public class HtmlReportGenerator`.
 
 | Member | Signature | Purpose |
 |---|---|---|
-| `Write` | `static void Write(string title, string body, string fullpath, string styleSheetHref, string scriptSrc)` | Wraps a pre-rendered table fragment in a full HTML document and writes it as UTF-8. |
+| `Write` | `static void Write(ReportDocument document, string tableId, string fullpath, string styleSheetHref, string scriptSrc)` | Renders a whole report as an HTML page and writes it as UTF-8. |
 
-Emitted document: `<html><head><meta charset="utf-8"><title>…</title>` + the stylesheet link and
-script tag **when the caller supplies them** + `</head><body>{body}</body></html>`, built with
-`System.Web.UI.HtmlTextWriter`.
+Emitted document: `<!DOCTYPE html>` → `<head>` with charset, viewport, title, the DataTables
+stylesheet link and script tag **when the caller supplies them**, then the report's own `<style>`
+→ `<body>` with a `.page` sheet containing the head block (shop, title, period), a row of summary
+cards for each totalled column (capped at 8), the table from `HtmlTableGenerator`, and a foot line
+with the row count, timestamp and operator. Built with `System.Web.UI.HtmlTextWriter`.
+
+**The stylesheet is embedded, not linked**, so a report that is mailed on or opened without the
+assets still looks like a report. The DataTables link only adds sorting, searching, paging and the
+export buttons on top; the embedded block is emitted *after* it so the report's own look wins.
+It is deliberately plain CSS — no custom properties, no flexbox gaps — because the shop PC's default
+browser is unknown. Print rules hide the DataTables controls and repeat the header row per page.
+
+`ReportColumnKind` decides how a column reads: `Number` → class `num` (right aligned, no wrap),
+`Date` → class `date` (no wrap), `Text` → unstyled.
 
 The asset paths are **parameters rather than hardcoded**, so the report folder can move; they were
 fixed at `../datatables.min.css` / `.js`, which only resolved when the report was written to
-`c:\temp\Report\`. Passing `null` for both emits a self-contained page with no asset links, which is
-what `ReportDisplayController` does when the bundle is missing.
+`c:\temp\Report\`. Passing `null` for both emits a self-contained page, which is what
+`ReportDisplayController` does when the bundle is missing.
 
-The title is HTML-encoded. `body` is still written raw — it is markup produced by
+All text goes through `WriteEncodedText`; the only raw markup is the table fragment from
 `HtmlTableGenerator`, which encodes the data going into it.

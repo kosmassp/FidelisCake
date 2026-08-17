@@ -29,6 +29,7 @@ namespace InventoryAndSales.GUI.Page
         tabControlSummaryReport.TabPages.Add(tabPageReportPerCashier);
         tabControlSummaryReport.TabPages.Add(tabPageReportPerProduct);
         tabControlSummaryReport.TabPages.Add(tabPageReportPerTransaction);
+        tabControlSummaryReport.TabPages.Add(tabPageReportPerPayment);
         controller.ShowSummaryReport(dateTimePickerStart.Value, dateTimePickerStop.Value);
         tabControlSummaryReport.SelectedTab = tabPageReportPerCashier;
         if (checkBox1.Checked)
@@ -68,17 +69,19 @@ namespace InventoryAndSales.GUI.Page
     /// Binds the three summary grids. Named parameters rather than an array, because the array
     /// version relied on the controller building it in exactly the right order.
     /// </summary>
-    public void UpdateReportDataGridView(DataTable byProduct, DataTable byTransaction, DataTable byCashier)
+    public void UpdateReportDataGridView(DataTable byProduct, DataTable byTransaction, DataTable byCashier,
+                                         DataTable byPayment)
     {
       if (InvokeRequired)
       {
-        this.BeginInvoke(new DelegateUtility.ThreeValueHandler<DataTable, DataTable, DataTable>(UpdateReportDataGridView),
-                         byProduct, byTransaction, byCashier);
+        this.BeginInvoke(new Action<DataTable, DataTable, DataTable, DataTable>(UpdateReportDataGridView),
+                         byProduct, byTransaction, byCashier, byPayment);
         return;
       }
       dataGridViewLaporanProduct.DataSource = byProduct;
       dataGridViewLaporanTransaksi.DataSource = byTransaction;
       dataGridViewLaporanKasir.DataSource = byCashier;
+      dataGridViewLaporanPembayaran.DataSource = byPayment;
     }
 
     public void UpdateReportDetailDataGridView(DataTable dataTable)
@@ -111,6 +114,11 @@ namespace InventoryAndSales.GUI.Page
     private void buttonReportPerItem_Click(object sender, EventArgs e)
     {
       RunReport(() => controller.ShowSummaryReportPerDetail(dateTimePickerStart.Value, dateTimePickerStop.Value));
+    }
+
+    private void buttonReportPerPembayaran_Click(object sender, EventArgs e)
+    {
+      RunReport(() => controller.ShowSummaryReportPerPembayaran(dateTimePickerStart.Value, dateTimePickerStop.Value));
     }
 
     public void RefreshOnDisplay()

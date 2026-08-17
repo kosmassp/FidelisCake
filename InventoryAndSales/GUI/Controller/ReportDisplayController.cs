@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
 using InventoryAndSales.Business;
+using InventoryAndSales.Database.Model;
 using InventoryAndSales.GUI.Page;
 using InventoryAndSales.Utility;
-using SimpleCommon.UI;
 
 namespace InventoryAndSales.GUI.Controller
 {
@@ -18,26 +17,35 @@ namespace InventoryAndSales.GUI.Controller
     private readonly ReportDisplayPage control;
     private readonly ReportManager _reportManager;
     private readonly ReportService _reportService;
+    private readonly SettingsService _settings;
+    private readonly LoginManager _loginManager;
 
     public ReportDisplayController(ReportDisplayPage reportDisplayPage)
     {
       control = reportDisplayPage;
-      _reportManager = BusinessFactory.GetInstance().ReportManager;
-      _reportService = BusinessFactory.GetInstance().ReportService;
+      BusinessFactory factory = BusinessFactory.GetInstance();
+      _reportManager = factory.ReportManager;
+      _reportService = factory.ReportService;
+      _settings = factory.Settings;
+      _loginManager = factory.LoginManager;
     }
 
     public void ShowSummaryReport(DateTime start, DateTime stop)
     {
-      List<Dictionary<string, string>> reportSummaryByCashier = _reportManager.GetReportSummaryByCashier(start, stop);
-      DataTable dataTableSummaryCashier = DataTableUtil.GetDataTable(reportSummaryByCashier, "SummaryReportCashier");
+      DataTable dataTableSummaryCashier =
+        DataTableUtil.GetDataTable(_reportManager.GetReportSummaryByCashier(start, stop), "SummaryReportCashier");
 
-      List<Dictionary<string, string>> reportSummaryByTransaction = _reportManager.GetReportSummaryByTransaction(start, stop);
-      DataTable dataTableSummaryTransaction = DataTableUtil.GetDataTable(reportSummaryByTransaction, "SummaryReportTransaction");
+      DataTable dataTableSummaryTransaction =
+        DataTableUtil.GetDataTable(_reportManager.GetReportSummaryByTransaction(start, stop), "SummaryReportTransaction");
 
-      List<Dictionary<string, string>> summaryReport = _reportManager.GetSummaryReportProduct(start, stop);
-      DataTable dataTableSummaryProduct = DataTableUtil.GetDataTable(summaryReport, "SummaryReportProduct");
+      DataTable dataTableSummaryProduct =
+        DataTableUtil.GetDataTable(_reportManager.GetSummaryReportProduct(start, stop), "SummaryReportProduct");
 
-      control.UpdateReportDataGridView(dataTableSummaryProduct, dataTableSummaryTransaction, dataTableSummaryCashier);
+      DataTable dataTableSummaryPayment =
+        DataTableUtil.GetDataTable(_reportManager.GetReportSummaryByPaymentMethod(start, stop), "SummaryReportPayment");
+
+      control.UpdateReportDataGridView(dataTableSummaryProduct, dataTableSummaryTransaction,
+                                       dataTableSummaryCashier, dataTableSummaryPayment);
     }
 
     public void ShowDetailReport(DateTime start, DateTime stop)
@@ -50,26 +58,32 @@ namespace InventoryAndSales.GUI.Controller
 
     public void ShowSummaryReportPerKasir(DateTime start, DateTime stop)
     {
-      List<Dictionary<string, string>> report = _reportManager.GetReportSummaryByCashier(start, stop);
-      ShowSummaryReportInHtml(report, BuildFileName("SBC", start, stop), "TableSummaryByCashier", "Cashier Report");
+      WriteAndOpen(_reportManager.GetReportSummaryByCashier(start, stop),
+                   "SBC", "TableSummaryByCashier", "Laporan Per Kasir", start, stop);
     }
 
     public void ShowSummaryReportPerTransaksi(DateTime start, DateTime stop)
     {
-      List<Dictionary<string, string>> report = _reportManager.GetReportSummaryByTransaction(start, stop);
-      ShowSummaryReportInHtml(report, BuildFileName("SBT", start, stop), "TableSummaryByTransaction", "Transaction Report");
+      WriteAndOpen(_reportManager.GetReportSummaryByTransaction(start, stop),
+                   "SBT", "TableSummaryByTransaction", "Laporan Per Transaksi", start, stop);
     }
 
     public void ShowSummaryReportPerProduct(DateTime start, DateTime stop)
     {
-      List<Dictionary<string, string>> report = _reportManager.GetSummaryReportProduct(start, stop);
-      ShowSummaryReportInHtml(report, BuildFileName("SRP", start, stop), "ReportPerProduct", "Product Sales Report");
+      WriteAndOpen(_reportManager.GetSummaryReportProduct(start, stop),
+                   "SRP", "ReportPerProduct", "Laporan Penjualan Barang", start, stop);
     }
 
     public void ShowSummaryReportPerDetail(DateTime start, DateTime stop)
     {
-      List<Dictionary<string, string>> report = _reportManager.GetDetailReport(start, stop);
-      ShowSummaryReportInHtml(report, BuildFileName("RDP", start, stop), "DetailReport", "Detail Report");
+      WriteAndOpen(_reportManager.GetDetailReport(start, stop),
+                   "RDP", "DetailReport", "Laporan Detail Per Item", start, stop);
+    }
+
+    public void ShowSummaryReportPerPembayaran(DateTime start, DateTime stop)
+    {
+      WriteAndOpen(_reportManager.GetReportSummaryByPaymentMethod(start, stop),
+                   "SBP", "TableSummaryByPayment", "Laporan Metode Pembayaran", start, stop);
     }
 
     private static string BuildFileName(string prefix, DateTime start, DateTime stop)
@@ -81,7 +95,8 @@ namespace InventoryAndSales.GUI.Controller
     /// Writes the report into the configured folder, unpacks the DataTables assets beside it if they
     /// are not already there, then opens it.
     /// </summary>
-    public void ShowSummaryReportInHtml(List<Dictionary<string, string>> dataReport, string filename, string id, string title)
+    private void WriteAndOpen(List<Dictionary<string, string>> dataReport, string filePrefix, string tableId,
+                              string title, DateTime start, DateTime stop)
     {
       if (dataReport == null || dataReport.Count == 0)
       {
@@ -106,15 +121,15 @@ namespace InventoryAndSales.GUI.Controller
 
       bool hasAssets = _reportService.EnsureAssets(directory);
 
-      string[] headers = dataReport[0].Keys.ToArray();
-      List<string[]> dataRows = dataReport.Select(row => row.Values.ToArray()).ToList();
-      string table = HtmlTableGenerator.GenerateTable(id, headers, dataRows);
+      ReportDocument document = new ReportDocument(title, GetShopName(), start, stop,
+                                                   GetOperatorName(), DateTime.Now,
+                                                   ReportTable.From(dataReport));
 
-      string fullPath = Path.Combine(directory, filename);
+      string fullPath = Path.Combine(directory, BuildFileName(filePrefix, start, stop));
       try
       {
         HtmlReportGenerator.Write(
-          title, table, fullPath,
+          document, tableId, fullPath,
           hasAssets ? ReportService.StyleSheetHref : null,
           hasAssets ? ReportService.ScriptSrc : null);
       }
@@ -137,6 +152,32 @@ namespace InventoryAndSales.GUI.Controller
       }
 
       OpenReport(fullPath);
+    }
+
+    /// <summary>
+    /// The shop the report belongs to, taken from the first line of the receipt header so a report
+    /// and a receipt never disagree about who printed them.
+    /// </summary>
+    private string GetShopName()
+    {
+      string header = _settings.GetMultiLine(SettingKeys.Header, string.Empty);
+      if (string.IsNullOrEmpty(header))
+        return string.Empty;
+
+      foreach (string line in header.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+      {
+        string trimmed = line.Trim();
+        if (trimmed.Length > 0)
+          return trimmed;
+      }
+      return string.Empty;
+    }
+
+    /// <summary>Who asked for the report. Empty rather than a guess if nobody is signed in.</summary>
+    private string GetOperatorName()
+    {
+      User activeUser = _loginManager.ActiveUser;
+      return activeUser == null ? string.Empty : activeUser.Name;
     }
 
     private static void OpenReport(string fullPath)
