@@ -27,6 +27,7 @@ edit them through the WinForms designer, not by hand.
 | Checkout validation & error messages | `InventoryAndSales/GUI/Controller/CashierController.cs` |
 | Payment methods (cash / EDC) | `InventoryAndSales/Business/PaymentDetail.cs` |
 | EDC terminal / QRIS provider lists | *Pengaturan → Pembayaran*, stored in `M_SETTINGS` |
+| The shop's name (window title, report heading) | *Pengaturan → Toko*, resolved by `InventoryAndSales/Business/ShopService.cs` |
 | Login / password check / recovery account | `InventoryAndSales/Business/LoginManager.cs` |
 | Password hashing | `SimpleCommon/Utility/PasswordHasher.cs` |
 | Who sees which menu | `InventoryAndSales/GUI/MainForm.cs` → `EnableMenu`, `Enumeration/AccessOption.cs` |
@@ -76,6 +77,7 @@ edit them through the WinForms designer, not by hand.
 | `Business/ReportColumnKind.cs` | `Text` / `Number` / `Date` — what a report column holds. |
 | `Business/ReportService.cs` | Report folder resolution and copying the DataTables assets out of `Report`. |
 | `Business/SettingKeys.cs` | Every `M_SETTINGS` key, its group and its seeded default. |
+| `Business/ShopService.cs` | What this shop is called: the setting, its receipt-header fallback, and validation. |
 | `Business/SettingsService.cs` | Typed reads/writes over `M_SETTINGS`, with fallbacks instead of throws. |
 | `Business/ViewManager.cs` | Transaction browsing (used by the history picker). |
 
@@ -194,6 +196,7 @@ edit them through the WinForms designer, not by hand.
 | `GUI/Controller/SettingPage/PrinterSettingController.cs` | Choose the printer, set paper width, run a test print. |
 | `GUI/Controller/SettingPage/ReportSettingController.cs` | Validate, save and provision the report folder. |
 | `GUI/Controller/SettingPage/SecuritySettingController.cs` | Toggle the built-in recovery account; refuse if it would lock everyone out. |
+| `GUI/Controller/SettingPage/ShopSettingController.cs` | Read, validate and save the shop's name. |
 
 ### GUI/Model — [index/InventoryAndSales.GUI.Model.md](index/InventoryAndSales.GUI.Model.md)
 
@@ -233,6 +236,7 @@ edit them through the WinForms designer, not by hand.
 | `GUI/Popup/SettingPage/PrinterSetting.cs` | `PrinterSettingForm` — printer, paper width, test print. **Admin only.** |
 | `GUI/Popup/SettingPage/ReportSetting.cs` | `ReportSettingForm` — choose the report folder, check asset status. |
 | `GUI/Popup/SettingPage/SecuritySetting.cs` | `SecuritySettingForm` — allow or forbid the built-in recovery account. |
+| `GUI/Popup/SettingPage/ShopSetting.cs` | `ShopSettingForm` — name the shop, shown as *Toko*. |
 
 ### GUI/Util — [index/InventoryAndSales.GUI.Util.md](index/InventoryAndSales.GUI.Util.md)
 

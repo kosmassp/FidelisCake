@@ -5,6 +5,14 @@ the settings dialog. Mirrors the view folder `GUI/Popup/SettingPage/`.
 
 ---
 
+## `ShopSettingController.cs`
+
+`class ShopSettingController` (internal) — backs `ShopSettingForm`. A thin pass-through to
+`ShopService`: `GetName`, `IsNameInherited`, `ValidateName`, `Save`. The resolution and validation
+rules live in the service, not here, because the reports read the same name.
+
+---
+
 ## `HeaderAndFooterController.cs`
 
 `class HeaderAndFooterController` (internal) — backs `HeaderAndFooterForm`, the receipt

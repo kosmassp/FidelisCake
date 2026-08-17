@@ -76,6 +76,7 @@ namespace InventoryAndSales.GUI.Popup
     {
       List<SettingPageEntry> pages = new List<SettingPageEntry>
       {
+        new SettingPageEntry("Toko", AccessOption.Master, () => new ShopSettingForm()),
         new SettingPageEntry("Nota", AccessOption.Master, () => new HeaderAndFooterForm()),
         new SettingPageEntry("Laporan", AccessOption.Master, () => new ReportSettingForm()),
         // Operational rather than security-sensitive: a supervisor manages the terminal list.

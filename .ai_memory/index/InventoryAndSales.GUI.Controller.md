@@ -113,7 +113,7 @@ through the UI.
 | `ShowSummaryReportPerDetail` | `void (DateTime, DateTime)` | HTML export, `RDP…`, *Laporan Detail Per Item*. |
 | `ShowSummaryReportPerPembayaran` | `void (DateTime, DateTime)` | HTML export, `SBP…`, *Laporan Metode Pembayaran*. |
 | `WriteAndOpen` | `private void (rows, string filePrefix, string tableId, string title, DateTime, DateTime)` | Builds a `ReportDocument` (`ReportTable.From` + shop, period, operator, timestamp), writes it with `Utility.HtmlReportGenerator` into the **configured** report folder, and opens it. |
-| `GetShopName` | `private string ()` | First non-empty line of the receipt header setting, so a report and a receipt never disagree about who printed them. |
+| *(shop name)* | | Comes from `ShopService.GetName()`, the same rule the window title uses. |
 | `GetOperatorName` | `private string ()` | `LoginManager.ActiveUser.Name`, or empty rather than a guess. |
 | `BuildFileName` | `private static string (string prefix, DateTime, DateTime)` | `{prefix}{yyyyMMdd}_{yyyyMMdd}.html`. |
 | `OpenReport` | `private static void (string fullPath)` | Launches the file; if that fails, tells the operator where it was saved. |

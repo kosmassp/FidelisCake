@@ -20,6 +20,7 @@ layer.
 | `GetInstance` | `static BusinessFactory GetInstance()` | Double-checked-locked singleton accessor. |
 | `Settings` | `SettingsService { get; private set; }` | Typed access to `M_SETTINGS`. |
 | `ReportService` | `ReportService { get; private set; }` | Report folder and asset provisioning. |
+| `Shop` | `ShopService { get; private set; }` | What this shop is called. |
 | `CashierManager` | `CashierManager { get; private set; }` | Checkout, revision, cancel, receipts. |
 | `LoginManager` | `LoginManager { get; private set; }` | Authentication and active user. |
 | `MasterManager` | `MasterManager { get; private set; }` | Product and user master data. |
@@ -156,8 +157,37 @@ expected to hold and `DefaultReportDirectory()`. **Adding a key here is all that
 installation to pick it up on its next launch**, because `DBUtility.UpsertSettingRow` inserts
 whichever rows are missing.
 
-Keys: `HEADER`, `FOOTER` (group `GENERAL`), `REPORT_DIRECTORY` (`REPORT`), `ALLOW_BUILTIN_ADMIN`
-(`SECURITY`).
+Keys: `SHOP_NAME`, `HEADER`, `FOOTER`, `EDC_TERMINALS`, `QRIS_PROVIDERS` (group `GENERAL`),
+`REPORT_DIRECTORY` (`REPORT`), `ALLOW_BUILTIN_ADMIN` (`SECURITY`), `PRINTER_NAME`,
+`PRINTER_PAPER_WIDTH_MM` (`PRINTER`).
+
+⚠ `SetString` does nothing but log when the row does not exist, so a page that saves a **new** key
+should read the value back rather than report success blindly — `ShopSettingForm` does.
+
+---
+
+## `ShopService.cs`
+
+`public class ShopService` — what this shop is called. The name titles the main window and heads
+every generated report, so it cannot stay compiled in: the same build runs in more than one shop.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `GetName` | `string ()` | The resolution rule below. |
+| `IsNameInherited` | `bool ()` | True when the name is only being echoed from the receipt header. |
+| `SetName` | `void (string)` | Stores it trimmed. |
+| `ValidateName` | `string (string)` | Empty when savable, otherwise an Indonesian message. Max 60 characters. |
+
+Resolution order, and the reason it is a rule rather than a plain setting read:
+
+1. `SHOP_NAME`, when somebody has set one;
+2. otherwise **the first non-empty line of the receipt header** — installations have been writing
+   their name there for years and there is no migration history to copy it across, so `SHOP_NAME` is
+   seeded **empty** and an upgrade never renames a shop behind its back;
+3. otherwise `SettingKeys.DefaultShopName`.
+
+⚠ Read the name through this class, never off the header directly: a shop that sees its name on two
+screens has to see the same answer on both.
 
 ---
 

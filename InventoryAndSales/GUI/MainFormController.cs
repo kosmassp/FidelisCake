@@ -29,6 +29,7 @@ namespace InventoryAndSales.GUI
     private readonly LoginManager _loginManager;
     private readonly ReportManager _reportManager;
     private readonly HeldCartService _heldCarts;
+    private readonly ShopService _shop;
 
     public MainFormController(MainForm mainForm)
     {
@@ -37,8 +38,18 @@ namespace InventoryAndSales.GUI
       _cashierManager = BusinessFactory.GetInstance().CashierManager;
       _reportManager = BusinessFactory.GetInstance().ReportManager;
       _heldCarts = BusinessFactory.GetInstance().HeldCarts;
+      _shop = BusinessFactory.GetInstance().Shop;
 
       _loginManager.OnActiveUserChanged += OnActiveUserChanged;
+    }
+
+    /// <summary>
+    /// What this shop is called. Read on demand rather than cached, so the title picks up a rename
+    /// as soon as the settings dialog is closed.
+    /// </summary>
+    public string GetShopName()
+    {
+      return _shop.GetName();
     }
 
     public void OnActiveUserChanged(object sender, User activeUser)

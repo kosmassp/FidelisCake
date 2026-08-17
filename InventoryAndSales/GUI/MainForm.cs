@@ -25,11 +25,25 @@ namespace InventoryAndSales.GUI
       CultureInfo.DefaultThreadCurrentUICulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
       InitializeComponent();
-      Version version = Assembly.GetEntryAssembly().GetName().Version;
-      Text = Text + $" [version: {version}]";
       ControlUtility.HideTabHeader(tabControlPage);
       controller = new MainFormController(this);
+      RefreshWindowTitle();
       KeyPreview = true;
+    }
+
+    /// <summary>
+    /// Titles the window with the shop's own name. Called again when the settings dialog closes, so
+    /// a rename shows without restarting the till.
+    /// </summary>
+    public void RefreshWindowTitle()
+    {
+      if (InvokeRequired)
+      {
+        this.BeginInvoke(new DelegateUtility.VoidHandler(RefreshWindowTitle));
+        return;
+      }
+      Version version = Assembly.GetEntryAssembly().GetName().Version;
+      Text = $"{controller.GetShopName()} [version: {version}]";
     }
 
     public void EnableMenu(int role)
@@ -218,6 +232,8 @@ namespace InventoryAndSales.GUI
     private void pengaturanToolStripMenuItem_Click(object sender, EventArgs e)
     {
       SettingForm settingForm = new SettingForm();
+      // The dialog is modeless, so the title is refreshed when it closes rather than after Show.
+      settingForm.FormClosed += (s, args) => RefreshWindowTitle();
       settingForm.Show();
     }
 

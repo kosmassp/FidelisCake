@@ -82,7 +82,7 @@ side, a host panel on the other. Opened non-modally from the *Pengaturan* menu.
 | Member | Signature | Purpose |
 |---|---|---|
 | *(ctor)* | `SettingForm()` | `InitializeComponent`, creates `SettingPageController`, sets the list box `DisplayMember = "Tag"`, then `Initialize()`. |
-| `Initialize` | `private void Initialize()` | Registers the pages — *Nota*, *Laporan*, *Keamanan*. **This is the extension point: one line per page.** |
+| `Initialize` | `private void Initialize()` | Registers the pages — *Toko*, *Nota*, *Laporan*, *Pembayaran*, *Printer*, *Keamanan*. **This is the extension point: one line per page.** |
 | `SettingPageEntry` | nested `class` | A `Tag` plus a factory, and the control once built. |
 | `listBoxSettingSelection_SelectedIndexChanged` | `private void (object, EventArgs)` | Builds the page on first selection, then **replaces** the hosted control and docks it fill. |
 

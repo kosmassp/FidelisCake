@@ -17,7 +17,7 @@ namespace InventoryAndSales.GUI.Controller
     private readonly ReportDisplayPage control;
     private readonly ReportManager _reportManager;
     private readonly ReportService _reportService;
-    private readonly SettingsService _settings;
+    private readonly ShopService _shop;
     private readonly LoginManager _loginManager;
 
     public ReportDisplayController(ReportDisplayPage reportDisplayPage)
@@ -26,7 +26,7 @@ namespace InventoryAndSales.GUI.Controller
       BusinessFactory factory = BusinessFactory.GetInstance();
       _reportManager = factory.ReportManager;
       _reportService = factory.ReportService;
-      _settings = factory.Settings;
+      _shop = factory.Shop;
       _loginManager = factory.LoginManager;
     }
 
@@ -121,7 +121,7 @@ namespace InventoryAndSales.GUI.Controller
 
       bool hasAssets = _reportService.EnsureAssets(directory);
 
-      ReportDocument document = new ReportDocument(title, GetShopName(), start, stop,
+      ReportDocument document = new ReportDocument(title, _shop.GetName(), start, stop,
                                                    GetOperatorName(), DateTime.Now,
                                                    ReportTable.From(dataReport));
 
@@ -152,25 +152,6 @@ namespace InventoryAndSales.GUI.Controller
       }
 
       OpenReport(fullPath);
-    }
-
-    /// <summary>
-    /// The shop the report belongs to, taken from the first line of the receipt header so a report
-    /// and a receipt never disagree about who printed them.
-    /// </summary>
-    private string GetShopName()
-    {
-      string header = _settings.GetMultiLine(SettingKeys.Header, string.Empty);
-      if (string.IsNullOrEmpty(header))
-        return string.Empty;
-
-      foreach (string line in header.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
-      {
-        string trimmed = line.Trim();
-        if (trimmed.Length > 0)
-          return trimmed;
-      }
-      return string.Empty;
     }
 
     /// <summary>Who asked for the report. Empty rather than a guess if nobody is signed in.</summary>

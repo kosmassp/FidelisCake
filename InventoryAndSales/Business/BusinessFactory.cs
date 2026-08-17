@@ -31,6 +31,9 @@ namespace InventoryAndSales.Business
     public ReportService ReportService { get; private set; }
     public PaymentOptionService PaymentOptions { get; private set; }
 
+    /// <summary>What this shop is called, wherever the name has to be shown.</summary>
+    public ShopService Shop { get; private set; }
+
     /// <summary>Baskets set aside mid-sale. In memory, and only for the current session.</summary>
     public HeldCartService HeldCarts { get; private set; }
     public CashierManager CashierManager { get; private set; }
@@ -46,6 +49,7 @@ namespace InventoryAndSales.Business
       Settings = new SettingsService(dbFactory.SettingManager);
       ReportService = new ReportService(Settings);
       PaymentOptions = new PaymentOptionService(Settings);
+      Shop = new ShopService(Settings);
       HeldCarts = new HeldCartService();
       CashierManager = new CashierManager(dbFactory.TransactionManager, dbFactory.UserManager, Settings);
       LoginManager = new LoginManager(dbFactory.UserManager, Settings);

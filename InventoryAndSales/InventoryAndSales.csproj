@@ -125,6 +125,7 @@
     <Compile Include="GUI\Controller\SettingPage\HeaderAndFooterController.cs" />
     <Compile Include="Business\PaymentDetail.cs" />
     <Compile Include="Business\PaymentOptionService.cs" />
+    <Compile Include="Business\ShopService.cs" />
     <Compile Include="Business\HeldCartService.cs" />
     <Compile Include="GUI\Controller\SettingPage\PaymentOptionSettingController.cs" />
     <Compile Include="GUI\Popup\SettingPage\PaymentOptionSetting.cs">
@@ -153,6 +154,13 @@
     </Compile>
     <Compile Include="GUI\Popup\SettingPage\SecuritySetting.Designer.cs">
       <DependentUpon>SecuritySetting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Controller\SettingPage\ShopSettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\ShopSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\ShopSetting.Designer.cs">
+      <DependentUpon>ShopSetting.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\Controller\TransactionUpdateController.cs" />
     <Compile Include="GUI\Controller\LoginController.cs" />

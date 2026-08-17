@@ -19,6 +19,18 @@ namespace InventoryAndSales.Business
     public const string GroupSecurity = "SECURITY";
     public const string GroupPrinter = "PRINTER";
 
+    /// <summary>
+    /// What this shop is called. Shown on the main window and at the top of every generated report.
+    ///
+    /// Seeded **empty** on purpose: installations have been naming themselves in the first line of
+    /// the receipt header for years and there is no migration history to copy that across, so an
+    /// unset name falls back to that line. See <see cref="ShopService"/>.
+    /// </summary>
+    public const string ShopName = "SHOP_NAME";
+
+    /// <summary>The name to show when neither the setting nor the receipt header says.</summary>
+    public const string DefaultShopName = "Fidelis Cake and Bakery";
+
     /// <summary>Receipt header lines. Multi-line - stored with %NEW_LINE% separators.</summary>
     public const string Header = "HEADER";
 
@@ -92,6 +104,10 @@ namespace InventoryAndSales.Business
     {
       return new List<SettingSeed>
       {
+        // Empty rather than the default name: an installation that renamed itself in the receipt
+        // header must not be renamed back by an upgrade.
+        new SettingSeed(ShopName, GroupGeneral, string.Empty),
+
         new SettingSeed(Header, GroupGeneral,
           "FIDELIS CAKE AND BAKERY" + NewLineToken +
           "JL MAYJEND SUTOYO NO 1" + NewLineToken +

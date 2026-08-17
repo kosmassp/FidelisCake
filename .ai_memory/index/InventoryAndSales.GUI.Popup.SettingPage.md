@@ -5,6 +5,22 @@ Each is a `UserControl` paired with a controller in `GUI/Controller/SettingPage/
 
 ---
 
+## `ShopSetting.cs`
+
+`public partial class ShopSettingForm : UserControl` — names the shop. Listed as **Toko**, requires
+`AccessOption.Master`.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `ShopSettingForm_Load` | `private void (object, EventArgs)` | `DesignMode` guard, creates the controller, fills the box behind a `_loading` guard, writes the explanatory text. |
+| `RefreshInheritedNote` | `private void ()` | Says so when the box was filled from the receipt header rather than from a saved name — otherwise a name nobody typed here looks like a bug. |
+| `buttonSave_Click` | `private void (object, EventArgs)` | Validates, saves, then **reads the value back**: `SettingsService.SetString` only logs when the row is missing, and reporting success without checking would be a lie. |
+
+The name reaches the window title through `MainForm.RefreshWindowTitle`, which runs when this dialog
+closes — the dialog is modeless, so the refresh hangs off `FormClosed`.
+
+---
+
 ## `HeaderAndFooter.cs`
 
 `public partial class HeaderAndFooterForm : UserControl` — edit the receipt header and footer with a
