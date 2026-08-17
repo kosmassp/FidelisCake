@@ -193,50 +193,38 @@ namespace InventoryAndSales.Database.DataAccess
 
     protected virtual List<T> ExecuteReader(String commandText, params DbParameter[] parameters)
     {
-      DbConnection connection = DBFactory.GetInstance().GetConnection();
-      DbTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      bool ownsConnection = activeTransaction == null;
-      if (ownsConnection)
-        connection.Open();
-      try
+      using (DbScope scope = DBFactory.GetInstance().AcquireScope())
       {
-        List<T> returnList = new List<T>();
-        using (DbCommand command = connection.CreateCommand())
+        try
         {
-          command.CommandText = commandText;
-          command.CommandTimeout = 600;
-          command.Transaction = activeTransaction;
-          DBUtility.AddParameters(command, parameters);
-          using (DbDataReader reader = command.ExecuteReader())
+          List<T> returnList = new List<T>();
+          using (DbCommand command = scope.CreateCommand(commandText))
           {
-            while (reader.Read())
+            DBUtility.AddParameters(command, parameters);
+            using (DbDataReader reader = command.ExecuteReader())
             {
-              T t = new T();
-              // Driven by the column map rather than the result set, so a column that exists in the
-              // database but is not mapped is simply ignored.
-              foreach (string columnName in _dataTable.Columns)
+              while (reader.Read())
               {
-                object value = reader[columnName];
-                if (!(value is DBNull))
-                  t[columnName] = value;
+                T t = new T();
+                // Driven by the column map rather than the result set, so a column that exists in the
+                // database but is not mapped is simply ignored.
+                foreach (string columnName in _dataTable.Columns)
+                {
+                  object value = reader[columnName];
+                  if (!(value is DBNull))
+                    t[columnName] = value;
+                }
+                returnList.Add(t);
               }
-              returnList.Add(t);
             }
           }
+          return returnList;
         }
-        return returnList;
-      }
-      catch (Exception ex)
-      {
-        _log.Error(string.Format("Trying to execute: {0}", commandText), ex);
-        throw;
-      }
-      finally
-      {
-        // Without this the connection opened above was never returned to the pool, and a long
-        // trading day would eventually exhaust it.
-        if (ownsConnection)
-          connection.Close();
+        catch (Exception ex)
+        {
+          _log.Error(string.Format("Trying to execute: {0}", commandText), ex);
+          throw;
+        }
       }
     }
   }

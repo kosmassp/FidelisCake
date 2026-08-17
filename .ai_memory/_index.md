@@ -92,6 +92,7 @@ edit them through the WinForms designer, not by hand.
 | File | Purpose |
 |---|---|
 | `Database/DBFactory.cs` | Singleton. Resolves the provider, owns DAOs, managers, and the single ambient transaction. Also `DbParam`, the parameter helper. |
+| `Database/DbScope.cs` | The connection + transaction a command runs on, taken as one snapshot. Always used with `using`. |
 | `Database/DBUtility.cs` | Boot-time schema reconciliation, driven by the dialect; `ExecuteNonQuery` / `ExecuteScalar` and their best-effort `Try*` variants. |
 
 ### Database/Schema — [index/InventoryAndSales.Database.Schema.md](index/InventoryAndSales.Database.Schema.md)

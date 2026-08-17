@@ -380,45 +380,35 @@ namespace InventoryAndSales.Database.DataAccess
     /// </summary>
     protected override List<CustomQuery> ExecuteReader(String commandText, params DbParameter[] parameters)
     {
-      DbConnection connection = DBFactory.GetInstance().GetConnection();
-      DbTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      bool ownsConnection = activeTransaction == null;
-      if (ownsConnection)
-        connection.Open();
-      try
+      using (DbScope scope = DBFactory.GetInstance().AcquireScope())
       {
-        List<CustomQuery> returnList = new List<CustomQuery>();
-        using (DbCommand command = connection.CreateCommand())
+        try
         {
-          command.CommandText = commandText;
-          command.CommandTimeout = 600;
-          command.Transaction = activeTransaction;
-          DBUtility.AddParameters(command, parameters);
-          using (DbDataReader reader = command.ExecuteReader())
+          List<CustomQuery> returnList = new List<CustomQuery>();
+          using (DbCommand command = scope.CreateCommand(commandText))
           {
-            while (reader.Read())
+            DBUtility.AddParameters(command, parameters);
+            using (DbDataReader reader = command.ExecuteReader())
             {
-              CustomQuery t = new CustomQuery();
-              for (int i = 0; i < reader.FieldCount; i++)
+              while (reader.Read())
               {
-                if (!(reader.GetValue(i) is DBNull))
-                  t[reader.GetName(i)] = reader.GetValue(i);
+                CustomQuery t = new CustomQuery();
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                  if (!(reader.GetValue(i) is DBNull))
+                    t[reader.GetName(i)] = reader.GetValue(i);
+                }
+                returnList.Add(t);
               }
-              returnList.Add(t);
             }
           }
+          return returnList;
         }
-        return returnList;
-      }
-      catch (Exception ex)
-      {
-        _log.Error(string.Format("Trying to execute: {0}", commandText), ex);
-        throw;
-      }
-      finally
-      {
-        if (ownsConnection)
-          connection.Close();
+        catch (Exception ex)
+        {
+          _log.Error(string.Format("Trying to execute: {0}", commandText), ex);
+          throw;
+        }
       }
     }
   }

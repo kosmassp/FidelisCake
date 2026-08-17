@@ -96,6 +96,7 @@ try
 catch (Exception e)
 {
     if (newTransaction) DBFactory.GetInstance().RollbackTransaction();
+    else DBFactory.GetInstance().MarkTransactionFailed();
     throw;
 }
 ```
@@ -103,6 +104,11 @@ catch (Exception e)
 The header must be inserted first because its identity becomes each line's `TransactionId`. The
 whole thing commits or rolls back as one unit — **a sale never lands as a header with missing
 lines.**
+
+`Checkout` catches everything this throws and returns `TransactionStatus.FAILED`, which is why the
+rollback has to be complete: a failure that left the ambient transaction behind used to break **every
+later sale in the session**, so the cashier's retry — and every retry after it — failed the same way
+until the application was restarted.
 
 **A failed line can no longer vanish.** `DBUtility.ExecuteNonQuery` used to swallow SQL exceptions
 and return `-1`, so `SaveCompleteTransaction` carried on to the next line and committed — a detail

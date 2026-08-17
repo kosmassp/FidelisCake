@@ -49,6 +49,8 @@ namespace InventoryAndSales.Database.Manager
         _log.Error(e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
+        else
+          DBFactory.GetInstance().MarkTransactionFailed();
         throw;
       }
     }

@@ -87,6 +87,8 @@ namespace InventoryAndSales.GUI.Controller
         _log.Error("Product import failed; rolling back.", e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
+        else
+          DBFactory.GetInstance().MarkTransactionFailed();
         throw;
       }
       return result;

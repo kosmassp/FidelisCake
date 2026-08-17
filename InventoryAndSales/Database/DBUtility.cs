@@ -273,31 +273,21 @@ namespace InventoryAndSales.Database
 
     private static T Execute<T>(string commandText, DbParameter[] parameters, Func<DbCommand, T> run)
     {
-      DbConnection connection = DBFactory.GetInstance().GetConnection();
-      DbTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-      bool ownsConnection = activeTransaction == null;
-      if (ownsConnection)
-        connection.Open();
-      try
+      using (DbScope scope = DBFactory.GetInstance().AcquireScope())
       {
-        using (DbCommand command = connection.CreateCommand())
+        try
         {
-          command.CommandText = commandText;
-          command.CommandTimeout = 600;
-          command.Transaction = activeTransaction;
-          AddParameters(command, parameters);
-          return run(command);
+          using (DbCommand command = scope.CreateCommand(commandText))
+          {
+            AddParameters(command, parameters);
+            return run(command);
+          }
         }
-      }
-      catch (Exception e)
-      {
-        _log.Error(string.Format("Failed to run: {0}", commandText), e);
-        throw;
-      }
-      finally
-      {
-        if (ownsConnection)
-          connection.Close();
+        catch (Exception e)
+        {
+          _log.Error(string.Format("Failed to run: {0}", commandText), e);
+          throw;
+        }
       }
     }
 

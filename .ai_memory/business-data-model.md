@@ -176,13 +176,24 @@ try
 catch
 {
     if (newTransaction) DBFactory.GetInstance().RollbackTransaction();
+    else DBFactory.GetInstance().MarkTransactionFailed();
     throw;
 }
 ```
 
 `BeginTransaction` returns `false` if one is already open, so inner calls join the outer scope and
 only the outermost commits. This is what makes `SaveCompleteTransaction` atomic across the header
-and N detail rows.
+and N detail rows. A joined caller that fails calls `MarkTransactionFailed` instead of rolling back:
+it does not own the transaction, but it must stop an outer scope that swallows the failure from
+committing half a unit of work.
+
+Commit and rollback always clear the ambient, in a `finally`. Without it one failed commit left the
+transaction in place and every later `BeginTransaction` returned `false`, so nothing could be saved
+again until the app restarted.
+
+Commands never fetch the connection and transaction separately — both come as one snapshot from
+`DBFactory.AcquireScope()`, used with `using`. See
+[index/InventoryAndSales.Database.md](index/InventoryAndSales.Database.md).
 
 ⚠ The ambient transaction is global, not per-thread. Safe for this single-user WinForms app; a
 background writer would corrupt the scope.

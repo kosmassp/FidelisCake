@@ -219,7 +219,12 @@ provider is resolved at runtime; code that assumes one of them breaks the other 
 - **Load → modify → save.** `Save`/`Update` write *every* mapped column, so a partially populated
   entity overwrites real data with defaults.
 - **Wrap multi-row writes in a transaction** using the `BeginTransaction` / `if (newTransaction)
-  Commit` pattern.
+  Commit` pattern — and in the `catch`, `else DBFactory.GetInstance().MarkTransactionFailed()`. A
+  caller that joined someone else's transaction must not roll it back, but it must stop that
+  transaction from being committed behind its back.
+- **Never fetch the connection and the transaction separately.** Take a `DbScope` from
+  `DBFactory.AcquireScope()` in a `using`, and build commands with `scope.CreateCommand(sql)`. Read
+  apart, the two can come from different states of the ambient transaction.
 - **Adding a column means four edits** — physical table, `DataTableList`, model property, and *both*
   arms of the model's indexer. Miss the last and it fails at runtime.
 - **Migrations are guarded, idempotent and additive.** Check `IsColumnExist` / `IsIndexExist`, then

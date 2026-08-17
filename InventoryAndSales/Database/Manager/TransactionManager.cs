@@ -60,6 +60,8 @@ namespace InventoryAndSales.Database.Manager
         _log.Error("Rolling Back Transaction", e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
+        else
+          DBFactory.GetInstance().MarkTransactionFailed();
         throw;
       }
     }
@@ -87,6 +89,8 @@ namespace InventoryAndSales.Database.Manager
         _log.Error("Rolling Back Transaction", e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
+        else
+          DBFactory.GetInstance().MarkTransactionFailed();
         throw;
       }
     }
@@ -111,6 +115,8 @@ namespace InventoryAndSales.Database.Manager
         _log.Error("Rolling Back Transaction", e);
         if (newTransaction)
           DBFactory.GetInstance().RollbackTransaction();
+        else
+          DBFactory.GetInstance().MarkTransactionFailed();
         throw;
       }
     }
