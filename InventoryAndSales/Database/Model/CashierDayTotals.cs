@@ -14,22 +14,39 @@ namespace InventoryAndSales.Database.Model
   {
     public string Cash { get; private set; }
     public string Edc { get; private set; }
+    public string Qris { get; private set; }
 
-    public CashierDayTotals(string cash, string edc)
+    public CashierDayTotals(string cash, string edc, string qris)
     {
       Cash = cash ?? "0";
       Edc = edc ?? "0";
+      Qris = qris ?? "0";
     }
 
-    /// <summary>True when no card payments were taken, so the split is not worth showing.</summary>
+    /// <summary>
+    /// True when everything was cash, so there is nothing to split and the old single figure is
+    /// still the clearest thing to show.
+    /// </summary>
+    public bool CashOnly
+    {
+      get { return IsZero(Edc) && IsZero(Qris); }
+    }
+
     public bool EdcIsZero
     {
-      get
-      {
-        decimal parsed;
-        return decimal.TryParse(Edc, System.Globalization.NumberStyles.Any,
-                                System.Globalization.CultureInfo.CurrentCulture, out parsed) && parsed == 0m;
-      }
+      get { return IsZero(Edc); }
+    }
+
+    public bool QrisIsZero
+    {
+      get { return IsZero(Qris); }
+    }
+
+    private static bool IsZero(string amount)
+    {
+      decimal parsed;
+      return decimal.TryParse(amount, System.Globalization.NumberStyles.Any,
+                              System.Globalization.CultureInfo.CurrentCulture, out parsed) && parsed == 0m;
     }
   }
 }

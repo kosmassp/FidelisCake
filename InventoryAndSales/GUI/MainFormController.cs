@@ -166,11 +166,15 @@ namespace InventoryAndSales.GUI
         return "Rp. 0";
 
       CashierDayTotals totals = _reportManager.GetTodaySummaryByCashier(activeUser, DateTime.Today);
-      if (totals.EdcIsZero)
+      if (totals.CashOnly)
         return "Rp. " + totals.Cash;
 
-      return "Tunai : Rp. " + totals.Cash + Environment.NewLine +
-             "EDC   : Rp. " + totals.Edc;
+      string summary = "Tunai : Rp. " + totals.Cash;
+      if (!totals.EdcIsZero)
+        summary += Environment.NewLine + "EDC   : Rp. " + totals.Edc;
+      if (!totals.QrisIsZero)
+        summary += Environment.NewLine + "QRIS  : Rp. " + totals.Qris;
+      return summary;
     }
   }
 }

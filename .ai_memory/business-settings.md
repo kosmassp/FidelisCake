@@ -32,6 +32,7 @@ absent, so operator edits survive restarts:
 | `REPORT_DIRECTORY` | `REPORT` | `<Documents>\FidelisCake\Laporan` |
 | `ALLOW_BUILTIN_ADMIN` | `SECURITY` | `true` |
 | `EDC_TERMINALS` | `GENERAL` | empty — a shop with no card terminals is offered none |
+| `QRIS_PROVIDERS` | `GENERAL` | empty — same for QRIS |
 | `PRINTER_NAME` | `PRINTER` | seeded from the `PrinterName` entry in `App.config`; empty means the Windows default printer |
 | `PRINTER_PAPER_WIDTH_MM` | `PRINTER` | `67` |
 
@@ -96,7 +97,7 @@ Five pages are registered today.
 | Page (`Tag`) | Requires | Control | Controller |
 |---|---|---|---|
 | Nota | `Master` | `HeaderAndFooterForm` | `HeaderAndFooterController` |
-| Terminal EDC | `Master` | `EdcTerminalSettingForm` | `EdcTerminalSettingController` |
+| Pembayaran | `Master` | `PaymentOptionSettingForm` | `PaymentOptionSettingController` |
 | Laporan | `Master` | `ReportSettingForm` | `ReportSettingController` |
 | Printer | **`Admin`** | `PrinterSettingForm` | `PrinterSettingController` |
 | Keamanan | **`Admin`** | `SecuritySettingForm` | `SecuritySettingController` |

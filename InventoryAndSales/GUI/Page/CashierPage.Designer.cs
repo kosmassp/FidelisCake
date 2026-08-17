@@ -50,10 +50,10 @@
       this.labelChanges = new System.Windows.Forms.Label();
       this.labelPayment = new System.Windows.Forms.Label();
       this.labelPaymentMethod = new System.Windows.Forms.Label();
-      this.radioButtonCash = new System.Windows.Forms.RadioButton();
-      this.radioButtonEdc = new System.Windows.Forms.RadioButton();
-      this.labelTerminal = new System.Windows.Forms.Label();
-      this.comboBoxTerminal = new System.Windows.Forms.ComboBox();
+      this.comboBoxPaymentMethod = new System.Windows.Forms.ComboBox();
+      this.labelReference = new System.Windows.Forms.Label();
+      this.comboBoxReference = new System.Windows.Forms.ComboBox();
+      this.comboBoxQrisMode = new System.Windows.Forms.ComboBox();
       this.buttonCheckout = new System.Windows.Forms.Button();
       this.labelTotal = new System.Windows.Forms.Label();
       this.groupBoxItemList = new System.Windows.Forms.GroupBox();
@@ -180,10 +180,10 @@
       this.groupBoxSummary.Controls.Add(this.buttonCheckout);
       this.groupBoxSummary.Controls.Add(this.labelTotal);
       this.groupBoxSummary.Controls.Add(this.labelPaymentMethod);
-      this.groupBoxSummary.Controls.Add(this.radioButtonCash);
-      this.groupBoxSummary.Controls.Add(this.radioButtonEdc);
-      this.groupBoxSummary.Controls.Add(this.labelTerminal);
-      this.groupBoxSummary.Controls.Add(this.comboBoxTerminal);
+      this.groupBoxSummary.Controls.Add(this.comboBoxPaymentMethod);
+      this.groupBoxSummary.Controls.Add(this.labelReference);
+      this.groupBoxSummary.Controls.Add(this.comboBoxReference);
+      this.groupBoxSummary.Controls.Add(this.comboBoxQrisMode);
       this.groupBoxSummary.Location = new System.Drawing.Point(432, 321);
       this.groupBoxSummary.Name = "groupBoxSummary";
       this.groupBoxSummary.Size = new System.Drawing.Size(630, 185);
@@ -225,7 +225,7 @@
       // textBoxChanges
       // 
       this.textBoxChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.textBoxChanges.Location = new System.Drawing.Point(272, 93);
+      this.textBoxChanges.Location = new System.Drawing.Point(272, 130);
       this.textBoxChanges.Name = "textBoxChanges";
       this.textBoxChanges.ReadOnly = true;
       this.textBoxChanges.Size = new System.Drawing.Size(183, 20);
@@ -234,7 +234,7 @@
       // textBoxPayment
       // 
       this.textBoxPayment.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.textBoxPayment.Location = new System.Drawing.Point(272, 64);
+      this.textBoxPayment.Location = new System.Drawing.Point(272, 103);
       this.textBoxPayment.Name = "textBoxPayment";
       this.textBoxPayment.Size = new System.Drawing.Size(183, 20);
       this.textBoxPayment.TabIndex = 1;
@@ -245,7 +245,7 @@
       // textBoxTotal
       // 
       this.textBoxTotal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.textBoxTotal.Location = new System.Drawing.Point(272, 31);
+      this.textBoxTotal.Location = new System.Drawing.Point(272, 76);
       this.textBoxTotal.Name = "textBoxTotal";
       this.textBoxTotal.ReadOnly = true;
       this.textBoxTotal.Size = new System.Drawing.Size(183, 20);
@@ -255,7 +255,7 @@
       // 
       this.labelChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelChanges.AutoSize = true;
-      this.labelChanges.Location = new System.Drawing.Point(210, 96);
+      this.labelChanges.Location = new System.Drawing.Point(210, 133);
       this.labelChanges.Name = "labelChanges";
       this.labelChanges.Size = new System.Drawing.Size(44, 13);
       this.labelChanges.TabIndex = 3;
@@ -265,7 +265,7 @@
       // 
       this.labelPayment.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelPayment.AutoSize = true;
-      this.labelPayment.Location = new System.Drawing.Point(210, 67);
+      this.labelPayment.Location = new System.Drawing.Point(210, 106);
       this.labelPayment.Name = "labelPayment";
       this.labelPayment.Size = new System.Drawing.Size(55, 13);
       this.labelPayment.TabIndex = 2;
@@ -286,58 +286,51 @@
       // labelPaymentMethod
       //
       this.labelPaymentMethod.AutoSize = true;
-      this.labelPaymentMethod.Location = new System.Drawing.Point(210, 125);
+      this.labelPaymentMethod.Location = new System.Drawing.Point(210, 25);
       this.labelPaymentMethod.Name = "labelPaymentMethod";
       this.labelPaymentMethod.Size = new System.Drawing.Size(45, 13);
       this.labelPaymentMethod.TabIndex = 20;
       this.labelPaymentMethod.Text = "Metode";
       //
-      // radioButtonCash
+      // comboBoxPaymentMethod
       //
-      this.radioButtonCash.AutoSize = true;
-      this.radioButtonCash.Checked = true;
-      this.radioButtonCash.Location = new System.Drawing.Point(272, 123);
-      this.radioButtonCash.Name = "radioButtonCash";
-      this.radioButtonCash.Size = new System.Drawing.Size(54, 17);
-      this.radioButtonCash.TabIndex = 21;
-      this.radioButtonCash.TabStop = true;
-      this.radioButtonCash.Text = "Tunai";
-      this.radioButtonCash.UseVisualStyleBackColor = true;
-      this.radioButtonCash.CheckedChanged += new System.EventHandler(this.paymentMethod_CheckedChanged);
+      this.comboBoxPaymentMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxPaymentMethod.Location = new System.Drawing.Point(272, 22);
+      this.comboBoxPaymentMethod.Name = "comboBoxPaymentMethod";
+      this.comboBoxPaymentMethod.Size = new System.Drawing.Size(183, 21);
+      this.comboBoxPaymentMethod.TabIndex = 21;
+      this.comboBoxPaymentMethod.SelectedIndexChanged += new System.EventHandler(this.comboBoxPaymentMethod_SelectedIndexChanged);
       //
-      // radioButtonEdc
+      // labelReference
       //
-      this.radioButtonEdc.AutoSize = true;
-      this.radioButtonEdc.Location = new System.Drawing.Point(340, 123);
-      this.radioButtonEdc.Name = "radioButtonEdc";
-      this.radioButtonEdc.Size = new System.Drawing.Size(48, 17);
-      this.radioButtonEdc.TabIndex = 22;
-      this.radioButtonEdc.Text = "EDC";
-      this.radioButtonEdc.UseVisualStyleBackColor = true;
-      this.radioButtonEdc.CheckedChanged += new System.EventHandler(this.paymentMethod_CheckedChanged);
+      this.labelReference.AutoSize = true;
+      this.labelReference.Location = new System.Drawing.Point(210, 52);
+      this.labelReference.Name = "labelReference";
+      this.labelReference.Size = new System.Drawing.Size(48, 13);
+      this.labelReference.TabIndex = 22;
+      this.labelReference.Text = "Terminal";
       //
-      // labelTerminal
+      // comboBoxReference
       //
-      this.labelTerminal.AutoSize = true;
-      this.labelTerminal.Location = new System.Drawing.Point(210, 151);
-      this.labelTerminal.Name = "labelTerminal";
-      this.labelTerminal.Size = new System.Drawing.Size(48, 13);
-      this.labelTerminal.TabIndex = 23;
-      this.labelTerminal.Text = "Terminal";
+      this.comboBoxReference.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxReference.Location = new System.Drawing.Point(272, 49);
+      this.comboBoxReference.Name = "comboBoxReference";
+      this.comboBoxReference.Size = new System.Drawing.Size(105, 21);
+      this.comboBoxReference.TabIndex = 23;
       //
-      // comboBoxTerminal
+      // comboBoxQrisMode
       //
-      this.comboBoxTerminal.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.comboBoxTerminal.Location = new System.Drawing.Point(272, 148);
-      this.comboBoxTerminal.Name = "comboBoxTerminal";
-      this.comboBoxTerminal.Size = new System.Drawing.Size(183, 21);
-      this.comboBoxTerminal.TabIndex = 24;
+      this.comboBoxQrisMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxQrisMode.Location = new System.Drawing.Point(382, 49);
+      this.comboBoxQrisMode.Name = "comboBoxQrisMode";
+      this.comboBoxQrisMode.Size = new System.Drawing.Size(73, 21);
+      this.comboBoxQrisMode.TabIndex = 24;
       //
       // labelTotal
       // 
       this.labelTotal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelTotal.AutoSize = true;
-      this.labelTotal.Location = new System.Drawing.Point(210, 38);
+      this.labelTotal.Location = new System.Drawing.Point(210, 79);
       this.labelTotal.Name = "labelTotal";
       this.labelTotal.Size = new System.Drawing.Size(31, 13);
       this.labelTotal.TabIndex = 0;
@@ -482,10 +475,10 @@
     private System.Windows.Forms.Label labelChanges;
     private System.Windows.Forms.Label labelPayment;
     private System.Windows.Forms.Label labelPaymentMethod;
-    private System.Windows.Forms.RadioButton radioButtonCash;
-    private System.Windows.Forms.RadioButton radioButtonEdc;
-    private System.Windows.Forms.Label labelTerminal;
-    private System.Windows.Forms.ComboBox comboBoxTerminal;
+    private System.Windows.Forms.ComboBox comboBoxPaymentMethod;
+    private System.Windows.Forms.Label labelReference;
+    private System.Windows.Forms.ComboBox comboBoxReference;
+    private System.Windows.Forms.ComboBox comboBoxQrisMode;
     private System.Windows.Forms.Button buttonCheckout;
     private System.Windows.Forms.Label labelTotal;
     private System.Windows.Forms.GroupBox groupBoxItemList;

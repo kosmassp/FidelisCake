@@ -19,11 +19,14 @@ namespace InventoryAndSales.Database.Model
     public long CustomerId { get; set; }
     public long Revision { get; set; }
 
-    /// <summary>CASH or EDC. Sales made before payment methods existed read as CASH.</summary>
+    /// <summary>CASH, EDC or QRIS. Sales made before payment methods existed read as CASH.</summary>
     public string PaymentMethod { get; set; }
 
-    /// <summary>Terminal a card payment went through. Empty for cash.</summary>
+    /// <summary>EDC terminal, or QRIS provider. Empty for cash.</summary>
     public string PaymentReference { get; set; }
+
+    /// <summary>STATIC or DYNAMIC for QRIS. Empty otherwise.</summary>
+    public string PaymentVariant { get; set; }
 
     [Browsable(false)]
     public override object this[string columnName]
@@ -60,6 +63,8 @@ namespace InventoryAndSales.Database.Model
             return PaymentMethod;
           case "PaymentReference":
             return PaymentReference;
+          case "PaymentVariant":
+            return PaymentVariant;
         }
         throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));
       }
@@ -110,6 +115,9 @@ namespace InventoryAndSales.Database.Model
             break;
           case "PaymentReference":
             PaymentReference = ToText(value);
+            break;
+          case "PaymentVariant":
+            PaymentVariant = ToText(value);
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

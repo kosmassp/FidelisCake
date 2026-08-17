@@ -61,18 +61,29 @@ namespace InventoryAndSales.Business
       stringToPrint.Add(new StringPrint("Total Belanja: Rp. " + transaction.Total.ToString("N"), leftString));
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
 
-      // A card payment takes the exact amount, so change would always read zero. Show the terminal
-      // instead - that is what a customer or an auditor needs off the slip.
-      if (PaymentDetail.IsEdc(transaction.PaymentMethod))
+      // A card or QRIS payment takes the exact amount, so change would always read zero. Show where
+      // the money came through instead - that is what a customer or an auditor needs off the slip.
+      switch (PaymentDetail.Parse(transaction.PaymentMethod))
       {
-        stringToPrint.Add(new StringPrint("EDC          : Rp. " + transaction.Payment.ToString("N"), leftString));
-        if (!string.IsNullOrEmpty(transaction.PaymentReference))
-          stringToPrint.Add(new StringPrint("Terminal     : " + transaction.PaymentReference, leftString));
-      }
-      else
-      {
-        stringToPrint.Add(new StringPrint("Tunai        : Rp. " + transaction.Payment.ToString("N"), leftString));
-        stringToPrint.Add(new StringPrint("Kembalian    : Rp. " + transaction.Exchange.ToString("N"), leftString));
+        case PaymentMethod.Edc:
+          stringToPrint.Add(new StringPrint("EDC          : Rp. " + transaction.Payment.ToString("N"), leftString));
+          if (!string.IsNullOrEmpty(transaction.PaymentReference))
+            stringToPrint.Add(new StringPrint("Terminal     : " + transaction.PaymentReference, leftString));
+          break;
+
+        case PaymentMethod.Qris:
+          stringToPrint.Add(new StringPrint("QRIS         : Rp. " + transaction.Payment.ToString("N"), leftString));
+          if (!string.IsNullOrEmpty(transaction.PaymentReference))
+            stringToPrint.Add(new StringPrint("Provider     : " + transaction.PaymentReference, leftString));
+          string variant = PaymentDetail.DescribeVariant(transaction.PaymentVariant);
+          if (!string.IsNullOrEmpty(variant))
+            stringToPrint.Add(new StringPrint("Tipe QRIS    : " + variant, leftString));
+          break;
+
+        default:
+          stringToPrint.Add(new StringPrint("Tunai        : Rp. " + transaction.Payment.ToString("N"), leftString));
+          stringToPrint.Add(new StringPrint("Kembalian    : Rp. " + transaction.Exchange.ToString("N"), leftString));
+          break;
       }
 
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));

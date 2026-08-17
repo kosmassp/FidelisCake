@@ -149,3 +149,48 @@ must use *Print Ulang Transaksi*, which searches by date range.
 - There is no cash-drawer, no rounding step and no tax line. Adding any of them belongs in
   `GenerateTransactionAndDetails`, next to the existing totals — not in the view.
 - `Notes` is `varchar(100)`; `TrimNotes` truncates and logs rather than letting the insert fail.
+
+## Payment methods
+
+A sale is paid one of three ways. The method is chosen **first** — it is the top field in the payment
+column — because it decides what the rest of them mean.
+
+| | Cash | EDC (card) | QRIS |
+|---|---|---|---|
+| Amount | Cashier types what was handed over | The total, always | The total, always |
+| Change | `tendered − total`, must not be negative | Always zero | Always zero |
+| Extra input | — | Which terminal | Which provider, and Statis or Dinamis |
+| Stored | `PaymentMethod = CASH` | `EDC` + `PaymentReference` | `QRIS` + `PaymentReference` + `PaymentVariant` |
+
+Default is **Tunai**. Shortcuts: **Ctrl+1** cash, **Ctrl+2** EDC, **Ctrl+3** QRIS, handled in
+`MainForm_KeyUp` alongside F5/F6/F7 and only while the cashier page is showing. A shortcut for a
+method that is not on offer says why rather than doing nothing.
+
+`Business/PaymentDetail.cs` carries method, amount, reference and variant as one object rather than
+four more parameters on `Checkout`, and owns the change rule (`ChangeFor`) — zero for anything that
+takes the exact total. `PaymentDetail.Parse` reads a stored code, treating anything unrecognised
+(including the blank on sales that predate this) as cash.
+
+**Terminals and providers are configured, not typed.** `EDC_TERMINALS` and `QRIS_PROVIDERS` each hold
+one name per line, edited under *Pengaturan → Pembayaran* (requires `Master`). A method whose list is
+empty is **left out of the selector entirely** — choosing it could never lead to a completed sale.
+The chosen name is **re-checked against the list at checkout**, not merely taken from the screen: the
+list can be edited while a sale is being rung up, and a payment must never be recorded against a
+terminal or provider the shop has dropped.
+
+Receipts print the method in place of *Tunai* / *Kembalian*, which would otherwise always read zero —
+`EDC` with its terminal, or `QRIS` with its provider and code type.
+
+⚠ A correction keeps the method, reference and variant of the sale it replaces. Correcting a QRIS
+sale does not turn it into a cash one.
+
+⚠ **Sales made before payment methods existed have none and are treated as cash**, which they were.
+The migration backfills `'CASH'`, and the daily-takings query also treats a missing method as cash,
+so a database where the backfill did not run still reports correctly.
+
+### Why the daily total is split
+
+*Jumlah Setoran* reports cash, EDC and QRIS separately, listing only the non-zero ones and falling
+back to a single figure when everything was cash. Only the cash is money the cashier physically hands
+over at the end of the day — card and QRIS takings settle through the bank — so a single combined
+figure would tell them to hand over more than they hold.

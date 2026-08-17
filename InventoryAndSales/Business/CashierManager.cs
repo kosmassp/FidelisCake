@@ -142,6 +142,7 @@ namespace InventoryAndSales.Business
       transaction.CustomerId = customerId;
       transaction.PaymentMethod = payment.Code;
       transaction.PaymentReference = payment.Reference;
+      transaction.PaymentVariant = payment.Variant;
 
       transactionDetails = cart.GetLines();
       foreach (TransactionDetail td in transactionDetails)
@@ -151,9 +152,10 @@ namespace InventoryAndSales.Business
         transaction.Total += (td.SubtotalPrice - td.SubtotalDiscount);
       }
 
-      // A card terminal takes the exact total, so what was "tendered" is the total and there is no
-      // change. Recording the total keeps the takings columns meaning the same thing for both.
-      transaction.Payment = payment.Method == PaymentMethod.Edc ? transaction.Total : payment.AmountTendered;
+      // A terminal or a QRIS code takes the exact total, so what was "tendered" is the total and
+      // there is no change. Recording the total keeps the takings columns meaning the same thing
+      // whichever way the customer paid.
+      transaction.Payment = PaymentDetail.IsExactAmount(payment.Method) ? transaction.Total : payment.AmountTendered;
       transaction.Exchange = payment.ChangeFor(transaction.Total);
       return transaction;
     }

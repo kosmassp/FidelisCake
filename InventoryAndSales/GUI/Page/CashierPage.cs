@@ -312,22 +312,53 @@ namespace InventoryAndSales.GUI.Page
       controller.RemoveFromCart(productView);
     }
 
-    /// <summary>Reloads the terminal list and puts the screen back on cash.</summary>
+    private bool _loadingPaymentMethod;
+
+    /// <summary>
+    /// An entry in the method combo. Keeps the label and the value together so the screen never has
+    /// to match on display text.
+    /// </summary>
+    private class MethodChoice
+    {
+      public PaymentMethod Method { get; private set; }
+      public string Label { get; private set; }
+
+      public MethodChoice(PaymentMethod method, string label)
+      {
+        Method = method;
+        Label = label;
+      }
+
+      public override string ToString()
+      {
+        return Label;
+      }
+    }
+
+    /// <summary>
+    /// Rebuilds the method list and puts the screen back on cash.
+    ///
+    /// A method whose list is empty is left out rather than shown-but-broken: choosing it could
+    /// never lead to a completed sale.
+    /// </summary>
     private void ResetPaymentMethod()
     {
       _loadingPaymentMethod = true;
       try
       {
-        comboBoxTerminal.Items.Clear();
-        List<string> terminals = controller.GetEdcTerminals();
-        foreach (string terminal in terminals)
-          comboBoxTerminal.Items.Add(terminal);
-        if (comboBoxTerminal.Items.Count > 0)
-          comboBoxTerminal.SelectedIndex = 0;
+        comboBoxPaymentMethod.Items.Clear();
+        comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Cash, "Tunai (Ctrl+1)"));
+        if (controller.IsMethodAvailable(PaymentMethod.Edc))
+          comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Edc, "EDC (Ctrl+2)"));
+        if (controller.IsMethodAvailable(PaymentMethod.Qris))
+          comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Qris, "QRIS (Ctrl+3)"));
 
-        // A shop with no terminals configured is not taking cards, so do not offer the option.
-        radioButtonEdc.Enabled = terminals.Count > 0;
-        radioButtonCash.Checked = true;
+        comboBoxQrisMode.Items.Clear();
+        comboBoxQrisMode.Items.Add("Statis");
+        comboBoxQrisMode.Items.Add("Dinamis");
+        comboBoxQrisMode.SelectedIndex = 0;
+
+        comboBoxPaymentMethod.SelectedIndex = 0;
       }
       finally
       {
@@ -336,27 +367,75 @@ namespace InventoryAndSales.GUI.Page
       ApplyPaymentMethod();
     }
 
-    private bool _loadingPaymentMethod;
-
-    private bool IsEdcSelected
+    private PaymentMethod SelectedMethod
     {
-      get { return radioButtonEdc.Checked; }
+      get
+      {
+        MethodChoice choice = comboBoxPaymentMethod.SelectedItem as MethodChoice;
+        return choice == null ? PaymentMethod.Cash : choice.Method;
+      }
+    }
+
+    private QrisMode SelectedQrisMode
+    {
+      get { return comboBoxQrisMode.SelectedIndex == 1 ? QrisMode.Dynamic : QrisMode.Static; }
+    }
+
+    /// <summary>
+    /// Picks a method from the keyboard. Does nothing if it is not on offer, but says why - a
+    /// shortcut that silently ignores you is worse than one that explains itself.
+    /// </summary>
+    public void SelectPaymentMethod(PaymentMethod method)
+    {
+      for (int i = 0; i < comboBoxPaymentMethod.Items.Count; i++)
+      {
+        MethodChoice choice = comboBoxPaymentMethod.Items[i] as MethodChoice;
+        if (choice != null && choice.Method == method)
+        {
+          comboBoxPaymentMethod.SelectedIndex = i;
+          return;
+        }
+      }
+
+      string what = method == PaymentMethod.Qris ? "provider QRIS" : "terminal EDC";
+      MessageBox.Show(
+        string.Format("Belum ada {0} yang terdaftar.{1}{1}Tambahkan melalui menu Pengaturan.", what, Environment.NewLine),
+        "Metode Tidak Tersedia", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     /// <summary>
     /// Shapes the payment fields around the chosen method: cash takes an amount and gives change,
-    /// a card takes the exact total through a terminal.
+    /// everything else takes the exact total and needs to record where it came through.
     /// </summary>
     private void ApplyPaymentMethod()
     {
-      bool edc = IsEdcSelected;
+      PaymentMethod method = SelectedMethod;
+      bool exact = PaymentDetail.IsExactAmount(method);
+      bool qris = method == PaymentMethod.Qris;
 
-      comboBoxTerminal.Enabled = edc;
-      labelTerminal.Enabled = edc;
-      textBoxPayment.ReadOnly = edc;
+      labelReference.Visible = exact;
+      comboBoxReference.Visible = exact;
+      comboBoxQrisMode.Visible = qris;
+      labelReference.Text = qris ? "Provider" : "Terminal";
+      textBoxPayment.ReadOnly = exact;
 
-      if (edc)
+      if (exact)
       {
+        _loadingPaymentMethod = true;
+        try
+        {
+          comboBoxReference.Items.Clear();
+          List<string> options = qris ? controller.GetQrisProviders() : controller.GetEdcTerminals();
+          foreach (string option in options)
+            comboBoxReference.Items.Add(option);
+          if (comboBoxReference.Items.Count > 0)
+            comboBoxReference.SelectedIndex = 0;
+        }
+        finally
+        {
+          _loadingPaymentMethod = false;
+        }
+
         decimal total = controller.GetCartTotal();
         textBoxPayment.Text = total.ToString(Constant.DISPLAY_CURRENCY);
         textBoxChanges.Text = 0.ToString(Constant.DISPLAY_CURRENCY);
@@ -367,7 +446,7 @@ namespace InventoryAndSales.GUI.Page
       }
     }
 
-    private void paymentMethod_CheckedChanged(object sender, EventArgs e)
+    private void comboBoxPaymentMethod_SelectedIndexChanged(object sender, EventArgs e)
     {
       if (_loadingPaymentMethod)
         return;
@@ -376,9 +455,10 @@ namespace InventoryAndSales.GUI.Page
 
     private void buttonCheckout_Click(object sender, EventArgs e)
     {
-      // Only cash needs the typed amount to make sense; a card payment takes the total regardless.
+      // Only cash needs the typed amount to make sense; the others take the total regardless.
+      PaymentMethod method = SelectedMethod;
       decimal tendered = 0;
-      if (!IsEdcSelected)
+      if (!PaymentDetail.IsExactAmount(method))
       {
         string validationMsg = ValidateInput(textBoxPayment, "Pembayaran Tidak Valid");
         if (!string.IsNullOrEmpty(validationMsg))
@@ -391,9 +471,10 @@ namespace InventoryAndSales.GUI.Page
 
       string successMessage;
       string errorMessage = controller.Checkout(
-        IsEdcSelected ? PaymentMethod.Edc : PaymentMethod.Cash,
+        method,
         tendered,
-        comboBoxTerminal.SelectedItem as string,
+        comboBoxReference.SelectedItem as string,
+        SelectedQrisMode,
         textBoxNotes.Text,
         out successMessage);
       if (!string.IsNullOrEmpty(errorMessage))
@@ -431,9 +512,9 @@ namespace InventoryAndSales.GUI.Page
 
     private void RecalculateChanges()
     {
-      // A card payment is always the exact total with no change; ApplyPaymentMethod owns those two
-      // boxes then, and blanking the amount back to zero here would fight it.
-      if (IsEdcSelected)
+      // A card or QRIS payment is always the exact total with no change; ApplyPaymentMethod owns
+      // those two boxes then, and blanking the amount back to zero here would fight it.
+      if (PaymentDetail.IsExactAmount(SelectedMethod))
         return;
 
       if (string.IsNullOrEmpty(textBoxPayment.Text))

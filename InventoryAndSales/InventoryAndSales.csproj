@@ -121,13 +121,13 @@
     <Compile Include="GUI\Controller\SettingPageController.cs" />
     <Compile Include="GUI\Controller\SettingPage\HeaderAndFooterController.cs" />
     <Compile Include="Business\PaymentDetail.cs" />
-    <Compile Include="Business\EdcTerminalService.cs" />
-    <Compile Include="GUI\Controller\SettingPage\EdcTerminalSettingController.cs" />
-    <Compile Include="GUI\Popup\SettingPage\EdcTerminalSetting.cs">
+    <Compile Include="Business\PaymentOptionService.cs" />
+    <Compile Include="GUI\Controller\SettingPage\PaymentOptionSettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\PaymentOptionSetting.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GUI\Popup\SettingPage\EdcTerminalSetting.Designer.cs">
-      <DependentUpon>EdcTerminalSetting.cs</DependentUpon>
+    <Compile Include="GUI\Popup\SettingPage\PaymentOptionSetting.Designer.cs">
+      <DependentUpon>PaymentOptionSetting.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\Controller\SettingPage\PrinterSettingController.cs" />
     <Compile Include="GUI\Controller\SettingPage\ReportSettingController.cs" />

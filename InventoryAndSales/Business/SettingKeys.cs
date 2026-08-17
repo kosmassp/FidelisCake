@@ -65,6 +65,9 @@ namespace InventoryAndSales.Business
     /// </summary>
     public const string EdcTerminals = "EDC_TERMINALS";
 
+    /// <summary>The QRIS providers a cashier can pick from, one per line.</summary>
+    public const string QrisProviders = "QRIS_PROVIDERS";
+
     /// <summary>Marker used inside a setting value to represent a line break.</summary>
     public const string NewLineToken = "%NEW_LINE%";
 
@@ -103,8 +106,9 @@ namespace InventoryAndSales.Business
 
         new SettingSeed(AllowBuiltInAdmin, GroupSecurity, "true"),
 
-        // Seeded empty: a shop with no card terminals should not be offered imaginary ones.
+        // Seeded empty: a shop with no card terminals or QRIS should not be offered imaginary ones.
         new SettingSeed(EdcTerminals, GroupGeneral, string.Empty),
+        new SettingSeed(QrisProviders, GroupGeneral, string.Empty),
 
         new SettingSeed(PrinterName, GroupPrinter, LegacyConfiguredPrinterName()),
         new SettingSeed(PrinterPaperWidthMm, GroupPrinter,

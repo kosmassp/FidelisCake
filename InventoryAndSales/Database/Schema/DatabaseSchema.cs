@@ -167,7 +167,8 @@ namespace InventoryAndSales.Database.Schema
           ColumnDefinition.Text("Factur", 20),
           ColumnDefinition.Column("CustomerId", DbColumnType.Long),
           ColumnDefinition.Text("PaymentMethod", 20),
-          ColumnDefinition.Text("PaymentReference", 50)),
+          ColumnDefinition.Text("PaymentReference", 50),
+          ColumnDefinition.Text("PaymentVariant", 20)),
 
         new TableDefinition("M_CUSTOMERS",
           ColumnDefinition.Identity("Id", DbColumnType.Int),
@@ -201,6 +202,10 @@ namespace InventoryAndSales.Database.Schema
           ColumnDefinition.Text("PaymentMethod", 20), "'CASH'"),
         new ColumnAddition("T_TRANSACTIONS",
           ColumnDefinition.Text("PaymentReference", 50), "''"),
+
+        // Sub-option of the method: STATIC or DYNAMIC for QRIS, blank for the rest.
+        new ColumnAddition("T_TRANSACTIONS",
+          ColumnDefinition.Text("PaymentVariant", 20), "''"),
       };
     }
 

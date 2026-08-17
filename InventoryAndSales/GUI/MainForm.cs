@@ -1,4 +1,5 @@
 ﻿using InventoryAndSales.Enumeration;
+using InventoryAndSales.Business;
 using InventoryAndSales.GUI.Popup;
 using InventoryAndSales.GUI.Util;
 using SimpleCommon.Utility;
@@ -166,6 +167,33 @@ namespace InventoryAndSales.GUI
       if (currentPage == DisplayPage.Cashier)
       {
         Keys keyCode = e.KeyCode;
+
+        // Ctrl+1/2/3 pick the payment method without leaving the keyboard. Handled before the
+        // switch because they are chords, and because the digit keys alone belong to the filter box.
+        if (e.Control)
+        {
+          switch (keyCode)
+          {
+            case Keys.D1:
+            case Keys.NumPad1:
+              cashierPage1.SelectPaymentMethod(PaymentMethod.Cash);
+              e.Handled = true;
+              return;
+
+            case Keys.D2:
+            case Keys.NumPad2:
+              cashierPage1.SelectPaymentMethod(PaymentMethod.Edc);
+              e.Handled = true;
+              return;
+
+            case Keys.D3:
+            case Keys.NumPad3:
+              cashierPage1.SelectPaymentMethod(PaymentMethod.Qris);
+              e.Handled = true;
+              return;
+          }
+        }
+
         switch (keyCode)
         {
           case Keys.F5:

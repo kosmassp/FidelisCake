@@ -29,7 +29,7 @@ namespace InventoryAndSales.Business
 
     public SettingsService Settings { get; private set; }
     public ReportService ReportService { get; private set; }
-    public EdcTerminalService EdcTerminals { get; private set; }
+    public PaymentOptionService PaymentOptions { get; private set; }
     public CashierManager CashierManager { get; private set; }
     public LoginManager LoginManager { get; private set; }
     public MasterManager MasterManager { get; private set; }
@@ -42,7 +42,7 @@ namespace InventoryAndSales.Business
 
       Settings = new SettingsService(dbFactory.SettingManager);
       ReportService = new ReportService(Settings);
-      EdcTerminals = new EdcTerminalService(Settings);
+      PaymentOptions = new PaymentOptionService(Settings);
       CashierManager = new CashierManager(dbFactory.TransactionManager, dbFactory.UserManager, Settings);
       LoginManager = new LoginManager(dbFactory.UserManager, Settings);
       MasterManager = new MasterManager(dbFactory.ProductManager, dbFactory.UserManager);

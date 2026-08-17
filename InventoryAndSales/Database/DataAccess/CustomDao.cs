@@ -224,15 +224,17 @@ namespace InventoryAndSales.Database.DataAccess
     /// </summary>
     public CashierDayTotals GetTodaySummaryByCashier(User activeUser, DateTime date)
     {
-      // A sale recorded before payment methods existed has no method and was, by definition, cash.
-      string cashCondition = string.Format(
-        "(COALESCE({0}, '{1}') <> '{2}')", C("t", "PaymentMethod"),
-        PaymentMethodCash, PaymentMethodEdc);
+      // A sale recorded before payment methods existed has no method and was, by definition, cash,
+      // so anything that is not explicitly EDC or QRIS counts as cash.
+      string method = "COALESCE(" + C("t", "PaymentMethod") + ", '" + PaymentMethodCash + "')";
+      string total = C("t", "Total");
 
       string sql =
         " SELECT" +
-        "  COALESCE(SUM(CASE WHEN " + cashCondition + " THEN " + C("t", "Total") + " ELSE 0 END), 0) AS " + A("CASHTOTAL") + "," +
-        "  COALESCE(SUM(CASE WHEN " + cashCondition + " THEN 0 ELSE " + C("t", "Total") + " END), 0) AS " + A("EDCTOTAL") +
+        "  COALESCE(SUM(CASE WHEN " + method + " NOT IN ('" + PaymentMethodEdc + "','" + PaymentMethodQris + "')" +
+        "                    THEN " + total + " ELSE 0 END), 0) AS " + A("CASHTOTAL") + "," +
+        "  COALESCE(SUM(CASE WHEN " + method + " = '" + PaymentMethodEdc + "' THEN " + total + " ELSE 0 END), 0) AS " + A("EDCTOTAL") + "," +
+        "  COALESCE(SUM(CASE WHEN " + method + " = '" + PaymentMethodQris + "' THEN " + total + " ELSE 0 END), 0) AS " + A("QRISTOTAL") +
         " FROM " + Table("T_TRANSACTIONS") + " t" +
         ActiveInRange() +
         " AND " + C("t", "UserId") + " = @userId";
@@ -242,13 +244,16 @@ namespace InventoryAndSales.Database.DataAccess
 
       var retValue = ExecuteReader(sql, parameters.ToArray());
       if (retValue.Count == 0)
-        return new CashierDayTotals("0", "0");
+        return new CashierDayTotals("0", "0", "0");
       // CustomQuery stores every column as an already-formatted string.
-      return new CashierDayTotals((string)retValue[0]["CASHTOTAL"], (string)retValue[0]["EDCTOTAL"]);
+      return new CashierDayTotals((string)retValue[0]["CASHTOTAL"],
+                                  (string)retValue[0]["EDCTOTAL"],
+                                  (string)retValue[0]["QRISTOTAL"]);
     }
 
     private const string PaymentMethodCash = "CASH";
     private const string PaymentMethodEdc = "EDC";
+    private const string PaymentMethodQris = "QRIS";
 
     #endregion
 
