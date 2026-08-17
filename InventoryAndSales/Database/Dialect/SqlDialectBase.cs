@@ -14,6 +14,7 @@ namespace InventoryAndSales.Database.Dialect
   {
     public abstract string Name { get; }
     public abstract string ProviderInvariantName { get; }
+    public abstract string ProviderFactoryTypeName { get; }
 
     public abstract string Quote(string identifier);
     public abstract string QuoteAlias(string alias);

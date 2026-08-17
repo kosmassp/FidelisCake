@@ -15,7 +15,8 @@ report queries.
 | Member | Purpose |
 |---|---|
 | `Name` | Value used in the `DatabaseProvider` setting: `SqlServer`, `PostgreSql`, `Sqlite`. |
-| `ProviderInvariantName` | ADO.NET invariant name resolved through `DbProviderFactories`. |
+| `ProviderInvariantName` | ADO.NET invariant name. Only used for the optional `DbProviderFactories` route. |
+| `ProviderFactoryTypeName` | Assembly-qualified factory type, e.g. `Npgsql.NpgsqlFactory, Npgsql`. **This is what the loader uses**, so a provider works by being present beside the executable. |
 | `Quote(identifier)` | Makes reserved words such as `Key`, `Group` and `Default` usable, and preserves identifier case on PostgreSQL. |
 | `QuoteAlias(alias)` | A result column heading. SQL Server tolerates `'Jumlah Transaksi'`; to PostgreSQL that is a string literal, not a name. |
 | `ToDate(expression)` | Truncates a timestamp to a whole date. |
@@ -86,10 +87,42 @@ regardless. Requires SQLite **3.25+** for `RENAME COLUMN` and **3.16+** for `pra
 | `Create()` | Reads the `DatabaseProvider` app setting; defaults to SQL Server. |
 | `Create(providerName)` | Matches by name; logs the valid names and falls back to SQL Server if unrecognised. |
 | `All()` | The three dialects. |
-| `ResolveProviderFactory(dialect)` | `DbProviderFactories.GetFactory`, throwing a `ConfigurationErrorsException` that names the assembly to install — whoever hits it is setting up a machine, not reading source. |
+| `ResolveProviderFactory(dialect)` | Delegates to `ProviderLoader`, wrapping failure in a `ConfigurationErrorsException` — whoever hits it is setting up a machine, not reading source. |
 
-**The provider is resolved at runtime, not referenced at compile time.** The application therefore
-holds no dependency on Npgsql or System.Data.SQLite and the shipped binary is identical everywhere; a
-site that wants one copies the provider assembly beside the executable and uncomments its entry in
-`App.config`. That is what keeps the framework-only rule intact — see
-[../rules-csharp.md](../rules-csharp.md).
+---
+
+## `ProviderLoader.cs`
+
+`internal static class ProviderLoader` — finds a provider's `DbProviderFactory` **with nothing
+declared in App.config**.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `Resolve` | `internal static DbProviderFactory Resolve(ISqlDialect)` | Installs the resolver, then tries the factory type directly and falls back to a `DbProviderFactories` registration. |
+| `Install` | `internal static void Install()` | Adds the `AssemblyResolve` handler. Idempotent, lock-guarded. |
+| `ResolveBySimpleName` | `private static Assembly (object, ResolveEventArgs)` | Last chance: matches a failed bind by simple name against the application folder. |
+| `FromFactoryType` | `private static DbProviderFactory (ISqlDialect)` | `Type.GetType` on `ProviderFactoryTypeName`, then reads the static `Instance` member. |
+| `FromConfiguredProviders` | `private static DbProviderFactory (ISqlDialect)` | The optional `DbProviderFactories` route. |
+
+### What this replaced
+
+Two blocks of configuration, both now unnecessary:
+
+- **`<system.data><DbProviderFactories>`** — every ADO.NET provider exposes a public static
+  `Instance` field on its factory (the convention `DbProviderFactories` itself relies on), so the
+  factory is read straight off the type.
+- **`<assemblyBinding>` redirects** — Npgsql's dependencies have file versions ahead of the versions
+  it was compiled against, and because there is no compile-time reference the build cannot generate
+  redirects. `ResolveBySimpleName` does what a wildcard redirect would: it was observed resolving
+  `System.Runtime.CompilerServices.Unsafe v4.0.5.0 → v4.0.4.1` at runtime.
+
+A provider now works **by being present beside the executable**. Nothing to register, nothing to keep
+in step, and no way for a site to get the config subtly wrong.
+
+The direct type load is tried first so the assembly shipped beside the executable is the one used; a
+`DbProviderFactories` registration still wins if a site adds one, leaving the config route available
+for anyone who wants to point at a different build.
+
+**Still no compile-time reference.** The application depends on neither Npgsql nor
+System.Data.SQLite, so the shipped binary is identical everywhere — which is what keeps the
+framework-only rule intact. See [../rules-csharp.md](../rules-csharp.md).

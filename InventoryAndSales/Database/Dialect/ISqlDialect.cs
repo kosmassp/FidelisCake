@@ -16,8 +16,15 @@ namespace InventoryAndSales.Database.Dialect
     /// <summary>Name used in the ConnectionProvider setting and in log messages.</summary>
     string Name { get; }
 
-    /// <summary>ADO.NET invariant name resolved through DbProviderFactories, e.g. "Npgsql".</summary>
+    /// <summary>ADO.NET invariant name, e.g. "Npgsql". Only used for the optional config route.</summary>
     string ProviderInvariantName { get; }
+
+    /// <summary>
+    /// Assembly-qualified name of the provider's factory type, e.g.
+    /// "Npgsql.NpgsqlFactory, Npgsql". This is what the loader uses, so a provider works by being
+    /// present beside the executable - no registration needed.
+    /// </summary>
+    string ProviderFactoryTypeName { get; }
 
     // ---- identifiers and literals -------------------------------------------------------------
 

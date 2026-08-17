@@ -97,7 +97,8 @@ edit them through the WinForms designer, not by hand.
 | `Database/Dialect/SqlServerDialect.cs` | Microsoft SQL Server — the default. |
 | `Database/Dialect/PostgreSqlDialect.cs` | PostgreSQL, via Npgsql. |
 | `Database/Dialect/SqliteDialect.cs` | SQLite, via System.Data.SQLite. |
-| `Database/Dialect/SqlDialectFactory.cs` | Picks the dialect from config and resolves the ADO.NET provider at runtime. |
+| `Database/Dialect/SqlDialectFactory.cs` | Picks the dialect from the `DatabaseProvider` setting. |
+| `Database/Dialect/ProviderLoader.cs` | Loads the provider assembly with **no config** — replaces both the `DbProviderFactories` registration and the binding redirects. |
 
 ### Database/DataAccess — [index/InventoryAndSales.Database.DataAccess.md](index/InventoryAndSales.Database.DataAccess.md)
 

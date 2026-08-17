@@ -32,6 +32,11 @@ namespace InventoryAndSales.Database.Dialect
       get { return "System.Data.SQLite"; }
     }
 
+    public override string ProviderFactoryTypeName
+    {
+      get { return "System.Data.SQLite.SQLiteFactory, System.Data.SQLite"; }
+    }
+
     public override string Quote(string identifier)
     {
       return "\"" + identifier.Replace("\"", "\"\"") + "\"";

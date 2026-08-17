@@ -64,23 +64,25 @@ namespace InventoryAndSales.Database.Dialect
 
     /// <summary>
     /// Resolves the ADO.NET factory for a dialect.
+    ///
+    /// Nothing has to be declared in App.config for this to work - see <see cref="ProviderLoader"/>.
     /// </summary>
     /// <exception cref="ConfigurationErrorsException">
-    /// The provider is not registered. The message names the assembly the site has to install, since
-    /// whoever hits this is setting up a machine rather than reading source.
+    /// The provider assembly could not be loaded. The message names the file the site is missing,
+    /// since whoever hits this is setting up a machine rather than reading source.
     /// </exception>
     public static DbProviderFactory ResolveProviderFactory(ISqlDialect dialect)
     {
       try
       {
-        return DbProviderFactories.GetFactory(dialect.ProviderInvariantName);
+        return ProviderLoader.Resolve(dialect);
       }
       catch (Exception e)
       {
         string message = string.Format(
-          "Database provider '{0}' for {1} is not registered. Install the provider and add it to " +
-          "<system.data><DbProviderFactories> in App.config.",
-          dialect.ProviderInvariantName, dialect.Name);
+          "Database provider for {0} could not be loaded. Check that its assemblies were installed " +
+          "alongside the application.",
+          dialect.Name);
         _log.Error(message, e);
         throw new ConfigurationErrorsException(message, e);
       }

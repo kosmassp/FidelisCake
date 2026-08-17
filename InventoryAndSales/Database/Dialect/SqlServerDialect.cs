@@ -20,6 +20,11 @@ namespace InventoryAndSales.Database.Dialect
       get { return "System.Data.SqlClient"; }
     }
 
+    public override string ProviderFactoryTypeName
+    {
+      get { return "System.Data.SqlClient.SqlClientFactory, System.Data"; }
+    }
+
     public override string Quote(string identifier)
     {
       return "[" + identifier.Replace("]", "]]") + "]";

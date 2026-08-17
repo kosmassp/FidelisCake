@@ -27,6 +27,11 @@ namespace InventoryAndSales.Database.Dialect
       get { return "Npgsql"; }
     }
 
+    public override string ProviderFactoryTypeName
+    {
+      get { return "Npgsql.NpgsqlFactory, Npgsql"; }
+    }
+
     public override string Quote(string identifier)
     {
       return "\"" + identifier.Replace("\"", "\"\"") + "\"";

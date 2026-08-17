@@ -12,10 +12,13 @@ Three are supported, chosen by the `DatabaseProvider` setting in `App.config`:
 | `Sqlite` | SQLite — a single file | `System.Data.SQLite` | verified end-to-end |
 | `PostgreSql` | PostgreSQL | `Npgsql` | **generated SQL reviewed; not yet run against a live server** |
 
-The application holds **no compile-time reference** to Npgsql or System.Data.SQLite. The provider is
-resolved at runtime through `DbProviderFactories`, so the shipped binary is identical everywhere and
-a site that wants one copies the assembly beside the executable and uncomments its entry in
-`App.config`.
+The application holds **no compile-time reference** to Npgsql or System.Data.SQLite — the shipped
+binary is identical everywhere. Their assemblies live in `InventoryAndSales/Include/` and are copied
+beside the executable by the build, and `Database/Dialect/ProviderLoader.cs` loads whichever one the
+setting names.
+
+**Switching database is one line of config.** There is no provider registration and no binding
+redirect to maintain: a provider works by being present beside the executable.
 
 Everything product-specific lives in `Database/Dialect/`; the schema is declared once, without DDL,
 in `Database/Schema/DatabaseSchema.cs`. See

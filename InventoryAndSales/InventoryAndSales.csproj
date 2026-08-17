@@ -78,6 +78,7 @@
     <Compile Include="Business\MasterManager.cs" />
     <Compile Include="Database\Dialect\ISqlDialect.cs" />
     <Compile Include="Database\Dialect\PostgreSqlDialect.cs" />
+    <Compile Include="Database\Dialect\ProviderLoader.cs" />
     <Compile Include="Database\Dialect\SqlDialectBase.cs" />
     <Compile Include="Database\Dialect\SqlDialectFactory.cs" />
     <Compile Include="Database\Dialect\SqliteDialect.cs" />
@@ -347,6 +348,16 @@
     no project edit. Link flattens them into the output root, which is where the CLR probes.
   -->
   <ItemGroup>
+    <Content Include="Include\PostgreSql\Microsoft.Bcl.AsyncInterfaces.dll" />
+    <Content Include="Include\PostgreSql\Npgsql.dll" />
+    <Content Include="Include\PostgreSql\System.Buffers.dll" />
+    <Content Include="Include\PostgreSql\System.Memory.dll" />
+    <Content Include="Include\PostgreSql\System.Numerics.Vectors.dll" />
+    <Content Include="Include\PostgreSql\System.Runtime.CompilerServices.Unsafe.dll" />
+    <Content Include="Include\PostgreSql\System.Text.Encodings.Web.dll" />
+    <Content Include="Include\PostgreSql\System.Text.Json.dll" />
+    <Content Include="Include\PostgreSql\System.Threading.Tasks.Extensions.dll" />
+    <Content Include="Include\PostgreSql\System.ValueTuple.dll" />
     <Content Include="Include\Sqlite\*.dll">
       <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -355,6 +366,8 @@
       <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Include\Sqlite\System.Data.SQLite.dll" />
+    <Content Include="Include\Sqlite\x64\SQLite.Interop.dll" />
     <!--
       The native SQLite engine, which unlike the rest must keep its architecture sub-folder:
       System.Data.SQLite picks x86 or x64 at runtime to match the process.
@@ -368,13 +381,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
   <!--
     Report assets. Only the two files a generated report actually references are shipped; the rest of
     Report\ is the full DataTables download kept for reference and is not needed at runtime.
     ReportService copies these into the configured report folder on demand.
   -->
   <ItemGroup>
+    <Content Include="Include\Sqlite\x86\SQLite.Interop.dll" />
     <Content Include="Report\datatables.min.css">
       <Link>Report\datatables.min.css</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -384,7 +397,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
+  <ItemGroup>
+    <Folder Include="Report\" />
+    <Folder Include="x64\" />
+    <Folder Include="x86\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
