@@ -316,6 +316,10 @@ namespace InventoryAndSales.GUI.Page
 
     private bool _loadingPaymentMethod;
 
+    /// <summary>The terminal/provider row in <c>tableLayoutFields</c>, and its height when shown.</summary>
+    private const int ReferenceRowIndex = 1;
+    private const float ReferenceRowHeight = 27F;
+
     /// <summary>
     /// An entry in the method combo. Keeps the label and the value together so the screen never has
     /// to match on display text.
@@ -425,6 +429,9 @@ namespace InventoryAndSales.GUI.Page
 
       labelReference.Visible = exact;
       comboBoxReference.Visible = exact;
+      // Collapse the row rather than leaving a gap where the terminal would have been: cash is the
+      // common case and the remaining fields should sit straight under the method.
+      tableLayoutFields.RowStyles[ReferenceRowIndex].Height = exact ? ReferenceRowHeight : 0F;
       labelReference.Text = qris ? "Provider" : "Terminal";
       textBoxPayment.ReadOnly = exact;
 
