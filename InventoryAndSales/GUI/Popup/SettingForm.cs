@@ -1,5 +1,9 @@
-﻿using InventoryAndSales.GUI.Controller;
+﻿using InventoryAndSales.Business;
+using InventoryAndSales.Database.Model;
+using InventoryAndSales.Enumeration;
+using InventoryAndSales.GUI.Controller;
 using InventoryAndSales.GUI.Popup.SettingPage;
+using InventoryAndSales.GUI.Util;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,9 +35,13 @@ namespace InventoryAndSales.GUI.Popup
 
       public string Tag { get; private set; }
 
-      public SettingPageEntry(string tag, Func<UserControl> factory)
+      /// <summary>Permission a user must hold for this page to be listed at all.</summary>
+      public AccessOption Required { get; private set; }
+
+      public SettingPageEntry(string tag, AccessOption required, Func<UserControl> factory)
       {
         Tag = tag;
+        Required = required;
         _factory = factory;
       }
 
@@ -60,11 +68,39 @@ namespace InventoryAndSales.GUI.Popup
       Initialize();
     }
 
+    /// <summary>
+    /// Registers the pages. A page is only listed when the signed-in user holds the permission it
+    /// declares, so a cashier who reaches this dialog simply does not see it.
+    /// </summary>
     private void Initialize()
     {
-      listBoxSettingSelection.Items.Add(new SettingPageEntry("Nota", () => new HeaderAndFooterForm()));
-      listBoxSettingSelection.Items.Add(new SettingPageEntry("Laporan", () => new ReportSettingForm()));
-      listBoxSettingSelection.Items.Add(new SettingPageEntry("Keamanan", () => new SecuritySettingForm()));
+      List<SettingPageEntry> pages = new List<SettingPageEntry>
+      {
+        new SettingPageEntry("Nota", AccessOption.Master, () => new HeaderAndFooterForm()),
+        new SettingPageEntry("Laporan", AccessOption.Master, () => new ReportSettingForm()),
+        // Printer and security are administrator-only: one decides where every receipt goes, the
+        // other whether the recovery account still works.
+        new SettingPageEntry("Printer", AccessOption.Admin, () => new PrinterSettingForm()),
+        new SettingPageEntry("Keamanan", AccessOption.Admin, () => new SecuritySettingForm()),
+      };
+
+      User activeUser = BusinessFactory.GetInstance().LoginManager.ActiveUser;
+      int role = activeUser == null ? 0 : activeUser.Role;
+
+      foreach (SettingPageEntry page in pages)
+      {
+        if (BusinessUtil.AllowedRole(role, page.Required))
+          listBoxSettingSelection.Items.Add(page);
+        else
+          _log.InfoFormat("Hiding settings page '{0}' - requires {1}.", page.Tag, page.Required);
+      }
+
+      if (listBoxSettingSelection.Items.Count == 0)
+      {
+        MessageBox.Show("Anda tidak memiliki akses ke pengaturan.", "Akses Ditolak",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+        BeginInvoke(new MethodInvoker(Close));
+      }
     }
 
     private void listBoxSettingSelection_SelectedIndexChanged(object sender, EventArgs e)

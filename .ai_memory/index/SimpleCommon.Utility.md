@@ -48,11 +48,26 @@ different stored values for different users; null, empty and malformed input ret
 
 Receipt printing over `System.Drawing.Printing`. Three types in one file.
 
+### `public class PrintSettings`
+
+Where and how a receipt is printed, **passed in rather than read from configuration** — the library
+no longer depends on the hosting application's `App.config`.
+
+| Member | Purpose |
+|---|---|
+| `PrinterName` | Windows printer name. Empty or null uses the Windows default. |
+| `PaperWidthMm` | Printable width in millimetres — what an operator reads off the roll. |
+| `PaperWidthUnits` | The same in the hundredths of an inch `PaperSize` expects. |
+| `MillimetresToUnits` / `UnitsToMillimetres` | `static int (int)` conversions. |
+
 ### `public class PrinterUtility`
 
 | Member | Signature | Purpose |
 |---|---|---|
-| `Print` | `static void Print(List<StringPrint> textToPrint, Font font)` | Wraps the lines in a `PrintObject` and prints. |
+| `Print` | `static void Print(List<StringPrint> textToPrint, Font font, PrintSettings settings)` | Wraps the lines in a `PrintObject` and prints. |
+| `GetInstalledPrinters` | `static List<string> ()` | Printers installed on this machine, for the settings dropdown. |
+| `GetDefaultPrinterName` | `static string ()` | What Windows would print to when none is chosen. |
+| `IsPrinterAvailable` | `static bool (string printerName)` | Whether a printer exists and reports itself usable, so the operator gets a message rather than an exception. |
 
 ### `public class StringPrint`
 
@@ -69,7 +84,7 @@ One printable line: text plus alignment.
 | Member | Signature | Purpose |
 |---|---|---|
 | *(ctor)* | `PrintObject(List<StringPrint> textToPrint, Font font)` | Stores the lines and font, takes a `List<T>.Enumerator`. |
-| `Print` | `void Print()` | Reads `ConfigurationManager.AppSettings["PrinterName"]`, builds a `PrintDocument` with paper size `"Receipt"` **265 × 10000** and zero margins, subscribes `pd_PrintPage`, prints. |
+| `Print` | `void Print()` | Builds a `PrintDocument` from the supplied `PrintSettings` — paper size `"Receipt"` at the configured width × 10000, zero margins — subscribes `pd_PrintPage`, prints, and disposes the document. Leaves the printer unset when the name is empty, so Windows picks. |
 | `pd_PrintPage` | `private void (object, PrintPageEventArgs)` | Computes lines per page from the font height, draws each line into a `RectangleF` with its `StringFormat`, and sets `HasMorePages` while lines remain. |
 
 Paper is 265 units wide (~2.65 in, matching an 80 mm thermal roll) and effectively unbounded in

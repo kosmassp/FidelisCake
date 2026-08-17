@@ -119,7 +119,14 @@
     <Compile Include="GUI\Controller\CashierController.cs" />
     <Compile Include="GUI\Controller\SettingPageController.cs" />
     <Compile Include="GUI\Controller\SettingPage\HeaderAndFooterController.cs" />
+    <Compile Include="GUI\Controller\SettingPage\PrinterSettingController.cs" />
     <Compile Include="GUI\Controller\SettingPage\ReportSettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\PrinterSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\PrinterSetting.Designer.cs">
+      <DependentUpon>PrinterSetting.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Controller\SettingPage\SecuritySettingController.cs" />
     <Compile Include="GUI\Popup\SettingPage\ReportSetting.cs">
       <SubType>UserControl</SubType>

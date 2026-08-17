@@ -31,16 +31,24 @@ absent, so operator edits survive restarts:
 | `FOOTER` | `GENERAL` | `TERIMA KASIH` / `SELAMAT MENIKMATI` |
 | `REPORT_DIRECTORY` | `REPORT` | `<Documents>\FidelisCake\Laporan` |
 | `ALLOW_BUILTIN_ADMIN` | `SECURITY` | `true` |
+| `PRINTER_NAME` | `PRINTER` | seeded from the `PrinterName` entry in `App.config`; empty means the Windows default printer |
+| `PRINTER_PAPER_WIDTH_MM` | `PRINTER` | `67` |
 
 **The seed list is data, not code:** `Business/SettingKeys.cs → Seed()` returns the rows a database
 is expected to have, and `UpsertSettingRow` inserts whichever are missing. Because installations sit
 on many different versions with no migration history, adding a key there is all that is needed for
 an old site to pick it up on its next launch.
 
-Reads go through `Business/SettingsService.cs`, which falls back to a caller-supplied default (then
-to the row's `Default`) rather than throwing. A missing row can therefore no longer break the
-feature that reads it — `CashierManager` previously called `.First()` and would throw if `HEADER`
-had been deleted.
+Reads go through `Business/SettingsService.cs`, which falls back to a caller-supplied default rather
+than throwing when the **row is missing**. A missing row can therefore no longer break the feature
+that reads it — `CashierManager` previously called `.First()` and would throw if `HEADER` had been
+deleted.
+
+⚠ An existing row's value is returned **as-is, empty included**. Empty is a real answer for some
+settings — it is how "use the Windows default printer" is expressed — and an earlier version fell
+back to the seeded `Default` for an empty value, which made such a value impossible to save: it was
+written, then read back as whatever the row was first seeded with. The `Default` column is now only
+a record of the original seed.
 
 ### Newline encoding
 
@@ -84,11 +92,18 @@ discount. Fine as a sample; just do not read it as a formula.
 *Pengaturan* opens `SettingForm`: a list of pages on the left, the selected page on the right.
 Three pages are registered today.
 
-| Page (`Tag`) | Control | Controller |
-|---|---|---|
-| Nota | `HeaderAndFooterForm` | `HeaderAndFooterController` |
-| Laporan | `ReportSettingForm` | `ReportSettingController` |
-| Keamanan | `SecuritySettingForm` | `SecuritySettingController` |
+| Page (`Tag`) | Requires | Control | Controller |
+|---|---|---|---|
+| Nota | `Master` | `HeaderAndFooterForm` | `HeaderAndFooterController` |
+| Laporan | `Master` | `ReportSettingForm` | `ReportSettingController` |
+| Printer | **`Admin`** | `PrinterSettingForm` | `PrinterSettingController` |
+| Keamanan | **`Admin`** | `SecuritySettingForm` | `SecuritySettingController` |
+
+**Pages are gated by permission.** Each declares an `AccessOption`, and `SettingForm.Initialize`
+only lists the ones the signed-in user holds — a cashier who reaches the dialog sees nothing and it
+closes. Printer and security are administrator-only: one decides where every receipt goes, the other
+whether the recovery account still works. Only `RoleOptions.Admin` (1023) carries the `Admin` bit, so
+a Supervisor (14) sees Nota and Laporan but not those two.
 
 Pages are **built lazily** — `SettingForm.Initialize()` registers a `Tag` plus a factory, and the
 control is created the first time its row is selected. Opening Settings therefore no longer runs

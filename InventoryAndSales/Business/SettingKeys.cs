@@ -17,6 +17,7 @@ namespace InventoryAndSales.Business
     public const string GroupGeneral = "GENERAL";
     public const string GroupReport = "REPORT";
     public const string GroupSecurity = "SECURITY";
+    public const string GroupPrinter = "PRINTER";
 
     /// <summary>Receipt header lines. Multi-line - stored with %NEW_LINE% separators.</summary>
     public const string Header = "HEADER";
@@ -35,6 +36,25 @@ namespace InventoryAndSales.Business
     /// installations keep working exactly as before after an upgrade.
     /// </summary>
     public const string AllowBuiltInAdmin = "ALLOW_BUILTIN_ADMIN";
+
+    /// <summary>
+    /// Windows name of the receipt printer. Empty means the Windows default printer.
+    ///
+    /// Seeded from the PrinterName entry in App.config so an upgrade keeps printing to whatever the
+    /// site was already using; from then on it is edited in the application.
+    /// </summary>
+    public const string PrinterName = "PRINTER_NAME";
+
+    /// <summary>
+    /// Printable width of the receipt paper, in millimetres. Governs where receipt lines wrap.
+    /// </summary>
+    public const string PrinterPaperWidthMm = "PRINTER_PAPER_WIDTH_MM";
+
+    /// <summary>
+    /// Roll width the previous build effectively used: it hardcoded 265 hundredths of an inch,
+    /// which is 67.3 mm. Rounding to 67 keeps every existing receipt laid out as before.
+    /// </summary>
+    public const int DefaultPaperWidthMm = 67;
 
     /// <summary>Marker used inside a setting value to represent a line break.</summary>
     public const string NewLineToken = "%NEW_LINE%";
@@ -73,7 +93,22 @@ namespace InventoryAndSales.Business
         new SettingSeed(ReportDirectory, GroupReport, DefaultReportDirectory()),
 
         new SettingSeed(AllowBuiltInAdmin, GroupSecurity, "true"),
+
+        new SettingSeed(PrinterName, GroupPrinter, LegacyConfiguredPrinterName()),
+        new SettingSeed(PrinterPaperWidthMm, GroupPrinter,
+                        DefaultPaperWidthMm.ToString(System.Globalization.CultureInfo.InvariantCulture)),
       };
+    }
+
+    /// <summary>
+    /// The printer this installation was already using, taken from App.config once so that moving
+    /// the setting into the database does not silently change which printer receipts go to.
+    /// Empty when unset, which means the Windows default printer.
+    /// </summary>
+    private static string LegacyConfiguredPrinterName()
+    {
+      string configured = System.Configuration.ConfigurationManager.AppSettings["PrinterName"];
+      return configured == null ? string.Empty : configured.Trim();
     }
 
     /// <summary>

@@ -34,8 +34,11 @@ namespace InventoryAndSales.Business
           _log.WarnFormat("Setting '{0}' not found, using default.", key);
           return fallback;
         }
-        if (string.IsNullOrEmpty(setting.Value))
-          return string.IsNullOrEmpty(setting.Default) ? fallback : setting.Default;
+
+        // An existing row's value is returned as-is, empty included. Empty is a real answer for
+        // some settings - it is how "use the Windows default printer" is expressed - and falling
+        // back to the seeded Default here made such a value impossible to save: it was written,
+        // then read back as whatever the row was first seeded with.
         return setting.Value;
       }
       catch (Exception e)
@@ -78,6 +81,24 @@ namespace InventoryAndSales.Business
     public void SetBool(string key, bool value)
     {
       SetString(key, value ? "true" : "false");
+    }
+
+    public int GetInt(string key, int fallback)
+    {
+      string raw = GetString(key, null);
+      int parsed;
+      if (int.TryParse((raw ?? string.Empty).Trim(), System.Globalization.NumberStyles.Integer,
+                       System.Globalization.CultureInfo.InvariantCulture, out parsed))
+        return parsed;
+
+      if (!string.IsNullOrEmpty(raw))
+        _log.WarnFormat("Setting '{0}' has non-numeric value '{1}', using default.", key, raw);
+      return fallback;
+    }
+
+    public void SetInt(string key, int value)
+    {
+      SetString(key, value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     /// <summary>

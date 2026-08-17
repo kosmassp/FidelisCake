@@ -9,10 +9,8 @@ the `.Designer.cs` files** — edit the `.resx` through the IDE and let it regen
 | `Resources.resx` | Embedded resource definitions. |
 | `Resources.Designer.cs` | Generated strongly-typed accessors — `Resources.ResourceManager`, `Resources.Culture`, one property per resource. |
 
-There is no `Settings.settings` here. `PrinterUtility` reads `PrinterName` from the **hosting
-application's** `App.config` via `ConfigurationManager.AppSettings`, which is why the library
-references `System.configuration`.
+There is no `Settings.settings` here, and the library reads no configuration of its own.
 
-⚠ Note: that makes the library implicitly dependent on a config key the host must define — a hidden
-coupling. Passing the printer name into `PrinterUtility.Print` would make the dependency explicit
-and keep the library self-contained.
+`PrinterUtility` used to reach into the **hosting application's** `App.config` for `PrinterName` — a
+hidden coupling to a key the host had to define. It now takes a `PrintSettings` argument, so the
+dependency is explicit and the library is self-contained.

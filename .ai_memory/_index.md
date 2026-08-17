@@ -36,7 +36,8 @@ edit them through the WinForms designer, not by hand.
 | Anything database-product specific | `InventoryAndSales/Database/Dialect/` |
 | Support for another database | Add an `ISqlDialect`; nothing else changes |
 | Auto table creation / migration on startup | `InventoryAndSales/Database/DBUtility.cs` |
-| Which database, connection string, printer | `InventoryAndSales/App.config` |
+| Which database, connection string | `InventoryAndSales/App.config` |
+| Printer and paper width | *Pengaturan → Printer* (Admin), stored in `M_SETTINGS` |
 | Product CSV import/export | `InventoryAndSales/GUI/Page/MasterProductPage.cs` |
 | The physical print routine | `SimpleCommon/Utility/PrinterUtility.cs` |
 
@@ -49,7 +50,7 @@ edit them through the WinForms designer, not by hand.
 | File | Purpose |
 |---|---|
 | `InventoryAndSales/Program.cs` | Entry point. Forces `en-US` culture, runs `SplashForm` then `MainForm`, logs unhandled exceptions. |
-| `InventoryAndSales/App.config` | `ConnectionString` and `PrinterName` app settings. |
+| `InventoryAndSales/App.config` | `DatabaseProvider` and `ConnectionString`. Also `PrinterName`, read once to seed the printer setting. |
 | `InventoryAndSales/log4net.config` | Logging to console + rolling `Log\log.txt`. |
 | `InventoryAndSales/InventoryAndSales.csproj` | Project file, compile list, references. |
 
@@ -64,7 +65,7 @@ edit them through the WinForms designer, not by hand.
 | `Business/LoginManager.cs` | Authentication policy: credentials, the built-in recovery account, transparent password re-hashing. |
 | `Business/MasterManager.cs` | Product and user master CRUD (soft delete). |
 | `Business/ReportManager.cs` | Facade over report queries. |
-| `Business/ReportService.cs` | Report folder resolution and unpacking the DataTables assets from `reportassets.zip`. |
+| `Business/ReportService.cs` | Report folder resolution and copying the DataTables assets out of `Report`. |
 | `Business/SettingKeys.cs` | Every `M_SETTINGS` key, its group and its seeded default. |
 | `Business/SettingsService.cs` | Typed reads/writes over `M_SETTINGS`, with fallbacks instead of throws. |
 | `Business/ViewManager.cs` | Transaction browsing (used by the history picker). |
@@ -104,7 +105,7 @@ edit them through the WinForms designer, not by hand.
 
 | File | Purpose |
 |---|---|
-| `Database/DataAccess/BaseDao.cs` | Generic CRUD over `IDataTable` metadata; string-concatenated SQL. |
+| `Database/DataAccess/BaseDao.cs` | Generic CRUD over `IDataTable` metadata; parameterised, dialect-quoted SQL. |
 | `Database/DataAccess/CustomDao.cs` | All hand-written report/view SQL. CRUD methods throw. |
 | `Database/DataAccess/CustomerDao.cs` | `BaseDao<Customer>`, no extras. |
 | `Database/DataAccess/ProductDao.cs` | `BaseDao<Product>`, no extras. |
@@ -181,6 +182,7 @@ edit them through the WinForms designer, not by hand.
 | File | Purpose |
 |---|---|
 | `GUI/Controller/SettingPage/HeaderAndFooterController.cs` | Read/write receipt header & footer; build a live sample receipt. |
+| `GUI/Controller/SettingPage/PrinterSettingController.cs` | Choose the printer, set paper width, run a test print. |
 | `GUI/Controller/SettingPage/ReportSettingController.cs` | Validate, save and provision the report folder. |
 | `GUI/Controller/SettingPage/SecuritySettingController.cs` | Toggle the built-in recovery account; refuse if it would lock everyone out. |
 
@@ -219,6 +221,7 @@ edit them through the WinForms designer, not by hand.
 | File | Purpose |
 |---|---|
 | `GUI/Popup/SettingPage/HeaderAndFooter.cs` | `HeaderAndFooterForm` — edit receipt header/footer with live preview. |
+| `GUI/Popup/SettingPage/PrinterSetting.cs` | `PrinterSettingForm` — printer, paper width, test print. **Admin only.** |
 | `GUI/Popup/SettingPage/ReportSetting.cs` | `ReportSettingForm` — choose the report folder, check asset status. |
 | `GUI/Popup/SettingPage/SecuritySetting.cs` | `SecuritySettingForm` — allow or forbid the built-in recovery account. |
 

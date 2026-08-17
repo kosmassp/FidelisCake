@@ -60,18 +60,33 @@ Kembalian    : Rp. 13,000.00
 
 ## Printer configuration
 
-`PrinterUtility` → `PrintObject.Print()`:
+Both the printer and the paper width are **settings**, edited under *Pengaturan → Printer*
+(administrators only). They were an `App.config` entry and a hardcoded constant respectively.
 
-| Setting | Value |
-|---|---|
-| Printer | `ConfigurationManager.AppSettings["PrinterName"]` from `App.config` |
-| Paper | `new PaperSize("Receipt", 265, 10000)` — ~2.65 in wide, effectively unbounded length |
-| Margins | `new Margins(0, 0, 0, 0)` |
-| Font | `Courier New` 9pt, fixed-width so the column alignment holds |
+| Setting | Key | Notes |
+|---|---|---|
+| Printer | `PRINTER_NAME` | Empty means the Windows default printer. Seeded from the old `App.config` entry, so an upgrade keeps printing where it always did. |
+| Paper width | `PRINTER_PAPER_WIDTH_MM` | Millimetres — what an operator reads off the roll. Default 67. |
+| Margins | — | `Margins(0, 0, 0, 0)` |
+| Font | — | `Courier New` 9pt, fixed-width so the column alignment holds |
+| Page height | — | 10000 units, i.e. effectively unbounded: a receipt is one long page |
 
-`App.config` currently selects `Microsoft Print to PDF`; the commented alternative
-`EPSON TM-U220 Receipt` is the real thermal printer. **Switching printers is a config change, not a
-code change.**
+`PrintSettings` converts millimetres to the hundredths of an inch `PaperSize` expects. The default of
+67 mm reproduces the 265 units the previous build hardcoded, to within a quarter of a millimetre.
+
+`PrinterUtility` no longer reads configuration — the caller passes a `PrintSettings`, which removes
+the hidden dependency the library had on the hosting application's `App.config`.
+
+### The printer settings page
+
+- Dropdown of installed printers, plus an explicit *Windows default* entry. A configured printer
+  that is not installed on this machine stays listed and is flagged, rather than being silently
+  swapped.
+- Paper width in mm, with 58 mm and 80 mm shortcuts for the common rolls.
+- **Test print** renders a sample receipt through `ReceiptBuilder` using the values *currently on
+  screen*, not the saved ones, so a width can be tried before committing to it. It appends the width
+  in use, so a line that wraps or runs off the paper says plainly that the setting is wrong.
+- A text preview of the sample, shown in the receipt font.
 
 `pd_PrintPage` computes lines per page from the font height, draws each line into a `RectangleF`
 with its `StringFormat`, and sets `HasMorePages` while lines remain — so one receipt is one long

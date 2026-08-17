@@ -194,12 +194,20 @@ namespace InventoryAndSales.Business
       return _printFont;
     }
 
+    /// <summary>Printer and paper as configured for this installation.</summary>
+    public PrintSettings GetPrintSettings()
+    {
+      return new PrintSettings(
+        _settings.GetString(SettingKeys.PrinterName, string.Empty),
+        _settings.GetInt(SettingKeys.PrinterPaperWidthMm, SettingKeys.DefaultPaperWidthMm));
+    }
+
     public void PrintPaymentNote(Transaction transaction, List<TransactionDetail> transactionDetails)
     {
       List<StringPrint> stringToPrint = ReceiptBuilder.Build(
         GetHeaderNote(), GetFooterNote(), transaction, transactionDetails, ResolveCashierName(transaction.UserId));
 
-      PrinterUtility.Print(stringToPrint, _printFont);
+      PrinterUtility.Print(stringToPrint, _printFont, GetPrintSettings());
     }
 
     /// <summary>
