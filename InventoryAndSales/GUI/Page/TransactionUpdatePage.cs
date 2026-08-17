@@ -183,8 +183,8 @@ namespace InventoryAndSales.GUI.Page
             if (selectedIndex < 0)
               selectedIndex = rowIdProduct.Key;
           }
-          else if (product.Name.ToLower().Contains(filter.ToLower())
-                   || product.Code.StartsWith(filter, StringComparison.InvariantCultureIgnoreCase))
+          else if ((product.Name ?? string.Empty).IndexOf(filter, StringComparison.CurrentCultureIgnoreCase) >= 0
+                   || (product.Code ?? string.Empty).StartsWith(filter, StringComparison.InvariantCultureIgnoreCase))
           {
             dataGridViewItemList.Rows[rowIdProduct.Key].Visible = true;
             filterCountResult++;
@@ -420,7 +420,8 @@ namespace InventoryAndSales.GUI.Page
 
     private void buttonBack_Click(object sender, EventArgs e)
     {
-      controller.Unload();
+      // No unsubscribe needed any more: this screen owns its own Cart, so there is nothing attached
+      // to a shared object that could outlive the window.
       if (BackClick != null)
         BackClick(this, null);
     }

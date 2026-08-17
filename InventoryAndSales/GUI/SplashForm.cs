@@ -49,17 +49,44 @@ namespace InventoryAndSales.GUI
 
     public void Start()
     {
-      Thread.Sleep(200);
-      SetProgressBar(10, "Initializing");
-      Thread.Sleep(200);
-      SetProgressBar(40, "Checking Database");
-      DBUtility.CheckForDatabaseTable();
-      SetProgressBar(90, "Inserting Important Row in the Database");
-      DBUtility.CheckForDatabaseRow();
-      Thread.Sleep(500);
-      SetProgressBar(100, "Starting");
-      Thread.Sleep(200);
+      try
+      {
+        Thread.Sleep(200);
+        SetProgressBar(10, "Initializing");
+        Thread.Sleep(200);
+        SetProgressBar(40, "Checking Database");
+        DBUtility.CheckForDatabaseTable();
+        SetProgressBar(90, "Inserting Important Row in the Database");
+        DBUtility.CheckForDatabaseRow();
+        Thread.Sleep(500);
+        SetProgressBar(100, "Starting");
+        Thread.Sleep(200);
+      }
+      catch (Exception e)
+      {
+        // Without this the splash screen simply hung: the success flag was never set and the form
+        // was never closed, so the application appeared frozen with no explanation.
+        log.Error("Startup checks failed.", e);
+        ReportStartupFailure();
+      }
+    }
 
+    private void ReportStartupFailure()
+    {
+      if (InvokeRequired)
+      {
+        this.BeginInvoke(new MethodInvoker(ReportStartupFailure));
+        return;
+      }
+
+      MessageBox.Show(
+        "Aplikasi tidak dapat terhubung ke database." + Environment.NewLine + Environment.NewLine +
+        "Pastikan SQL Server berjalan, lalu jalankan ulang aplikasi. " +
+        "Jika berulang, hubungi teknisi dan sertakan file Log\\log.txt.",
+        "Gagal Memulai", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+      InitializationCheckSuccess = false;
+      Close();
     }
 
   }

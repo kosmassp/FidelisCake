@@ -1,0 +1,207 @@
+# Directory: `InventoryAndSales/Business/`
+
+Namespace `InventoryAndSales.Business`. The business layer. Everything here is UI-agnostic and
+database-agnostic — it depends on `Database.Manager` classes, never on DAOs or WinForms types
+(the exception is `System.Drawing` in the receipt layout, for fonts and alignment).
+
+Related business documentation: [../business-overview.md](../business-overview.md),
+[../business-cart-and-pricing.md](../business-cart-and-pricing.md),
+[../business-checkout.md](../business-checkout.md).
+
+---
+
+## `BusinessFactory.cs`
+
+`public class BusinessFactory` — thread-safe lazy singleton, the composition root of the business
+layer.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `GetInstance` | `static BusinessFactory GetInstance()` | Double-checked-locked singleton accessor. |
+| `Settings` | `SettingsService { get; private set; }` | Typed access to `M_SETTINGS`. |
+| `ReportService` | `ReportService { get; private set; }` | Report folder and asset provisioning. |
+| `CashierManager` | `CashierManager { get; private set; }` | Checkout, revision, cancel, receipts. |
+| `LoginManager` | `LoginManager { get; private set; }` | Authentication and active user. |
+| `MasterManager` | `MasterManager { get; private set; }` | Product and user master data. |
+| `ReportManager` | `ReportManager { get; private set; }` | Reporting queries. |
+| `ViewManager` | `ViewManager { get; private set; }` | Transaction browsing. |
+| *(ctor)* | `private BusinessFactory()` | Builds `SettingsService` first, then everything that needs it. |
+
+Constructor injection throughout — this and `DBFactory` are the only two lookups.
+
+---
+
+## `Cart.cs`
+
+`public class Cart` — the basket being rung up on **one** screen.
+
+`Dictionary<int, TransactionDetail> _items` keyed by `Product.Id`, guarded by `_lockItems`. One
+entry per product; quantities aggregate rather than creating extra lines.
+
+**Each screen owns its own instance** (`CashierController` and `TransactionUpdateController` each
+construct one). It previously lived on the `CashierManager` singleton, which meant the correction
+window replaced whatever the cashier was ringing up and both screens reacted to each other.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `CartChange` | `event CartChangeDelegate` | Raised after every change with the product and its new quantity. |
+| `Add` | `bool Add(Product product, int quantityDelta)` | Adds to, or with a negative delta subtracts from, a line. A negative delta for a product not in the cart is a **no-op returning `true`** — it used to throw `KeyNotFoundException` internally. |
+| `SetQuantity` | `bool SetQuantity(Product product, int quantity)` | Absolute quantity; `<= 0` removes the line. |
+| `Remove` | `bool Remove(Product product)` | Drops the line, raises `CartChange` with `0`. |
+| `Clear` | `void Clear()` | Empties it. Deliberately silent — the caller resets its own grid. |
+| `GetTotal` | `decimal GetTotal(out decimal totalPrice, out decimal totalDiscount)` | Amount owed, plus gross and discount for the receipt. |
+| `GetLines` | `List<TransactionDetail> GetLines()` | Copy of the list (not of the lines) for checkout. |
+| `IsEmpty` | `bool { get; }` | Whether anything is in it. |
+
+All mutations log and return `false` rather than throwing, so a cart error never crashes the sale
+screen.
+
+---
+
+## `CashierManager.cs`
+
+`public class CashierManager` — turns a `Cart` into a persisted sale and a printed receipt, and
+handles correcting and voiding past sales. Stateless apart from `_lastFactur`.
+
+Dependencies: `TransactionManager`, `UserManager`, `SettingsService`.
+
+### Receipt notes
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `GetHeaderNote` / `GetFooterNote` | `string ()` | `M_SETTINGS` `HEADER` / `FOOTER`, newlines decoded. |
+| `SetHeaderNote` / `SetFooterNote` | `void (string)` | Encode and persist. |
+
+Encoding now lives in `SettingsService`, and a missing row falls back to a default instead of
+throwing.
+
+### Checkout and transactions
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `Checkout` | `TransactionStatus Checkout(Cart cart, decimal payment, string notes, int userId, long customerId, out string message)` | Builds and saves the sale atomically, records `_lastFactur`, then prints. Save failure → `FAILED`. Print failure → still `SUCCESS`, with a warning. |
+| `UpdateCheckout` | `void UpdateCheckout(Cart cart, Transaction original, decimal payment, string notes, int userId, long customerId)` | Correction: prefixes the notes with `"Ralat Dari Transaksi: …"`, writes the new sale and links the old one. |
+| `CancelTransaction` | `void CancelTransaction(string factur, int cancelledByUserId)` | Voids a sale, recording who authorised it. Throws if the faktur is unknown. |
+| `GetTransaction` | `Transaction GetTransaction(string factur, out List<TransactionDetail> details)` | Delegates to `TransactionManager`. |
+| `GetLastFactur` | `string ()` | Last sale of this session; in-memory only. |
+| `GenerateTransactionAndDetails` | `private Transaction (…)` | Builds the header from the cart, stamps the time and faktur, computes `Exchange`. |
+| `TrimNotes` | `private static string (string)` | Truncates to the `varchar(100)` column and logs, rather than letting the insert fail. |
+| `GenerateFactur` | `private static string ()` | `DateTime.Now.Ticks` — 18 digits, uniquely indexed. |
+
+### Printing
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `GetPrintFont` | `Font ()` | The receipt font; also used by the settings preview. |
+| `PrintPaymentNote` | `void (Transaction, List<TransactionDetail>)` | Builds the lines via `ReceiptBuilder` and prints. |
+| `ResolveCashierName` | `private string (int userId)` | Built-in recovery account → its name; real user → `Name`; otherwise `"ADMIN"` with a warning. **Previously returned early when the lookup failed, so sales under the recovery account printed nothing at all.** |
+
+---
+
+## `ReceiptBuilder.cs`
+
+`public static class ReceiptBuilder` — a pure function producing the printable lines.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `Build` | `static List<StringPrint> Build(string headerNotes, string footerNotes, Transaction, List<TransactionDetail>, string cashierName)` | Centred header → separator → date/faktur/cashier → separator → per item → separator → totals → payment and change → centred footer. |
+| `CreateReceiptFont` | `static Font ()` | `Courier New` 9pt — fixed width, which the column alignment depends on. |
+| `LineSeparator` | `const string` | 33 `=` characters, sized for an 80 mm roll. |
+| `SplitLines` | `private static string[] (string)` | Splits on `\r\n`, `\n` or `\r`. |
+
+No database, no printer, no settings lookup — which is what lets the settings preview render a
+made-up sale through this exact code. Keep it that way.
+
+---
+
+## `LoginManager.cs`
+
+`public class LoginManager` — authentication policy. Depends on `UserManager` and `SettingsService`.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `ActiveUser` | `User { get; private set; }` | Signed-in user, or `null`. |
+| `Login` | `bool Login(string username, string password)` | Authenticates, sets `ActiveUser`, raises `OnActiveUserChanged`. |
+| `AuthenticateUsernamePassword` | `User (string password, string username)` | Validates credentials **without** touching the session — used by the supervisor approval dialog. Note the parameter order. |
+| `IsBuiltInAdminAllowed` | `bool ()` | Reads `ALLOW_BUILTIN_ADMIN` (default `true`). |
+| `SetBuiltInAdminAllowed` | `void (bool)` | Persists it. |
+| `HasRealAdministrator` | `bool ()` | Whether any `M_USERS` account holds `AccessOption.Master`. Stops the settings page disabling the recovery account into a lockout. |
+| `IsBuiltInAdminId` | `static bool (int userId)` | Whether a `UserId` is the recovery account (`-1`). |
+| `BuiltInAdminDisplayName` | `static string { get; }` | Its display name. |
+| `UpgradeStoredPasswordIfNeeded` | `private void (User, string plain)` | Re-hashes a legacy hash after a successful sign-in. Best effort — a failure never blocks the login. |
+| `Logout` | `void ()` | Clears `ActiveUser`; does not raise the event. |
+| `OnActiveUserChanged` | `event OnActiveUserDelegate` | `MainFormController` swaps pages on it. |
+
+The built-in recovery account (`Kosmas` / `kosmas`, role 1023, id `-1`) is checked before the
+database and gated on the setting. Username matching is case-insensitive, the password is exact.
+Every use is logged at WARN. See [../business-auth-and-roles.md](../business-auth-and-roles.md).
+
+---
+
+## `SettingsService.cs` and `SettingKeys.cs`
+
+`public class SettingsService` — typed access to `M_SETTINGS`. Every read falls back to a
+caller-supplied default (then the row's own `Default`) rather than throwing, so a missing row cannot
+break the feature that reads it.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `GetString` / `SetString` | `string (string key, string fallback)` / `void (string, string)` | Raw value. |
+| `GetBool` / `SetBool` | `bool (string key, bool fallback)` / `void (string, bool)` | Tolerates `1/0`, `yes/no`, `on/off`. |
+| `GetMultiLine` / `SetMultiLine` | `string (string, string)` / `void (string, string)` | Values holding several lines. |
+| `EncodeNewLines` / `DecodeNewLines` | `static string (string)` | `%NEW_LINE%` ↔ real breaks. Encoding normalises `\r\n`, `\n` and `\r`. |
+
+`public static class SettingKeys` — the key constants, plus `Seed()` returning the rows a database is
+expected to hold and `DefaultReportDirectory()`. **Adding a key here is all that is needed for an old
+installation to pick it up on its next launch**, because `DBUtility.UpsertSettingRow` inserts
+whichever rows are missing.
+
+Keys: `HEADER`, `FOOTER` (group `GENERAL`), `REPORT_DIRECTORY` (`REPORT`), `ALLOW_BUILTIN_ADMIN`
+(`SECURITY`).
+
+---
+
+## `ReportService.cs`
+
+`public class ReportService` — where reports go and how their JavaScript gets there.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `GetReportDirectory` | `string ()` | Configured folder with environment variables expanded; falls back to the default if unusable. |
+| `SetReportDirectory` | `void (string)` | Persists it. |
+| `ValidateReportDirectory` | `string (string)` | Creates the folder and writes a probe file. Returns an Indonesian message, or empty when usable. |
+| `PrepareReportDirectory` | `string ()` | Creates and returns the folder. |
+| `EnsureAssets` | `bool (string reportDirectory)` | Unpacks `datatables.min.css` / `.js` into `<dir>\assets` from the shipped bundle. Idempotent. `false` means the report will still open, just without sorting, searching and export. |
+| `ExtractBundle` | `private static void (string, string)` | Extracts by entry **name** only, so a crafted archive cannot write outside the target folder. |
+| `GetAssetBundlePath` | `static string ()` | `reportassets.zip` next to the executable. |
+| `StyleSheetHref` / `ScriptSrc` | `static string { get; }` | Relative paths a generated report uses. |
+
+Uses `System.IO.Compression` — framework, no package.
+
+---
+
+## `MasterManager.cs`
+
+Unchanged. Master data façade over `ProductManager` and `UserManager`; everything is soft-deleted.
+
+| Member | Purpose |
+|---|---|
+| `GetAllProduct()` | Every product **including soft-deleted** — used by the correction screen. |
+| `GetAllAvailable(criteria, orderBy)` | Non-deleted products matching a name search. |
+| `AddProduct` / `UpdateProduct` / `DeleteProduct` | Insert / update / soft delete. |
+| `GetUsers` / `AddUser` / `UpdateUser` / `DeleteUser` | Same for users. |
+
+---
+
+## `ReportManager.cs`
+
+Thin façade over `CustomManager`. `GetSummaryReportProduct`, `GetReportSummaryByTransaction`,
+`GetDetailReport`, `GetReportSummaryByCashier` (each `start`/`stop` → `List<Dictionary<string,string>>`),
+and `GetTodaySummaryByCashier(User, DateTime)` → a pre-formatted `"Rp. n"`.
+
+---
+
+## `ViewManager.cs`
+
+`GetTransaction(DateTime start, DateTime stop)` — active transactions in a range, including `Id` and
+`Factur` so the picker can return a selection.

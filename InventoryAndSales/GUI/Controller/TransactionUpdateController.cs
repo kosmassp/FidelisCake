@@ -12,16 +12,27 @@ using SimpleCommon.Utility;
 
 namespace InventoryAndSales.GUI.Controller
 {
+  /// <summary>
+  /// Backs the correction screen. Behaves like the sale screen, except that completing it writes a
+  /// revision of an existing sale and credits it to the supervisor who authorised the change.
+  /// </summary>
   public class TransactionUpdateController
   {
     private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-    private TransactionUpdatePage _view;
+
+    private const long PlaceholderCustomerId = 1;
+
+    private readonly TransactionUpdatePage _view;
+    private readonly CashierManager _cashierManager;
+    private readonly MasterManager _masterManager;
+
+    /// <summary>This screen's own basket - editing it must not disturb the sale screen.</summary>
+    private readonly Cart _cart = new Cart();
+
     private User _supervisor;
-    private CashierManager _cashierManager;
-    private MasterManager _masterManager;
+    private List<TransactionDetail> _originalTransactionDetails;
 
     public Transaction OriginalTransaction { get; private set; }
-    private List<TransactionDetail> _originalTransactionDetails;
 
     public TransactionUpdateController(TransactionUpdatePage transactionUpdatePage)
     {
@@ -29,38 +40,30 @@ namespace InventoryAndSales.GUI.Controller
 
       _masterManager = BusinessFactory.GetInstance().MasterManager;
       _cashierManager = BusinessFactory.GetInstance().CashierManager;
-      //Event
+
+      _cart.CartChange += CartChange;
     }
 
     public void Init(string facturNumber, User user)
     {
       _supervisor = user;
       OriginalTransaction = _cashierManager.GetTransaction(facturNumber, out _originalTransactionDetails);
-      _cashierManager.CartChange += CartChange;
+      if (OriginalTransaction == null)
+        throw new InvalidOperationException(string.Format("No transaction found for faktur {0}.", facturNumber));
     }
-
-    ~TransactionUpdateController()
-    {
-      UnregisterEvent();
-    }
-
-    private void UnregisterEvent()
-    {
-      _cashierManager.CartChange -= CartChange;
-    }
-
 
     private void CartChange(object sender, KeyValuePair<Product, int> args)
     {
       _view.UpdateDataGridViewCart(args.Key, args.Value);
-      decimal x, y;
-      decimal total = _cashierManager.GetCartTotal(out x, out y);
+      decimal totalPrice, totalDiscount;
+      decimal total = _cart.GetTotal(out totalPrice, out totalDiscount);
       _view.UpdateTotal(total);
     }
 
-
-
-
+    /// <summary>
+    /// Every product, soft deleted ones included, so a line referring to a withdrawn product can
+    /// still be loaded back onto the screen.
+    /// </summary>
     public List<Product> GetItems()
     {
       return _masterManager.GetAllProduct();
@@ -69,74 +72,78 @@ namespace InventoryAndSales.GUI.Controller
     public string Checkout(decimal payment, string notes, out string successMessage)
     {
       successMessage = string.Empty;
+
       if (payment < 0)
         return "Pembayaran kurang dari 0";
 
-      decimal x, y;
-      decimal total = _cashierManager.GetCartTotal(out x, out y);
+      decimal totalPrice, totalDiscount;
+      decimal total = _cart.GetTotal(out totalPrice, out totalDiscount);
       if (total <= 0)
         return "Tidak ada pembelian. Silahkan tambahkan item yang dibeli";
-      decimal changes = payment - total;
 
+      decimal changes = payment - total;
       if (changes < 0)
         return "Pembayaran kurang dari harga yang harus dibayarkan.";
 
       try
       {
-        _cashierManager.UpdateCheckout(OriginalTransaction, payment, notes, _supervisor.Id, 1);
-
+        _cashierManager.UpdateCheckout(_cart, OriginalTransaction, payment, notes, _supervisor.Id, PlaceholderCustomerId);
         successMessage = string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ", changes.ToString(Constant.DISPLAY_CURRENCY));
       }
       catch (Exception e)
       {
-        _log.Error(e);
-        return e.Message + Environment.NewLine + e.StackTrace;
+        _log.Error("Transaction correction failed.", e);
+        return "Perubahan transaksi gagal disimpan. Silahkan coba lagi.";
       }
       return string.Empty;
     }
 
-
     public void AddToCart(Product product)
     {
-      _cashierManager.AddToCart(product, 1);
+      _cart.Add(product, 1);
     }
 
     public void NewCart()
     {
-      _cashierManager.NewCart();
+      _cart.Clear();
       _view.ResetCart();
     }
 
     public void UpdateCart(Product product, int value)
     {
-      _cashierManager.UpdateItemCart(product, value);
+      _cart.SetQuantity(product, value);
     }
 
+    /// <summary>
+    /// Refills the basket from the sale being corrected.
+    ///
+    /// Quantities are replayed through the live catalogue, so the corrected sale is priced at
+    /// today's prices rather than the prices originally charged.
+    /// </summary>
     public void ResetByTransaction()
     {
-      if (_originalTransactionDetails != null)
+      if (_originalTransactionDetails == null)
+        return;
+
+      Dictionary<int, int> quantityByProduct = new Dictionary<int, int>();
+      foreach (TransactionDetail td in _originalTransactionDetails)
       {
-        List<Product> p = GetItems();
-        Dictionary<int, int> map = new Dictionary<int, int>();
-        foreach (TransactionDetail td in _originalTransactionDetails)
-        {
-          if (td.Quantity > 0)
-            map.Add(td.ProductId, td.Quantity);
-        }
-
-        foreach (Product product in p)
-        {
-          if (map.ContainsKey(product.Id))
-          {
-            UpdateCart(product, map[product.Id]);
-          }
-        }
+        if (td.Quantity <= 0)
+          continue;
+        // Defensive: a sale should never hold the same product twice, but a hand edited database
+        // could, and duplicate keys would throw.
+        if (quantityByProduct.ContainsKey(td.ProductId))
+          quantityByProduct[td.ProductId] += td.Quantity;
+        else
+          quantityByProduct.Add(td.ProductId, td.Quantity);
       }
-    }
 
-    public void Unload()
-    {
-      UnregisterEvent();
+      foreach (Product product in GetItems())
+      {
+        int quantity;
+        if (quantityByProduct.TryGetValue(product.Id, out quantity))
+          UpdateCart(product, quantity);
+      }
     }
   }
 }

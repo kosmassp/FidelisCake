@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataAccess;
 using InventoryAndSales.Database.Model;
-using SimpleCommon.Utility;
 
 namespace InventoryAndSales.Database.Manager
 {
@@ -15,28 +16,36 @@ namespace InventoryAndSales.Database.Manager
     {
     }
 
-
-    public User FindUserByUsernamePassword(string username, string encryptedPass)
+    /// <summary>
+    /// Looks a user up by name only. Password checking belongs to the business layer - it has to
+    /// cope with two stored hash formats and with a per-user salt, neither of which can be expressed
+    /// as a SQL predicate.
+    /// </summary>
+    public User FindByUsername(string username)
     {
-      if (username == "Kosmas" && encryptedPass == HashUtility.GetEncryptedPass("kosmas"))
-        return new User(-1, username, string.Empty, "Kosmas", 1023, false);
+      if (string.IsNullOrEmpty(username))
+        return null;
 
-      var fubup = BaseDao.FindByQuery(string.Format("USERNAME = '{0}' AND PASSWORD = '{1}' AND DELETED = '{2}'", username, encryptedPass, false));
-      if (fubup != null)
-      {
-        if (fubup.Count == 1)
-          return fubup[0];
-      }
+      // VarChar to match the column type, so no implicit conversion is forced on it.
+      List<User> users = BaseDao.FindByQuery(
+        "WHERE Username = @username AND Deleted = @deleted",
+        string.Empty,
+        new SqlParameter("@username", SqlDbType.VarChar, 50) { Value = username },
+        new SqlParameter("@deleted", false));
+
+      // More than one row means duplicate usernames, which the application never creates on
+      // purpose. Refuse rather than guess which account was meant.
+      if (users != null && users.Count == 1)
+        return users[0];
       return null;
     }
 
-
     public override List<User> GetAll()
     {
-      List<User> users = BaseDao.FindByQuery(string.Format("WHERE Deleted = '{0}'", false));
-      return users;
+      return BaseDao.FindByQuery(
+        "WHERE Deleted = @deleted",
+        string.Empty,
+        new SqlParameter("@deleted", false));
     }
-
-
   }
 }

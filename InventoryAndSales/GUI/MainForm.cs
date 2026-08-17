@@ -40,7 +40,9 @@ namespace InventoryAndSales.GUI
       }
       transaksiToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Cashier);
       editToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Master);
-      laporanToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Admin);
+      // Gated on Laporan, not Admin. It used to test the Admin bit, which meant a Supervisor held
+      // the Laporan permission but still could not open the reports menu.
+      laporanToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Laporan);
       checkKasirToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Cashier);
     }
 
@@ -149,6 +151,8 @@ namespace InventoryAndSales.GUI
     private void laporanTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
     {
       tabControlPage.SelectedTab = tabPageReport;
+      // Kept in step with the visible tab so the cashier hotkeys stop firing while reports are up.
+      currentPage = DisplayPage.Report;
       reportDisplayPage1.RefreshOnDisplay();
     }
 
@@ -213,7 +217,15 @@ namespace InventoryAndSales.GUI
     }
     private void ubahTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      controller.RequestUpdateTransaction();
+      try
+      {
+        controller.RequestUpdateTransaction();
+      }
+      catch (Exception ex)
+      {
+        _log.Error(ex);
+        MessageBox.Show("Terdapat kesalahan sistem. Tolong check kembali. ");
+      }
       LoadCashierPage();
     }
   }

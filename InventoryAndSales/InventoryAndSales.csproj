@@ -51,6 +51,8 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -66,7 +68,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Business\BusinessFactory.cs" />
+    <Compile Include="Business\Cart.cs" />
     <Compile Include="Business\CashierManager.cs" />
+    <Compile Include="Business\ReceiptBuilder.cs" />
+    <Compile Include="Business\ReportService.cs" />
+    <Compile Include="Business\SettingKeys.cs" />
+    <Compile Include="Business\SettingsService.cs" />
     <Compile Include="Business\Enum\TransactionStatus.cs" />
     <Compile Include="Business\ViewManager.cs" />
     <Compile Include="Business\ReportManager.cs" />
@@ -106,6 +113,20 @@
     <Compile Include="GUI\Controller\CashierController.cs" />
     <Compile Include="GUI\Controller\SettingPageController.cs" />
     <Compile Include="GUI\Controller\SettingPage\HeaderAndFooterController.cs" />
+    <Compile Include="GUI\Controller\SettingPage\ReportSettingController.cs" />
+    <Compile Include="GUI\Controller\SettingPage\SecuritySettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\ReportSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\ReportSetting.Designer.cs">
+      <DependentUpon>ReportSetting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\SecuritySetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\SecuritySetting.Designer.cs">
+      <DependentUpon>SecuritySetting.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Controller\TransactionUpdateController.cs" />
     <Compile Include="GUI\Controller\LoginController.cs" />
     <Compile Include="GUI\Controller\MasterProductController.cs" />
@@ -308,6 +329,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <!-- DataTables stylesheet and combined script, unpacked into the report folder on demand.
+         Trimmed from the original 5.4 MB bundle to just the two files the reports actually use. -->
+    <Content Include="reportassets.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -9,8 +9,9 @@ namespace InventoryAndSales.GUI.Controller
 {
   public class MasterUserController
   {
-    private MasterUserPage _control;
-    private MasterManager _masterManager;
+    private readonly MasterUserPage _control;
+    private readonly MasterManager _masterManager;
+
     public MasterUserController(MasterUserPage masterUserPage)
     {
       _control = masterUserPage;
@@ -27,12 +28,20 @@ namespace InventoryAndSales.GUI.Controller
       _masterManager.DeleteUser(currentUserSelection);
     }
 
-    public void UpdateUser(User currentUserSelection, string username, string name, string password, int role)
+    /// <summary>
+    /// Saves an edited user.
+    /// </summary>
+    /// <param name="passwordChanged">
+    /// Whether the operator actually typed a new password. The screen used to show the first eight
+    /// characters of the stored hash and the password was re-hashed only if the typed text no longer
+    /// matched that prefix, which coupled this decision to the storage format. The screen now simply
+    /// reports whether the field was touched.
+    /// </param>
+    public void UpdateUser(User currentUserSelection, string username, string name, string password, int role, bool passwordChanged)
     {
-      if (string.IsNullOrEmpty(currentUserSelection.Password) || !currentUserSelection.Password.StartsWith(password))
-      {
-        currentUserSelection.Password = HashUtility.GetEncryptedPass(password);
-      }
+      if (passwordChanged)
+        currentUserSelection.Password = PasswordHasher.Hash(password);
+
       currentUserSelection.Name = name;
       currentUserSelection.Role = role;
       _masterManager.UpdateUser(currentUserSelection);
@@ -40,7 +49,23 @@ namespace InventoryAndSales.GUI.Controller
 
     public void AddUser(string username, string name, string password, int role)
     {
-      _masterManager.AddUser(new User(username, HashUtility.GetEncryptedPass(password), name, role, false));
+      _masterManager.AddUser(new User(username, PasswordHasher.Hash(password), name, role, false));
+    }
+
+    /// <summary>
+    /// Whether a username is already taken. Checked here rather than by a database constraint,
+    /// because deployed databases have no unique index on it.
+    /// </summary>
+    public bool IsUsernameTaken(string username, User excluding)
+    {
+      foreach (User user in GetUsers())
+      {
+        if (excluding != null && user.Id == excluding.Id)
+          continue;
+        if (string.Equals(user.Username, username, StringComparison.OrdinalIgnoreCase))
+          return true;
+      }
+      return false;
     }
   }
 }

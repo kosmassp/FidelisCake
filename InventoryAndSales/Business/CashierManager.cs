@@ -11,321 +11,183 @@ using SimpleCommon.Utility;
 
 namespace InventoryAndSales.Business
 {
+  /// <summary>
+  /// Turns a <see cref="Cart"/> into a persisted sale and a printed receipt, and handles correcting
+  /// and voiding past sales.
+  ///
+  /// The cart itself is not held here - each screen owns its own - so this class is stateless apart
+  /// from remembering the last faktur for the "reprint last receipt" menu item.
+  /// </summary>
   public class CashierManager
   {
     private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
     private readonly TransactionManager _transactionManager;
     private readonly UserManager _userManager;
-    private readonly SettingConfigurationManager _settingManager;
-    public CashierManager(TransactionManager transactionManager, UserManager userManager, SettingConfigurationManager settingManager)
+    private readonly SettingsService _settings;
+    private readonly Font _printFont = ReceiptBuilder.CreateReceiptFont();
+
+    public CashierManager(TransactionManager transactionManager, UserManager userManager, SettingsService settings)
     {
       _transactionManager = transactionManager;
       _userManager = userManager;
-      _settingManager = settingManager;
-      _cart = new Dictionary<int, TransactionDetail>();
+      _settings = settings;
     }
+
+    #region Receipt header and footer
 
     public string GetHeaderNote()
     {
-      return GetFormattedNote(_settingManager.FindByKey("HEADER").First().Value);
+      return _settings.GetMultiLine(SettingKeys.Header, string.Empty);
     }
+
     public string GetFooterNote()
     {
-      return GetFormattedNote(_settingManager.FindByKey("FOOTER").First().Value);
+      return _settings.GetMultiLine(SettingKeys.Footer, string.Empty);
     }
 
     public void SetHeaderNote(string header)
     {
-      var headerData = _settingManager.FindByKey("HEADER").First();
-      headerData.Value = GetUnformattedNote(header);
-      _settingManager.Update(headerData);
+      _settings.SetMultiLine(SettingKeys.Header, header);
     }
+
     public void SetFooterNote(string footer)
     {
-      var footerData = _settingManager.FindByKey("FOOTER").First();
-      footerData.Value = GetUnformattedNote(footer);
-      _settingManager.Update(footerData);
+      _settings.SetMultiLine(SettingKeys.Footer, footer);
     }
 
-    public string GetUnformattedNote(string original)
-    {
-      return original?
-         .Replace(Environment.NewLine, "%NEW_LINE%");
-    }
-    public string GetFormattedNote(string original)
-    {
-      return original?
-         .Replace("%NEW_LINE%", Environment.NewLine);
-    }
+    #endregion
 
-    public decimal GetCartTotal(out decimal totalPrice, out decimal totalDiscount)
-    {
-      totalPrice = 0;
-      totalDiscount = 0;
-      foreach (KeyValuePair<int, TransactionDetail> cartItem in _cart)
-      {
-        totalPrice += cartItem.Value.SubtotalPrice;
-        totalDiscount += cartItem.Value.SubtotalDiscount;
-      }
-      return totalPrice - totalDiscount;
-    }
-    
-    public delegate void CartChangeDelegate(object sender, KeyValuePair<Product, int> args);
-    public event CartChangeDelegate CartChange;
-    private Dictionary<int, TransactionDetail> _cart;
-    private readonly object _lockCart = new object();
-    public bool AddToCart(Product product, int quantity)
-    {
-      lock (_lockCart)
-      {
-        try
-        {
-          if (_cart.ContainsKey(product.Id))
-            _cart[product.Id].UpdateQuantity(_cart[product.Id].Quantity + quantity);
-          else
-          {
-            if(quantity > 0)
-              _cart.Add(product.Id, new TransactionDetail(product, quantity));
-          }
-          InvokeCartChanges(product, _cart[product.Id].Quantity);
-          return true;
-        }
-        catch (Exception e)
-        {
-          _log.Error(e);
-          return false;
-        }
-      }
-    }
+    #region Checkout
 
-    private void InvokeCartChanges(Product product, int quantity)
+    /// <summary>
+    /// Persists the cart as a new sale and prints the receipt.
+    ///
+    /// A printing failure does not fail the sale: the money has been taken and the record written,
+    /// so the status stays SUCCESS and <paramref name="message"/> tells the operator to reprint.
+    /// </summary>
+    public TransactionStatus Checkout(Cart cart, decimal payment, string notes, int userId, long customerId, out string message)
     {
-      if(CartChange != null)
-      {
-        CartChange(this, new KeyValuePair<Product, int>(product, quantity));
-      }
-    }
-
-    public bool UpdateItemCart(Product product, int quantity)
-    {
-      lock (_lockCart)
-      {
-        try
-        {
-          if (quantity <= 0)
-            return RemoveItemCart(product);
-          if (_cart.ContainsKey(product.Id))
-            _cart[product.Id].UpdateQuantity(quantity);
-          else
-            _cart.Add(product.Id, new TransactionDetail(product, quantity));
-          InvokeCartChanges(product, quantity);
-          return true;
-        }
-        catch (Exception e)
-        {
-          _log.Error(e);
-          return false;
-        }
-      }
-    }
-    public void NewCart()
-    {
-      lock (_lockCart)
-      {
-        //TODO: Invoke clear cart or invoke cart updated.
-        //foreach (var productId in _cart.Keys)
-        //{
-        //  _productManager.
-        //}
-        _cart.Clear();
-      }
-    }
-    public bool RemoveItemCart(Product product)
-    {
-      lock (_lockCart)
-      {
-        try
-        {
-          if (_cart.ContainsKey(product.Id))
-            _cart.Remove(product.Id);
-          InvokeCartChanges(product, 0);
-          return true;
-        }
-        catch (Exception e)
-        {
-          _log.Error(e);
-          return false;
-        }
-      }
-    }
-
-    public void UpdateCheckout(Transaction _originalTransaction, decimal payment, string notes, int userId, long customerId)
-    {
-      List<TransactionDetail> transactionDetails;
-      notes = string.Format("Ralat Dari Transaksi: {0}, No Faktur: {1}.", _originalTransaction.Id, _originalTransaction.Factur) + notes;
-      Transaction transaction = GenerateTransactionAndDetails(notes, payment, userId, customerId, out transactionDetails);
-      _transactionManager.UpdateCompleteTransaction(_originalTransaction, transaction, transactionDetails);
-      try
-      {
-        PrintPaymentNote(transaction, transactionDetails);
-      }
-      catch(Exception e)
-      {
-        _log.Error(e);
-      }
-    }
-
-    public void CancelTransaction(string transactionFactur)
-    {
-      List<TransactionDetail> details;
-      Transaction transaction = GetTransaction(transactionFactur, out details);
-      _transactionManager.CancelTransaction(transaction);
-    }
-
-    private string _lastFactur;
-    public string GetLastFactur()
-    {
-      return _lastFactur;
-    }
-
-    public TransactionStatus Checkout(decimal payment, string notes, int userId, long customerId, out string message)
-    {
-      TransactionStatus status = TransactionStatus.INITIATE;
       message = string.Empty;
       List<TransactionDetail> transactionDetails;
-      Transaction transaction = GenerateTransactionAndDetails(notes, payment, userId, customerId, out transactionDetails);
+      Transaction transaction = GenerateTransactionAndDetails(cart, notes, payment, userId, customerId, out transactionDetails);
+
       try
       {
         _transactionManager.SaveCompleteTransaction(transaction, transactionDetails);
         _lastFactur = transaction.Factur;
-        status = TransactionStatus.SUCCESS;
       }
-      catch(Exception e)
+      catch (Exception e)
       {
-        status = TransactionStatus.FAILED;
+        _log.Error("Failed to save transaction.", e);
         message = "Gagal menyimpan transaksi. Silahkan coba lagi.";
-        return status;
+        return TransactionStatus.FAILED;
       }
+
       try
       {
         PrintPaymentNote(transaction, transactionDetails);
       }
-      catch(Exception e)
+      catch (Exception e)
       {
         _log.Error(e);
         message = "Transaksi berhasil namun gagal mencetak. Pastikan printer terhubung dan cetak laporan melalui menu.";
       }
-      return status;
+      return TransactionStatus.SUCCESS;
     }
 
-    private Transaction GenerateTransactionAndDetails(string notes, decimal payment, int userId, long customerId, out List<TransactionDetail> transactionDetails)
+    /// <summary>
+    /// Records a correction: writes a new sale and marks the original as superseded by it.
+    /// </summary>
+    public void UpdateCheckout(Cart cart, Transaction originalTransaction, decimal payment, string notes, int userId, long customerId)
+    {
+      List<TransactionDetail> transactionDetails;
+      notes = string.Format("Ralat Dari Transaksi: {0}, No Faktur: {1}.", originalTransaction.Id, originalTransaction.Factur) + notes;
+      Transaction transaction = GenerateTransactionAndDetails(cart, notes, payment, userId, customerId, out transactionDetails);
+
+      _transactionManager.UpdateCompleteTransaction(originalTransaction, transaction, transactionDetails);
+      _lastFactur = transaction.Factur;
+
+      try
+      {
+        PrintPaymentNote(transaction, transactionDetails);
+      }
+      catch (Exception e)
+      {
+        _log.Error(e);
+      }
+    }
+
+    /// <summary>Voids a sale. Nothing is deleted; it simply stops counting.</summary>
+    public void CancelTransaction(string transactionFactur, int cancelledByUserId)
+    {
+      List<TransactionDetail> details;
+      Transaction transaction = GetTransaction(transactionFactur, out details);
+      if (transaction == null)
+        throw new InvalidOperationException(string.Format("No transaction found for faktur {0}.", transactionFactur));
+      _transactionManager.CancelTransaction(transaction, cancelledByUserId);
+    }
+
+    private Transaction GenerateTransactionAndDetails(Cart cart, string notes, decimal payment, int userId, long customerId,
+                                                      out List<TransactionDetail> transactionDetails)
     {
       Transaction transaction = new Transaction();
       transaction.TotalPrice = 0;
       transaction.TotalDiscount = 0;
       transaction.Total = 0;
-      transaction.Notes = notes;
+      transaction.Notes = TrimNotes(notes);
       transaction.Time = DateTime.Now;
       transaction.Factur = GenerateFactur();
       transaction.Payment = payment;
       transaction.UserId = userId;
       transaction.CustomerId = customerId;
-      transactionDetails = new List<TransactionDetail>();
-      foreach (KeyValuePair<int, TransactionDetail> detail in _cart)
+
+      transactionDetails = cart.GetLines();
+      foreach (TransactionDetail td in transactionDetails)
       {
-        TransactionDetail td = detail.Value;
         transaction.TotalDiscount += td.SubtotalDiscount;
         transaction.TotalPrice += td.SubtotalPrice;
         transaction.Total += (td.SubtotalPrice - td.SubtotalDiscount);
-        transactionDetails.Add(td);
       }
       transaction.Exchange = transaction.Payment - transaction.Total;
       return transaction;
     }
 
-    private string GenerateFactur()
-    {
-      string factur = DateTime.Now.Ticks.ToString();
-      return factur;
+    /// <summary>
+    /// T_TRANSACTIONS.Notes is varchar(100) and a correction already spends about half of that on
+    /// its automatic prefix. Trim rather than let the insert fail.
+    /// </summary>
+    private const int NotesMaxLength = 100;
 
+    private static string TrimNotes(string notes)
+    {
+      if (string.IsNullOrEmpty(notes) || notes.Length <= NotesMaxLength)
+        return notes;
+      _log.WarnFormat("Notes truncated from {0} to {1} characters.", notes.Length, NotesMaxLength);
+      return notes.Substring(0, NotesMaxLength);
     }
 
-    //public string ConvertToChar(long value)
-    //{
-    //  try
-    //  {
-    //    if (value >= StringNumber.Length)
-    //    {
-    //      return ConvertToChar(value/StringNumber.Length) + ConvertToChar(value%StringNumber.Length);
-    //    }
-    //    return StringNumber[value];
-    //  }
-    //  catch(Exception e)
-    //  {
-    //    _log.Error(e);
-    //    return value.ToString();
-    //  }
-    //}
-    //private string[] StringNumber = new string[]
-    //                                  {
-    //                                    "A", 
-    //                                    "B",
-    //                                    "C",
-    //                                    "D",
-    //                                    "E",
-    //                                    "F",
-    //                                    "G",
-    //                                    "H",
-    //                                    "I",
-    //                                    "J",
-    //                                    "K",
-    //                                    "L",
-    //                                    "M",
-    //                                    "N",
-    //                                    "O",
-    //                                    "P",
-    //                                    "Q",
-    //                                    "R",
-    //                                    "S",
-    //                                    "T",
-    //                                    "U",
-    //                                    "V",
-    //                                    "W",
-    //                                    "X",
-    //                                    "Y",
-    //                                    "Z",
-    //                                    "0",
-    //                                    "1",
-    //                                    "2",
-    //                                    "3",
-    //                                    "4",
-    //                                    "5",
-    //                                    "6",
-    //                                    "7",
-    //                                    "8",
-    //                                    "9",
-    //                                  };
+    private string _lastFactur;
+
+    /// <summary>Faktur of the last sale made in this session. Not persisted across restarts.</summary>
+    public string GetLastFactur()
+    {
+      return _lastFactur;
+    }
+
+    private static string GenerateFactur()
+    {
+      return DateTime.Now.Ticks.ToString(CultureInfo.InvariantCulture);
+    }
 
     public Transaction GetTransaction(string facturNumber, out List<TransactionDetail> details)
     {
       return _transactionManager.GetTransaction(facturNumber, out details);
     }
 
+    #endregion
 
-    private void TestPrint()
-    {
-      List<StringPrint> sp = new List<StringPrint>();
-      StringFormat sf = new StringFormat();
-      sf.Alignment = StringAlignment.Center;
-      sp.Add(new StringPrint("FIDELIS CAKE AND BAKERY", sf));
-      StringFormat sfl = new StringFormat();
-      sfl.Alignment = StringAlignment.Center;
-      sp.Add(new StringPrint(lineSeparator, sfl));
-      PrinterUtility.Print(sp, _printFont);
-    }
-
-    private Font _printFont = new Font("Courier New", 9);
-    private const string lineSeparator = "=================================";
+    #region Printing
 
     public Font GetPrintFont()
     {
@@ -334,57 +196,39 @@ namespace InventoryAndSales.Business
 
     public void PrintPaymentNote(Transaction transaction, List<TransactionDetail> transactionDetails)
     {
-      User cashier = _userManager.FindById(transaction.UserId);
-      if (cashier == null)
-        return;
-      List<StringPrint> stringToPrint = GeneratePaymentNote(GetHeaderNote(), GetFooterNote(), transaction, transactionDetails, cashier);
+      List<StringPrint> stringToPrint = ReceiptBuilder.Build(
+        GetHeaderNote(), GetFooterNote(), transaction, transactionDetails, ResolveCashierName(transaction.UserId));
 
       PrinterUtility.Print(stringToPrint, _printFont);
     }
 
-    public static List<StringPrint> GeneratePaymentNote(string headerNotes, string footerNotes, Transaction transaction, List<TransactionDetail> transactionDetails, User cashier)
+    /// <summary>
+    /// Name to print as the cashier.
+    ///
+    /// The built-in recovery account has no M_USERS row, which used to make this method give up and
+    /// return without printing anything - a sale made under it produced no receipt at all and no
+    /// error. Fall back to a name instead so a receipt is always produced.
+    /// </summary>
+    private string ResolveCashierName(int userId)
     {
-      List<StringPrint> stringToPrint = new List<StringPrint>();
-      StringFormat centerString = new StringFormat();
-      centerString.Alignment = StringAlignment.Center;
-      StringFormat leftString = new StringFormat();
-      leftString.Alignment = StringAlignment.Near;
-      StringFormat rightString = new StringFormat();
-      rightString.Alignment = StringAlignment.Far;
-      //Todo customize this
-      var headers = headerNotes.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-      foreach(var header in headers)
-      {
-        stringToPrint.Add(new StringPrint(header, centerString));
-      }
-      stringToPrint.Add(new StringPrint(lineSeparator, leftString));
-      stringToPrint.Add(new StringPrint("TANGGAL : " + transaction.Time.ToString("dd-MM-yyyy HH:mm")) );
-      stringToPrint.Add(new StringPrint("FACTUR  : " + transaction.Factur));
-      stringToPrint.Add(new StringPrint("KASIR   : " + cashier.Name));
-      stringToPrint.Add(new StringPrint(lineSeparator, leftString));
+      if (LoginManager.IsBuiltInAdminId(userId))
+        return LoginManager.BuiltInAdminDisplayName;
 
-      foreach (TransactionDetail tDetail in transactionDetails)
+      try
       {
-        stringToPrint.Add(new StringPrint(tDetail.ProductName, leftString));
-        stringToPrint.Add(new StringPrint(tDetail.Quantity + " x Rp." + tDetail.ProductPrice.ToString("N") + " = " + tDetail.SubtotalPrice.ToString("N"), leftString));
-        if (tDetail.ProductDiscount > 0)
-          stringToPrint.Add(new StringPrint("Discount: Rp." + tDetail.SubtotalDiscount.ToString("N"), leftString));
+        User cashier = _userManager.FindById(userId);
+        if (cashier != null && !string.IsNullOrEmpty(cashier.Name))
+          return cashier.Name;
       }
-      stringToPrint.Add(new StringPrint(lineSeparator, leftString));
-      stringToPrint.Add(new StringPrint("Total Item   : Rp. " + transaction.TotalPrice.ToString("N"), leftString));
-      stringToPrint.Add(new StringPrint("Total Disc   : Rp. " + transaction.TotalDiscount.ToString("N"), leftString));
-      stringToPrint.Add(new StringPrint("Total Belanja: Rp. " + transaction.Total.ToString("N"), leftString));
-      stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
-      stringToPrint.Add(new StringPrint("Tunai        : Rp. " + transaction.Payment.ToString("N"), leftString));
-      stringToPrint.Add(new StringPrint("Kembalian    : Rp. " + transaction.Exchange.ToString("N"), leftString));
-      stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
-      var footers = footerNotes.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-      foreach (var footer in footers)
+      catch (Exception e)
       {
-        stringToPrint.Add(new StringPrint(footer, centerString));
+        _log.Error(string.Format("Could not load cashier {0} for the receipt.", userId), e);
       }
-      return stringToPrint;
+
+      _log.WarnFormat("Printing receipt without a known cashier name for user {0}.", userId);
+      return "ADMIN";
     }
-  }
 
+    #endregion
+  }
 }

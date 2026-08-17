@@ -22,10 +22,13 @@ namespace InventoryAndSales.GUI
 {
   public class MainFormController
   {
-    private MainForm _mainForm;
-    private CashierManager _cashierManager;
-    private LoginManager _loginManager;
-    private ReportManager _reportManager;
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+    private readonly MainForm _mainForm;
+    private readonly CashierManager _cashierManager;
+    private readonly LoginManager _loginManager;
+    private readonly ReportManager _reportManager;
+
     public MainFormController(MainForm mainForm)
     {
       _mainForm = mainForm;
@@ -62,57 +65,72 @@ namespace InventoryAndSales.GUI
     public bool PrintLastReceipt()
     {
       string facturNumber = _cashierManager.GetLastFactur();
-      if (!string.IsNullOrEmpty(facturNumber))
-      {
-        List<TransactionDetail> details;
-        Transaction t = _cashierManager.GetTransaction(facturNumber, out details);
-        if (t != null && details != null)
-        {
-          _cashierManager.PrintPaymentNote(t, details);
-          return true;
-        }
-      }
-      return false;
+      if (string.IsNullOrEmpty(facturNumber))
+        return false;
+
+      return ReprintByFactur(facturNumber);
     }
 
+    /// <summary>
+    /// Lets the operator pick a past sale and reprints it.
+    /// </summary>
+    /// <returns>False only when a chosen sale could not be reprinted; cancelling counts as success.</returns>
     public bool PrintReceipt()
     {
-      TransactionHistory th = new TransactionHistory();
-      DialogResult result = th.ShowDialog();
-      if (result == DialogResult.OK)
+      using (TransactionHistory th = new TransactionHistory())
       {
-        List<TransactionDetail> details;
-        Transaction t = _cashierManager.GetTransaction(th.SelectedTransactionFactur, out details);
-        if (t != null && details != null)
-        {
-          _cashierManager.PrintPaymentNote(t, details);
+        if (th.ShowDialog() != DialogResult.OK)
           return true;
-        }
-        return false;
+        return ReprintByFactur(th.SelectedTransactionFactur);
       }
+    }
+
+    private bool ReprintByFactur(string facturNumber)
+    {
+      List<TransactionDetail> details;
+      Transaction t = _cashierManager.GetTransaction(facturNumber, out details);
+      if (t == null || details == null)
+        return false;
+      _cashierManager.PrintPaymentNote(t, details);
       return true;
+    }
+
+    /// <summary>
+    /// Confirms that the operation may go ahead, asking a supervisor to approve when the signed-in
+    /// user does not hold the permission themselves.
+    /// </summary>
+    /// <returns>The approving user, or null when approval was refused or cancelled.</returns>
+    private User RequirePermission(AccessOption required)
+    {
+      User activeUser = _loginManager.ActiveUser;
+      if (activeUser == null)
+        return null;
+
+      if (BusinessUtil.AllowedRole(activeUser.Role, required))
+        return activeUser;
+
+      using (AuthenticationForm authenticationForm = new AuthenticationForm(required))
+      {
+        if (authenticationForm.ShowDialog() != DialogResult.OK)
+          return null;
+        return authenticationForm.AuthenticatedUser;
+      }
     }
 
     public void RequestUpdateTransaction()
     {
-      if (_loginManager.ActiveUser != null)
+      User supervisor = RequirePermission(AccessOption.Master);
+      if (supervisor == null)
+        return;
+
+      using (TransactionHistory th = new TransactionHistory())
       {
-        User supervisor = _loginManager.ActiveUser;
-        if (!BusinessUtil.AllowedRole(_loginManager.ActiveUser.Role, AccessOption.Master))
+        if (th.ShowDialog() != DialogResult.OK)
+          return;
+
+        using (TransactionUpdateForm transactionUpdateForm =
+               new TransactionUpdateForm(th.SelectedTransactionFactur, supervisor))
         {
-          AuthenticationForm authenticationForm = new AuthenticationForm(AccessOption.Master);
-          DialogResult dr = authenticationForm.ShowDialog();
-          if(dr == DialogResult.Cancel)
-          {
-            return;
-          }
-          supervisor = authenticationForm.AuthenticatedUser;
-        }
-        TransactionHistory th = new TransactionHistory();
-        DialogResult result = th.ShowDialog();
-        if (result == DialogResult.OK)
-        {
-          TransactionUpdateForm transactionUpdateForm = new TransactionUpdateForm(th.SelectedTransactionFactur, supervisor);
           transactionUpdateForm.ShowDialog();
         }
       }
@@ -120,33 +138,27 @@ namespace InventoryAndSales.GUI
 
     public bool RequestDeleteTransaction()
     {
-      if (_loginManager.ActiveUser != null)
+      User supervisor = RequirePermission(AccessOption.Master);
+      if (supervisor == null)
+        return false;
+
+      using (TransactionHistory th = new TransactionHistory())
       {
-        User supervisor = _loginManager.ActiveUser;
-        if (!BusinessUtil.AllowedRole(_loginManager.ActiveUser.Role, AccessOption.Master))
-        {
-          AuthenticationForm authenticationForm = new AuthenticationForm(AccessOption.Master);
-          DialogResult dr = authenticationForm.ShowDialog();
-          if (dr == DialogResult.Cancel)
-          {
-            return false;
-          }
-          supervisor = authenticationForm.AuthenticatedUser;
-        }
-        TransactionHistory th = new TransactionHistory();
-        DialogResult result = th.ShowDialog();
-        if (result == DialogResult.OK)
-        {
-          _cashierManager.CancelTransaction(th.SelectedTransactionFactur);
-          return true;
-        }
+        if (th.ShowDialog() != DialogResult.OK)
+          return false;
+
+        // The approving supervisor is recorded against the cancelled sale.
+        _cashierManager.CancelTransaction(th.SelectedTransactionFactur, supervisor.Id);
+        return true;
       }
-      return false;
     }
 
     public string GetCurrentDayTotalTransaction()
     {
-      return _reportManager.GetTodaySummaryByCashier(_loginManager.ActiveUser, DateTime.Today);
+      User activeUser = _loginManager.ActiveUser;
+      if (activeUser == null)
+        return "Rp. 0";
+      return _reportManager.GetTodaySummaryByCashier(activeUser, DateTime.Today);
     }
   }
 }

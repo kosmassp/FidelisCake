@@ -14,12 +14,37 @@ namespace InventoryAndSales.GUI.Page
 {
   public partial class MasterUserPage : UserControl
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+    /// <summary>
+    /// Shown instead of the stored password when editing an existing user. Leaving it untouched
+    /// keeps the current password; typing anything replaces it.
+    ///
+    /// The screen used to display the first eight characters of the password hash and the controller
+    /// decided whether to re-hash by comparing against that prefix, which tied the screen to the
+    /// storage format. <see cref="_passwordChanged"/> now says so directly.
+    /// </summary>
+    private const string PasswordPlaceholder = "********";
+
     private MasterUserController controller;
+    private bool _passwordChanged;
+    private bool _loadingDetail;
+
     public MasterUserPage()
     {
       InitializeComponent();
       controller = new MasterUserController(this);
       comboBoxRoleMaster.DataSource = Enum.GetValues(typeof (RoleOptions));
+
+      textBoxPasswordMaster.TextChanged += PasswordField_TextChanged;
+      textBoxRePasswordMaster.TextChanged += PasswordField_TextChanged;
+    }
+
+    private void PasswordField_TextChanged(object sender, EventArgs e)
+    {
+      if (_loadingDetail)
+        return;
+      _passwordChanged = true;
     }
 
     public void Reset()
@@ -44,16 +69,29 @@ namespace InventoryAndSales.GUI.Page
       string password;
       int role;
       GetUserDetail(out username, out name, out password, out role);
-      if (isUpdatingUser)
+
+      try
       {
-        controller.UpdateUser(_currentUserSelection, username, name, password, role);
+        if (isUpdatingUser)
+        {
+          controller.UpdateUser(_currentUserSelection, username, name, password, role, _passwordChanged);
+        }
+        else if (isAddingUser)
+        {
+          controller.AddUser(username, name, password, role);
+        }
       }
-      else if (isAddingUser)
+      catch (Exception ex)
       {
-        controller.AddUser(username, name, password, role);
+        _log.Error("Could not save user.", ex);
+        MessageBox.Show("Data user gagal disimpan. Silahkan coba lagi.", "GAGAL",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return;
       }
+
       isUpdatingUser = false;
       isAddingUser = false;
+      _passwordChanged = false;
       OnEditMasterUser(false);
     }
 
@@ -94,18 +132,22 @@ namespace InventoryAndSales.GUI.Page
     {
       if (_currentUserSelection == user)
         return;
-      _currentUserSelection = user;
-      textBoxUsernameMaster.Text = user.Username;
-      string password = user.Password;
-      if (!string.IsNullOrEmpty(password) && password.Length > 8)
-      {
-        password = password.Substring(0, 8);
-      }
-      textBoxPasswordMaster.Text = password;
-      textBoxRePasswordMaster.Text = password;
-      textBoxNameMaster.Text = user.Name;
-      comboBoxRoleMaster.SelectedItem = (RoleOptions)user.Role;
 
+      _loadingDetail = true;
+      try
+      {
+        _currentUserSelection = user;
+        textBoxUsernameMaster.Text = user.Username;
+        textBoxPasswordMaster.Text = PasswordPlaceholder;
+        textBoxRePasswordMaster.Text = PasswordPlaceholder;
+        textBoxNameMaster.Text = user.Name;
+        comboBoxRoleMaster.SelectedItem = (RoleOptions)user.Role;
+        _passwordChanged = false;
+      }
+      finally
+      {
+        _loadingDetail = false;
+      }
     }
 
 
@@ -123,10 +165,19 @@ namespace InventoryAndSales.GUI.Page
 
     private void ClearFieldUser()
     {
-      textBoxUsernameMaster.Text = string.Empty;
-      textBoxNameMaster.Text = string.Empty;
-      textBoxPasswordMaster.Text = string.Empty;
-      textBoxRePasswordMaster.Text = string.Empty;
+      _loadingDetail = true;
+      try
+      {
+        textBoxUsernameMaster.Text = string.Empty;
+        textBoxNameMaster.Text = string.Empty;
+        textBoxPasswordMaster.Text = string.Empty;
+        textBoxRePasswordMaster.Text = string.Empty;
+        _passwordChanged = false;
+      }
+      finally
+      {
+        _loadingDetail = false;
+      }
     }
 
     private void buttonEditUserMaster_Click(object sender, EventArgs e)
@@ -151,7 +202,17 @@ namespace InventoryAndSales.GUI.Page
           MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
         if (dr == DialogResult.OK)
         {
-          controller.DeleteUser(_currentUserSelection);
+          try
+          {
+            controller.DeleteUser(_currentUserSelection);
+          }
+          catch (Exception ex)
+          {
+            _log.Error("Could not delete user.", ex);
+            MessageBox.Show("User gagal dihapus. Silahkan coba lagi.", "GAGAL",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+          }
           isUpdatingUser = false;
           isAddingUser = false;
           OnEditMasterUser(false);
@@ -216,9 +277,23 @@ namespace InventoryAndSales.GUI.Page
       StringBuilder sb = new StringBuilder();
       sb.AppendLine(string.IsNullOrEmpty(textBoxUsernameMaster.Text) ? "Harap isi username" : string.Empty);
       sb.AppendLine(string.IsNullOrEmpty(textBoxNameMaster.Text) ? "Harap isi nama user" : string.Empty);
-      sb.AppendLine(string.IsNullOrEmpty(textBoxPasswordMaster.Text) ? "Harap isi password" : string.Empty);
-      sb.AppendLine(string.IsNullOrEmpty(textBoxRePasswordMaster.Text) ? "Harap isi re-password " : string.Empty);
-      sb.AppendLine(textBoxPasswordMaster.Text != textBoxRePasswordMaster.Text ? "Password tidak sesuai dengan re-password" : string.Empty);
+
+      // On an edit the password only has to be filled in when it is actually being changed.
+      bool passwordRequired = isAddingUser || _passwordChanged;
+      if (passwordRequired)
+      {
+        sb.AppendLine(string.IsNullOrEmpty(textBoxPasswordMaster.Text) ? "Harap isi password" : string.Empty);
+        sb.AppendLine(string.IsNullOrEmpty(textBoxRePasswordMaster.Text) ? "Harap isi re-password " : string.Empty);
+        sb.AppendLine(textBoxPasswordMaster.Text != textBoxRePasswordMaster.Text
+                        ? "Password tidak sesuai dengan re-password" : string.Empty);
+      }
+
+      if (!string.IsNullOrEmpty(textBoxUsernameMaster.Text)
+          && controller.IsUsernameTaken(textBoxUsernameMaster.Text, isUpdatingUser ? _currentUserSelection : null))
+      {
+        sb.AppendLine("Username sudah digunakan");
+      }
+
       return sb.ToString().Trim();
     }
 

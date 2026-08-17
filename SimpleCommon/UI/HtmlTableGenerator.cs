@@ -6,42 +6,31 @@ using System.Web.UI;
 
 namespace SimpleCommon.UI
 {
+  /// <summary>
+  /// Renders a table fragment wired up for the DataTables plugin. The caller is responsible for
+  /// wrapping it in a document and for making jQuery/DataTables reachable.
+  /// </summary>
   public class HtmlTableGenerator
   {
     public static string GenerateTable(string id, string[] headers, List<string[]> dataRows)
     {
-
       StringWriter stringWriter = new StringWriter();
       using (HtmlTextWriter writer = new HtmlTextWriter(stringWriter))
       {
-        writer.RenderBeginTag(HtmlTextWriterTag.Script);
-        writer.Write(@"$(document).ready(function() {$('#" + id + @"').DataTable(		 {
-        dom: 'Bfrtip',
-        buttons: [
-            'excelHtml5',
-            'pdfHtml5'
-        ]
-        });} );");
-        writer.RenderEndTag(); //script
-
         GenerateTable(writer, id, headers, dataRows);
+
+        // Initialised after the markup so the element exists, and guarded so a page opened without
+        // the assets still shows a readable table instead of a script error.
+        writer.RenderBeginTag(HtmlTextWriterTag.Script);
+        writer.Write(
+          "if (window.jQuery && jQuery.fn.DataTable) {" +
+          "  jQuery(function () {" +
+          "    jQuery('#" + id + "').DataTable({ dom: 'Bfrtip', buttons: ['excelHtml5', 'pdfHtml5'] });" +
+          "  });" +
+          "}");
+        writer.RenderEndTag();
       }
 
-      //StringBuilder sb = new StringBuilder();
-      //sb.AppendLine("<div>");
-      //sb.AppendLine("<table id={0} class={1} style={2}>");
-      //sb.AppendLine("<tr>");
-      //foreach (string header in headers)
-      //{
-      //  sb.AppendLine("<th>" + header + "</th>");
-      //}
-      //sb.AppendLine("</tr>");
-      //foreach (var dataRow in dataRows)
-      //{
-      //  sb.AppendLine(GenerateTableRow(dataRow));
-      //}
-      //sb.AppendLine("</table>");
-      //sb.AppendLine("</div>");
       return stringWriter.ToString();
     }
 
@@ -60,7 +49,9 @@ namespace SimpleCommon.UI
       foreach (string header in headers)
       {
         writer.RenderBeginTag(HtmlTextWriterTag.Th);
-        writer.Write(header);
+        // Encoded: report data is free text, and a product name containing < or & would otherwise
+        // corrupt the page.
+        writer.WriteEncodedText(header ?? string.Empty);
         writer.RenderEndTag(); //th
       }
       writer.RenderEndTag(); //tr
@@ -73,18 +64,15 @@ namespace SimpleCommon.UI
         foreach (string datumRow in dataRow)
         {
           writer.RenderBeginTag(HtmlTextWriterTag.Td);
-          writer.Write(datumRow);
+          writer.WriteEncodedText(datumRow ?? string.Empty);
           writer.RenderEndTag(); //td
         }
         writer.RenderEndTag(); //tr
       }
       writer.RenderEndTag(); //tbody
 
-
       writer.RenderEndTag(); //table
-
       writer.RenderEndTag(); //div
     }
-
   }
 }

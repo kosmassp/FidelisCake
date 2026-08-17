@@ -234,8 +234,10 @@ namespace InventoryAndSales.GUI.Page
             if (selectedIndex < 0)
               selectedIndex = rowIdProduct.Key;
           }
-          else if (product.Name.ToLower().Contains(filter.ToLower())
-                   || product.Code.StartsWith(filter, StringComparison.InvariantCultureIgnoreCase))
+          // Null tolerant: Code and Name can be empty on rows created by a CSV import or edited
+          // directly in the database.
+          else if ((product.Name ?? string.Empty).IndexOf(filter, StringComparison.CurrentCultureIgnoreCase) >= 0
+                   || (product.Code ?? string.Empty).StartsWith(filter, StringComparison.InvariantCultureIgnoreCase))
           {
             dataGridViewItemList.Rows[rowIdProduct.Key].Visible = true;
             filterCountResult++;

@@ -16,6 +16,8 @@ namespace InventoryAndSales.GUI.Page
 {
   public partial class MasterProductPage : UserControl
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
     private MasterProductController controller;
     private Product _currentProductSelection;
 
@@ -118,14 +120,26 @@ namespace InventoryAndSales.GUI.Page
       decimal discount;
       string barcode;
       GetItemDetail(out code, out barcode, out name, out price, out discount);
-      if (isUpdatingProduct)
+
+      try
       {
-        controller.UpdateItem(_currentProductSelection, code, barcode, name, price, discount);
+        if (isUpdatingProduct)
+        {
+          controller.UpdateItem(_currentProductSelection, code, barcode, name, price, discount);
+        }
+        else if (isAddingProduct)
+        {
+          controller.AddItem(code, barcode, name, price, discount);
+        }
       }
-      else if (isAddingProduct)
+      catch (Exception ex)
       {
-        controller.AddItem(code, barcode, name, price, discount);
+        _log.Error("Could not save product.", ex);
+        MessageBox.Show("Data barang gagal disimpan. Silahkan coba lagi.", "GAGAL",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return;
       }
+
       isUpdatingProduct = false;
       isAddingProduct = false;
       OnEditMasterItem(false);
@@ -212,46 +226,44 @@ namespace InventoryAndSales.GUI.Page
     }
 
     //TODO need to think if we need to move this in the controller level.
+    /// <summary>
+    /// Rejects a duplicate code, name or barcode. There is no unique index behind this, so it has to
+    /// be checked here.
+    /// </summary>
     private string ValidateUniqueItem()
     {
       var code = textBoxDetailItemCode.Text;
       var name = textBoxDetailItemName.Text;
       var barcode = textBoxDetailItemBarcode.Text;
       bool codeExist = false, nameExist = false, barcodeExist = false;
-      List<Product> items = controller.GetItems(string.Empty, comboBoxSort.SelectedItem.ToString());
+
+      List<Product> items = controller.GetItems(string.Empty, string.Empty);
       foreach (Product item in items)
       {
-        if (_currentProductSelection != null
-          && item.Code == _currentProductSelection.Code
-          && item.Name == _currentProductSelection.Name
-          && item.Barcode == _currentProductSelection.Barcode
-          )
+        // Skip the row being edited. Matched on Id, which is unique - the old comparison matched on
+        // code, name and barcode together and let a genuine duplicate through whenever all three
+        // happened to line up.
+        if (_currentProductSelection != null && item.Id == _currentProductSelection.Id)
           continue;
+
+        // No break: every check runs so the operator is told about all of the clashes at once.
         if (item.Code == code)
-        {
           codeExist = true;
-          break;
-        }
         if (item.Name == name)
-        {
           nameExist = true;
-          break;
-        }
         if (!string.IsNullOrEmpty(item.Barcode) && !string.IsNullOrEmpty(barcode) && item.Barcode == barcode)
-        {
           barcodeExist = true;
-          break;
-        }
       }
 
+      StringBuilder sb = new StringBuilder();
       if (barcodeExist)
-        return "Barcode barang sudah ada.";
+        sb.AppendLine("Barcode barang sudah ada.");
       if (codeExist)
-        return "Kode barang sudah ada.";
+        sb.AppendLine("Kode barang sudah ada.");
       if (nameExist)
-        return "Nama barang sudah ada.";
+        sb.AppendLine("Nama barang sudah ada.");
 
-      return string.Empty;
+      return sb.ToString().Trim();
     }
 
     private bool isOnProductAddEditMode = false;
@@ -324,7 +336,17 @@ namespace InventoryAndSales.GUI.Page
           MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
         if (dr == DialogResult.OK)
         {
-          controller.RemoveItem(_currentProductSelection);
+          try
+          {
+            controller.RemoveItem(_currentProductSelection);
+          }
+          catch (Exception ex)
+          {
+            _log.Error("Could not delete product.", ex);
+            MessageBox.Show("Barang gagal dihapus. Silahkan coba lagi.", "GAGAL",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+          }
           isUpdatingProduct = false;
           isAddingProduct = false;
           OnEditMasterItem(false);
@@ -434,6 +456,7 @@ namespace InventoryAndSales.GUI.Page
             MessageBox.Show("File saved successfully!", "CSV Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
           }
           catch(Exception ex) {
+            _log.Error("CSV export failed.", ex);
             MessageBox.Show("Gagal menyimpan file !!! Pastikan File tidak sedang dibuka atau disk tidak penuh", "Export Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
           }
         }
@@ -462,6 +485,7 @@ namespace InventoryAndSales.GUI.Page
         lines = File.ReadAllLines(filePath);
       }
       catch (Exception e) {
+        _log.Error(string.Format("Could not read CSV '{0}'.", filePath), e);
         MessageBox.Show($"Gagal membuka file: {filePath}. Pastikan File tidak sedang dibuka oleh program lainnya", "Failed To Read Files", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return products;
       }
@@ -553,14 +577,43 @@ namespace InventoryAndSales.GUI.Page
       using (OpenFileDialog ofd = new OpenFileDialog())
       {
         ofd.Filter = "CSV Files|*.csv";
-        if (ofd.ShowDialog() == DialogResult.OK)
+        if (ofd.ShowDialog() != DialogResult.OK)
+          return;
+
+        List<Product> products = ImportProductsFromCsv(ofd.FileName);
+        if (products.Count == 0)
         {
-          List<Product> products = ImportProductsFromCsv(ofd.FileName);
+          MessageBox.Show("Tidak ada baris yang dapat dibaca dari file tersebut.", "CSV Import",
+                          MessageBoxButtons.OK, MessageBoxIcon.Warning);
+          return;
+        }
 
-          // Pass the imported products to your controller.
-          controller.SetItemForImport(products);
+        DialogResult confirm = MessageBox.Show(
+          string.Format("{0} baris akan diterapkan ke daftar barang. Lanjutkan?", products.Count),
+          "Konfirmasi Import", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+        if (confirm != DialogResult.OK)
+          return;
 
-          MessageBox.Show("File imported successfully!", "CSV Import", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        Cursor previous = Cursor;
+        Cursor = Cursors.WaitCursor;
+        try
+        {
+          MasterProductController.ImportResult result = controller.SetItemForImport(products);
+          MessageBox.Show(
+            string.Format("Import selesai.\n{0} barang baru, {1} barang diperbarui.", result.Added, result.Updated),
+            "CSV Import", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex)
+        {
+          // The import runs in one transaction, so nothing was applied.
+          _log.Error("Product import failed.", ex);
+          MessageBox.Show(
+            "Import gagal dan tidak ada data yang diubah. Periksa isi file lalu coba lagi.",
+            "CSV Import", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+          Cursor = previous;
         }
       }
       Reset();
