@@ -24,6 +24,35 @@ which is the same pattern for `en-US`.
 
 ---
 
+## `UpdateInstaller.cs`
+
+Namespace `InventoryAndSales.Utility`. `public static class UpdateInstaller` — replaces the installed
+files with a staged release, then restarts the application.
+
+**It runs in a second copy of the application**, started from a temporary folder with
+`--apply-update <staging> <install> <pid>` before the first copy exits: a running executable cannot
+overwrite itself. `Program.Main` dispatches to it **before anything else**, so it opens no database,
+shows no form and builds nothing from the business layer.
+
+The order is chosen so a failure is survivable, because the failure mode is a shop that cannot take
+money:
+
+1. wait for the old process to exit — and **refuse** if it has not, since copying over a running
+   executable half-updates the installation;
+2. copy every file about to be overwritten into `Backup\<yyyyMMdd_HHmmss>`;
+3. copy the new files over the installation;
+4. restore the backup if step 3 fails.
+
+The application is restarted **whichever way it went**: a shop staring at a closed till is worse off
+than one still on the old version.
+
+⚠ Nothing is ever deleted from the installation, so a release that drops a file leaves the old one
+behind. That is deliberate — untidy beats removing something the new version turns out to need. It
+also means the database and the report folder are never at risk, since a release archive does not
+contain them.
+
+---
+
 ## `HtmlReportGenerator.cs`
 
 Namespace `InventoryAndSales.Utility`. `public class HtmlReportGenerator`.

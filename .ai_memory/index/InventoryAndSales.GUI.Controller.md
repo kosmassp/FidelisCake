@@ -98,6 +98,28 @@ through the UI.
 
 ---
 
+## `UpdateController.cs`
+
+`public class UpdateController` — check, ask, stage, hand over to `UpdateInstaller`, close.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `IsConfigured` | `bool` | Whether a manifest URL is set at all. |
+| `CheckForUpdate` | `void (bool announceWhenCurrent)` | `true` when a person asked and is waiting for an answer; `false` for the startup check, which stays silent unless it has something to report. |
+| `Offer` / `Apply` | `private` | Confirm, then stage and launch. A manifest with no `File:` offers to open the Drive folder instead. |
+| `PrepareRunner` | `private static` | Copies the exe, both configs, `log4net.dll` and `SimpleCommon.dll` to a temp folder so the application can overwrite its own installation from there. |
+
+**Nothing is ever installed without a yes.** Applying closes the till and restarts it, and doing that
+unannounced to a cashier with a customer at the counter is not a convenience. The confirmation
+defaults to *No*.
+
+The audit entry is written **before** handing over, because after that the process is on its way out.
+
+Called from `MainForm`: once at `Load` on a background thread (silent), and from *File → Periksa
+Pembaruan*.
+
+---
+
 ## `ReportDisplayController.cs`
 
 `public class ReportDisplayController` — reports. Depends on `ReportManager`, `ReportService`,

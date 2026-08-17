@@ -60,6 +60,9 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
+    <!-- Ships with .NET Framework; needed to unpack a release archive. -->
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -128,6 +131,10 @@
     <Compile Include="Business\PaymentOptionService.cs" />
     <Compile Include="Business\ShopService.cs" />
     <Compile Include="Business\AuditService.cs" />
+    <Compile Include="Business\UpdateManifest.cs" />
+    <Compile Include="Business\UpdateService.cs" />
+    <Compile Include="Utility\UpdateInstaller.cs" />
+    <Compile Include="GUI\Controller\UpdateController.cs" />
     <Compile Include="Database\Model\AuditLog.cs" />
     <Compile Include="Database\DataAccess\AuditLogDao.cs" />
     <Compile Include="Database\Manager\AuditLogManager.cs" />

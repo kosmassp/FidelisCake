@@ -1,5 +1,6 @@
 ﻿using InventoryAndSales.Enumeration;
 using InventoryAndSales.Business;
+using InventoryAndSales.GUI.Controller;
 using InventoryAndSales.GUI.Popup;
 using InventoryAndSales.GUI.Util;
 using SimpleCommon.Utility;
@@ -234,6 +235,52 @@ namespace InventoryAndSales.GUI
     private void MainForm_Load(object sender, EventArgs e)
     {
       LoadLoginPage();
+      CheckForUpdateInBackground();
+    }
+
+    /// <summary>
+    /// Asks about a newer release once, on a background thread, and says nothing unless there is
+    /// one. A shop with no internet must not notice this happening, so nothing here is allowed to
+    /// delay the login screen or reach the operator on failure.
+    /// </summary>
+    private void CheckForUpdateInBackground()
+    {
+      ThreadPool.QueueUserWorkItem(state =>
+      {
+        try
+        {
+          UpdateController updates = new UpdateController();
+          if (!updates.IsConfigured)
+            return;
+
+          // The check itself runs off the UI thread; the question it may ask has to go back on it.
+          BeginInvoke(new MethodInvoker(() => updates.CheckForUpdate(false)));
+        }
+        catch (Exception ex)
+        {
+          _log.Warn("The startup update check failed.", ex);
+        }
+      });
+    }
+
+    private void periksaPembaruanToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      Cursor previous = Cursor;
+      Cursor = Cursors.WaitCursor;
+      try
+      {
+        new UpdateController().CheckForUpdate(true);
+      }
+      catch (Exception ex)
+      {
+        _log.Error("The update check failed.", ex);
+        MessageBox.Show("Pemeriksaan pembaruan gagal.", "Periksa Pembaruan",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+      }
+      finally
+      {
+        Cursor = previous;
+      }
     }
     private void pengaturanToolStripMenuItem_Click(object sender, EventArgs e)
     {

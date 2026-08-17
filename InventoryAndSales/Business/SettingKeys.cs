@@ -18,6 +18,17 @@ namespace InventoryAndSales.Business
     public const string GroupReport = "REPORT";
     public const string GroupSecurity = "SECURITY";
     public const string GroupPrinter = "PRINTER";
+    public const string GroupUpdate = "UPDATE";
+
+    /// <summary>
+    /// Address of the little text file that says what the current release is. Empty switches update
+    /// checking off entirely, which is the default: an installation that has not been told where to
+    /// look must not go looking.
+    ///
+    /// Seeded from the UpdateManifestUrl entry in App.config, so a technician can set it once while
+    /// installing without opening the database.
+    /// </summary>
+    public const string UpdateManifestUrl = "UPDATE_MANIFEST_URL";
 
     /// <summary>
     /// What this shop is called. Shown on the main window and at the top of every generated report.
@@ -126,6 +137,8 @@ namespace InventoryAndSales.Business
         new SettingSeed(EdcTerminals, GroupGeneral, string.Empty),
         new SettingSeed(QrisProviders, GroupGeneral, string.Empty),
 
+        new SettingSeed(UpdateManifestUrl, GroupUpdate, ConfiguredSetting("UpdateManifestUrl")),
+
         new SettingSeed(PrinterName, GroupPrinter, LegacyConfiguredPrinterName()),
         new SettingSeed(PrinterPaperWidthMm, GroupPrinter,
                         DefaultPaperWidthMm.ToString(System.Globalization.CultureInfo.InvariantCulture)),
@@ -139,7 +152,16 @@ namespace InventoryAndSales.Business
     /// </summary>
     private static string LegacyConfiguredPrinterName()
     {
-      string configured = System.Configuration.ConfigurationManager.AppSettings["PrinterName"];
+      return ConfiguredSetting("PrinterName");
+    }
+
+    /// <summary>
+    /// An App.config value used as a seed. Only ever read when the row is missing, so editing
+    /// App.config later changes nothing — the database is the source of truth once seeded.
+    /// </summary>
+    private static string ConfiguredSetting(string name)
+    {
+      string configured = System.Configuration.ConfigurationManager.AppSettings[name];
       return configured == null ? string.Empty : configured.Trim();
     }
 

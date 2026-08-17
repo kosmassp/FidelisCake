@@ -21,6 +21,8 @@ layer.
 | `Settings` | `SettingsService { get; private set; }` | Typed access to `M_SETTINGS`. |
 | `ReportService` | `ReportService { get; private set; }` | Report folder and asset provisioning. |
 | `Shop` | `ShopService { get; private set; }` | What this shop is called. |
+| `Audit` | `AuditService { get; private set; }` | Who changed what. **Built first** — most of the rest reports into it. |
+| `UpdateService` | `UpdateService { get; private set; }` | Whether a newer release exists. |
 | `CashierManager` | `CashierManager { get; private set; }` | Checkout, revision, cancel, receipts. |
 | `LoginManager` | `LoginManager { get; private set; }` | Authentication and active user. |
 | `MasterManager` | `MasterManager { get; private set; }` | Product and user master data. |
@@ -159,10 +161,84 @@ whichever rows are missing.
 
 Keys: `SHOP_NAME`, `HEADER`, `FOOTER`, `EDC_TERMINALS`, `QRIS_PROVIDERS` (group `GENERAL`),
 `REPORT_DIRECTORY` (`REPORT`), `ALLOW_BUILTIN_ADMIN` (`SECURITY`), `PRINTER_NAME`,
-`PRINTER_PAPER_WIDTH_MM` (`PRINTER`).
+`PRINTER_PAPER_WIDTH_MM` (`PRINTER`), `UPDATE_MANIFEST_URL` (`UPDATE`).
+
+`ConfiguredSetting(name)` seeds a key from `App.config` — used by `PRINTER_NAME` and
+`UPDATE_MANIFEST_URL` so a technician can set them once at install time. Read **only** when the row
+is missing; editing `App.config` afterwards changes nothing.
+
+**Every `SetString` is audited**, so adding a key here makes it auditable for free.
 
 ⚠ `SetString` does nothing but log when the row does not exist, so a page that saves a **new** key
 should read the value back rather than report success blindly — `ShopSettingForm` does.
+
+---
+
+## `AuditService.cs`
+
+`public class AuditService` — records who changed what, into `T_AUDIT_LOG`.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `Follow` | `void (LoginManager)` | Subscribes to `OnActiveUserChanged` to track the actor. |
+| `Record` | `void (action, entityType, entityKey, detail)` | Against the signed-in user. |
+| `RecordAs` | `void (User, action, entityType, entityKey, detail)` | Against a named user — a failed sign-in has none, and a supervisor who approved a step-up is not the person at the till. |
+| `RecordLogin` / `RecordLoginFailed` / `RecordLogout` | | Session events. `RecordLogout` also clears the tracked actor, because signing out deliberately does not raise `OnActiveUserChanged`. |
+| *(consts)* | | The vocabulary: `ActionLogin`, `ActionCreate`, `ActionUpdate`, `ActionDelete`, `ActionCheckout`, `ActionRevise`, `ActionCancel`, `ActionSettingChange`, `ActionUpdateApplied`; `EntityProduct`, `EntityUser`, `EntitySetting`, `EntitySale`, `EntitySession`, `EntityApplication`. |
+
+Two rules hold, and both are load-bearing:
+
+- **Auditing never breaks the thing it audits.** Every write is swallowed and logged, and mirrored
+  into the application log as an `AUDIT` line so the trail survives even when the database is what
+  is broken. A till that cannot write an audit row must still be able to take money.
+- **An entry is written after the operation, never before**, so it always describes something that
+  happened. Where a business transaction is still open — a CSV import runs one around the whole
+  file — the entry joins it and rolls back with it. The deliberate exception is a *failed* checkout,
+  recorded after the rollback because that is the case worth investigating.
+
+Coverage comes from choke points, not scattered calls: `SettingsService.SetString` (every setting),
+`MasterManager` (every product and user edit), `CashierManager` (checkout, revision, cancellation),
+`LoginManager` (sign-in, failure, sign-out), `MainFormController.RequirePermission` (supervisor
+approvals), `UpdateController` (an applied update).
+
+⚠ The actor is tracked by **subscription**, not by holding a `LoginManager` — the login manager
+already depends on this class. `BusinessFactory` builds the audit service first and calls `Follow`
+last.
+
+⚠ User entries deliberately exclude the password hash; an audit trail is read by more people than
+the user table is.
+
+---
+
+## `UpdateService.cs` and `UpdateManifest.cs`
+
+`public class UpdateService` — is there a newer release, and get it ready to install.
+
+| Member | Signature | Purpose |
+|---|---|---|
+| `CurrentVersion` | `static Version` | The running assembly version. |
+| `GetManifestUrl` / `SetManifestUrl` | | `UPDATE_MANIFEST_URL`. Empty switches the feature off, which is the default. |
+| `FetchManifest` | `UpdateManifest ()` | Downloads and parses it. **Returns null for every failure** — not configured, unreachable, unparseable — because they all mean "carry on as you are". |
+| `IsNewer` | `static bool (UpdateManifest)` | Strictly greater than the running version. |
+| `StageUpdate` | `string (UpdateManifest, out string problem)` | Downloads the archive, unpacks it, returns the folder holding the new files. |
+| `InstallDirectory` / `WorkingRoot` | `static string` | Where the application is; where downloads go (`%LOCALAPPDATA%\FidelisCake\Update`). |
+
+`public class UpdateManifest` — the hand-edited file in the cloud, one `Key: value` per line
+(`Version`, `Drive`, `File`, `Notes`); unknown keys, blanks and `#` comments ignored. `Parse` never
+throws — a mistyped release must leave the till running.
+
+`ToDirectDownloadUrl` turns a Google Drive sharing link into `uc?export=download&id=…`, because a
+link copied out of Drive points at a viewer page and fetching it returns HTML. A **folder** link has
+no file id and is left alone: a folder cannot be fetched this way, which is why a manifest with only
+`Drive:` announces the update instead of installing it.
+
+⚠ `StageUpdate` writes only under `WorkingRoot`, never into the installation, and treats "the archive
+will not open" as the signal that a Drive file was never shared publicly — that case downloads
+happily as a sign-in page.
+
+⚠ TLS 1.2 is enabled explicitly. .NET Framework 4.6 negotiates the machine's defaults, which on an
+older shop PC can still be TLS 1.0; Google refuses that, so the check would fail on exactly the
+machines that most need updating.
 
 ---
 

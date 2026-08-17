@@ -32,6 +32,7 @@
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
       this.menuStripMain = new System.Windows.Forms.MenuStrip();
       this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.periksaPembaruanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.loginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.transaksiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -91,6 +92,7 @@
       // 
       this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loginToolStripMenuItem,
+            this.periksaPembaruanToolStripMenuItem,
             this.exitToolStripMenuItem});
       this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
       this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -102,9 +104,16 @@
       this.loginToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
       this.loginToolStripMenuItem.Text = "Logout";
       this.loginToolStripMenuItem.Click += new System.EventHandler(this.loginToolStripMenuItem_Click);
-      // 
+      //
+      // periksaPembaruanToolStripMenuItem
+      //
+      this.periksaPembaruanToolStripMenuItem.Name = "periksaPembaruanToolStripMenuItem";
+      this.periksaPembaruanToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+      this.periksaPembaruanToolStripMenuItem.Text = "Periksa Pembaruan";
+      this.periksaPembaruanToolStripMenuItem.Click += new System.EventHandler(this.periksaPembaruanToolStripMenuItem_Click);
+      //
       // exitToolStripMenuItem
-      // 
+      //
       this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
       this.exitToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
       this.exitToolStripMenuItem.Text = "Exit";
@@ -390,6 +399,7 @@
 
     private System.Windows.Forms.MenuStrip menuStripMain;
     private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem periksaPembaruanToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem loginToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;

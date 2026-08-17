@@ -18,8 +18,14 @@ weight to install, to update and to get wrong.
 
 Currently referenced, and the complete allowed set: `System`, `System.Core`, `System.Data`,
 `System.Drawing`, `System.Windows.Forms`, `System.Web` (for `HtmlTextWriter`), `System.configuration`,
-`System.Xml`, `System.Xml.Linq`, `System.Data.DataSetExtensions`, `System.Deployment`, plus the one
-pre-existing exception: **`log4net`** (already shipped — keep using it, do not replace it).
+`System.Xml`, `System.Xml.Linq`, `System.Data.DataSetExtensions`, `System.Deployment`,
+`System.IO.Compression` and `System.IO.Compression.FileSystem` (for `ZipFile`, unpacking a release
+archive), plus the one pre-existing exception: **`log4net`** (already shipped — keep using it, do not
+replace it).
+
+Adding a **framework** assembly to that list is a smaller decision than adding a package — it ships
+with .NET and nothing extra is deployed — but it is still a decision: say so in the commit, and add
+it here.
 
 Reach for the framework first:
 

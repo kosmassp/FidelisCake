@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows.Forms;
 using InventoryAndSales.Database;
 using InventoryAndSales.GUI;
+using InventoryAndSales.Utility;
 
 namespace InventoryAndSales
 {
@@ -18,8 +19,14 @@ namespace InventoryAndSales
     /// The main entry point for the application.
     /// </summary>
     [STAThread]
-    static void Main()
+    static int Main(string[] args)
     {
+      // Installer mode first, and before anything else is touched. This copy of the application was
+      // started from a temporary folder purely to overwrite the installation the other copy is
+      // holding open; it must not open a database, a window or a settings row.
+      if (UpdateInstaller.IsInstallerMode(args))
+        return UpdateInstaller.Run(args);
+
       // Culture is pinned deliberately. Amounts are parsed and formatted with '.' as the decimal
       // separator throughout, and dates are compared as parameters against SQL Server. Changing this
       // silently changes how money is read from the payment box.
@@ -58,8 +65,9 @@ namespace InventoryAndSales
       else
       {
         _log.Info("Application failed to start");
-        Environment.Exit(1);
+        return 1;
       }
+      return 0;
     }
 
     /// <summary>

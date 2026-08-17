@@ -28,6 +28,9 @@ edit them through the WinForms designer, not by hand.
 | Payment methods (cash / EDC) | `InventoryAndSales/Business/PaymentDetail.cs` |
 | EDC terminal / QRIS provider lists | *Pengaturan → Pembayaran*, stored in `M_SETTINGS` |
 | The shop's name (window title, report heading) | *Pengaturan → Toko*, resolved by `InventoryAndSales/Business/ShopService.cs` |
+| Who changed what (the audit trail) | `InventoryAndSales/Business/AuditService.cs`, table `T_AUDIT_LOG` |
+| Update checking / the version file in the cloud | `InventoryAndSales/Business/UpdateService.cs`, `UpdateManifest.cs` |
+| How an update is actually installed | `InventoryAndSales/Utility/UpdateInstaller.cs` |
 | Login / password check / recovery account | `InventoryAndSales/Business/LoginManager.cs` |
 | Password hashing | `SimpleCommon/Utility/PasswordHasher.cs` |
 | Who sees which menu | `InventoryAndSales/GUI/MainForm.cs` → `EnableMenu`, `Enumeration/AccessOption.cs` |
@@ -54,9 +57,9 @@ edit them through the WinForms designer, not by hand.
 
 | File | Purpose |
 |---|---|
-| `InventoryAndSales/Program.cs` | Entry point. Forces `en-US` culture, runs `SplashForm` then `MainForm`, logs unhandled exceptions. |
-| `InventoryAndSales/App.config` | `DatabaseProvider` and `ConnectionString`. Also `PrinterName`, read once to seed the printer setting. |
-| `InventoryAndSales/log4net.config` | Logging to console + rolling `Log\log.txt`. |
+| `InventoryAndSales/Program.cs` | Entry point. Dispatches `--apply-update` to `UpdateInstaller` **first**, then forces `en-US` culture, runs `SplashForm` then `MainForm`, logs unhandled exceptions and the environment. |
+| `InventoryAndSales/App.config` | `DatabaseProvider` and `ConnectionString`. Also `PrinterName` and `UpdateManifestUrl`, each read once to seed its setting. |
+| `InventoryAndSales/log4net.config` | Logging to console + `Log\log.txt`, **appending**, rolled by date and size, 30 backups. |
 | `InventoryAndSales/InventoryAndSales.csproj` | Project file, compile list, references. |
 
 ### Business — [index/InventoryAndSales.Business.md](index/InventoryAndSales.Business.md)
@@ -78,6 +81,9 @@ edit them through the WinForms designer, not by hand.
 | `Business/ReportService.cs` | Report folder resolution and copying the DataTables assets out of `Report`. |
 | `Business/SettingKeys.cs` | Every `M_SETTINGS` key, its group and its seeded default. |
 | `Business/ShopService.cs` | What this shop is called: the setting, its receipt-header fallback, and validation. |
+| `Business/AuditService.cs` | Records who changed what into `T_AUDIT_LOG`. Never breaks the operation it audits. |
+| `Business/UpdateService.cs` | Reads the version file in the cloud; downloads and unpacks a release. |
+| `Business/UpdateManifest.cs` | The hand-edited `Version:` / `Drive:` / `File:` text file, and Google Drive link handling. |
 | `Business/SettingsService.cs` | Typed reads/writes over `M_SETTINGS`, with fallbacks instead of throws. |
 | `Business/ViewManager.cs` | Transaction browsing (used by the history picker). |
 
@@ -125,6 +131,7 @@ edit them through the WinForms designer, not by hand.
 | `Database/DataAccess/TransactionDao.cs` | Adds `FindByFactur`. |
 | `Database/DataAccess/TransactionDetailDao.cs` | Adds `FindByTransactionId`. |
 | `Database/DataAccess/UserDao.cs` | `BaseDao<User>`, no extras. |
+| `Database/DataAccess/AuditLogDao.cs` | `BaseDao<AuditLog>`, no extras. |
 
 ### Database/DataTable — [index/InventoryAndSales.Database.DataTable.md](index/InventoryAndSales.Database.DataTable.md)
 
@@ -146,6 +153,7 @@ edit them through the WinForms designer, not by hand.
 | `Database/Manager/TransactionDetailManager.cs` | `FindByTransactionId`, hydrates `ProductName`. |
 | `Database/Manager/TransactionManager.cs` | Atomic save / revise / cancel of header + details. |
 | `Database/Manager/UserManager.cs` | Credential lookup (incl. hardcoded fallback account), non-deleted list. |
+| `Database/Manager/AuditLogManager.cs` | `BaseManager<AuditLog>`, write only in practice. |
 
 ### Database/Model — [index/InventoryAndSales.Database.Model.md](index/InventoryAndSales.Database.Model.md)
 
@@ -159,6 +167,7 @@ edit them through the WinForms designer, not by hand.
 | `Database/Model/Transaction.cs` | `T_TRANSACTIONS` header row, incl. `Revision`. |
 | `Database/Model/TransactionDetail.cs` | `T_TRANSACTION_DETAILS` line + `UpdateQuantity` subtotal recalculation. |
 | `Database/Model/User.cs` | `M_USERS` row + `RoleOption`. |
+| `Database/Model/AuditLog.cs` | `T_AUDIT_LOG` row: actor, time, workstation, what was touched, before/after. |
 
 ### Enumeration — [index/InventoryAndSales.Enumeration.md](index/InventoryAndSales.Enumeration.md)
 
@@ -186,6 +195,7 @@ edit them through the WinForms designer, not by hand.
 | `GUI/Controller/MasterProductController.cs` | Product add/update/delete/search, bulk import dispatch. |
 | `GUI/Controller/MasterUserController.cs` | User add/update/delete, password re-hash rule. |
 | `GUI/Controller/ReportDisplayController.cs` | Builds report `DataTable`s and HTML report files. |
+| `GUI/Controller/UpdateController.cs` | Check, confirm, stage and hand over to the installer. |
 | `GUI/Controller/SettingPageController.cs` | Placeholder for the settings dialog. |
 | `GUI/Controller/TransactionUpdateController.cs` | Revision screen: reload old cart, re-checkout as a revision. |
 
@@ -252,6 +262,7 @@ edit them through the WinForms designer, not by hand.
 |---|---|
 | `Utility/Constant.cs` | `DISPLAY_CURRENCY = "#,##0.00"`. Namespace is `InventoryAndSales.GUI.Utility`. |
 | `Utility/HtmlReportGenerator.cs` | Wraps a table fragment in an HTML page referencing DataTables assets. |
+| `Utility/UpdateInstaller.cs` | Second-process file swap with backup and rollback, then restart. |
 
 ### Properties — [index/InventoryAndSales.Properties.md](index/InventoryAndSales.Properties.md)
 

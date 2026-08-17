@@ -45,9 +45,22 @@ A column an older installation may be missing, plus an optional `BackfillLiteral
 
 | Member | Purpose |
 |---|---|
-| `Tables()` | The six tables: `M_SETTINGS`, `M_PRODUCTS`, `M_USERS`, `T_TRANSACTION_DETAILS`, `T_TRANSACTIONS`, `M_CUSTOMERS`. |
-| `ColumnAdditions()` | Columns added after the original release: `Revision` (backfilled to `0`), `CancelledBy`, `CancelledAt`. |
-| `Indexes()` | `IDX_T_TRANS_TRXTIME`, `IDX_T_TRANS_FACTUR` (unique), `IDX_T_TRDETAIL_TRX_ID`. |
+| `Tables()` | The seven tables: `M_SETTINGS`, `M_PRODUCTS`, `M_USERS`, `T_TRANSACTION_DETAILS`, `T_TRANSACTIONS`, `M_CUSTOMERS`, `T_AUDIT_LOG`. |
+| `ColumnAdditions()` | Columns added after the original release: `Revision` (backfilled to `0`), `CancelledBy`, `CancelledAt`, the payment columns. |
+| `Indexes()` | `IDX_T_TRANS_TRXTIME`, `IDX_T_TRANS_FACTUR` (unique), `IDX_T_TRDETAIL_TRX_ID`, `IDX_T_AUDIT_TIME`. |
+
+### `T_AUDIT_LOG`
+
+`Id`, `AuditTime`, `UserId`, `UserName`, `Action`, `EntityType`, `EntityKey`, `Workstation`,
+`Detail`. Written by `Business/AuditService.cs`; nothing reads it in the application — it is
+investigated with SQL.
+
+The actor's **name is stored beside the id** rather than only joined. A user row can be renamed or
+soft-deleted, and a trail that stops naming its actor afterwards answers nothing. `Workstation` is
+there because a shop runs more than one till.
+
+A whole new table rather than columns on existing ones, so it needs no `ColumnAdditions()` entry:
+`DBUtility` creates a missing table at startup the same way it adds a missing column.
 
 ## Changing the schema
 

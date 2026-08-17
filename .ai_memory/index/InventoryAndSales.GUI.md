@@ -18,6 +18,8 @@ Fields: `MainFormController controller`, `DisplayPage currentPage`.
 | Member | Signature | Purpose |
 |---|---|---|
 | *(ctor)* | `MainForm()` | Re-pins culture to `en-US`, hides tab headers, creates the controller, titles the window, sets `KeyPreview = true` so the form sees key events before the focused control. |
+| `CheckForUpdateInBackground` | `private void ()` | Queued to the thread pool at `Load` so a shop with no internet never notices it; the question it may ask is marshalled back with `BeginInvoke`. Silent when there is nothing to report. |
+| `periksaPembaruanToolStripMenuItem_Click` | `private void (object, EventArgs)` | *File → Periksa Pembaruan*, behind a wait cursor. Says "already up to date" because a person is waiting for an answer. |
 | `RefreshWindowTitle` | `void RefreshWindowTitle()` | `{shop name} [version: {assembly version}]`. The name comes from `MainFormController.GetShopName()` → `ShopService`, read on demand; called again from the settings dialog's `FormClosed` so a rename shows without restarting the till. Thread-marshalled. |
 | `EnableMenu` | `void EnableMenu(int role)` | Shows/hides top-level menus by role bit: *Transaksi* ← `Cashier`, *Edit* ← `Master`, *Laporan* ← **`Laporan`**, *check kasir* ← `Cashier`. Marshals to the UI thread. The reports menu previously tested the `Admin` bit, so a Supervisor held the `Laporan` permission but could not open reports. |
 | `LoadCashierPage` | `void LoadCashierPage()` | Selects the cashier tab, sets `currentPage`, calls `cashierPage1.Reset()`. |
