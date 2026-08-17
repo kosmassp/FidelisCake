@@ -30,11 +30,13 @@ namespace InventoryAndSales.Business
 
     private readonly UserManager _userManager;
     private readonly SettingsService _settings;
+    private readonly AuditService _audit;
 
-    public LoginManager(UserManager userManager, SettingsService settings)
+    public LoginManager(UserManager userManager, SettingsService settings, AuditService audit)
     {
       _userManager = userManager;
       _settings = settings;
+      _audit = audit;
     }
 
     public User ActiveUser { get; private set; }
@@ -43,6 +45,14 @@ namespace InventoryAndSales.Business
     {
       User user = AuthenticateUsernamePassword(password, username);
       ActiveUser = user;
+
+      // Recorded before the event, and against the user explicitly, so the entry stands whether or
+      // not anything is listening and whoever just signed in owns it.
+      if (user == null)
+        _audit.RecordLoginFailed(username);
+      else
+        _audit.RecordLogin(user);
+
       if (OnActiveUserChanged != null)
         OnActiveUserChanged(this, user);
       return ActiveUser != null;
@@ -159,7 +169,10 @@ namespace InventoryAndSales.Business
 
     public void Logout()
     {
+      User user = ActiveUser;
       ActiveUser = null;
+      if (user != null)
+        _audit.RecordLogout(user);
     }
   }
 }

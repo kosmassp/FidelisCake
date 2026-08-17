@@ -68,6 +68,9 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.VoidHandler(LoadCashierPage));
         return;
       }
+      // Every page switch is logged: reconstructing what the operator was doing when something went
+      // wrong is most of the work of answering a report from the shop.
+      _log.Info("Navigating to the cashier page.");
       tabControlPage.SelectedTab = tabPageCashier;
       currentPage = DisplayPage.Cashier;
       cashierPage1.Reset();
@@ -80,6 +83,7 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.VoidHandler(LoadLoginPage));
         return;
       }
+      _log.Info("Navigating to the login page.");
       tabControlPage.SelectedTab = tabPageLogin;
       currentPage = DisplayPage.Login;
       controller.Logout();
@@ -93,6 +97,7 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.VoidHandler(LoadProductMasterPage));
         return;
       }
+      _log.Info("Navigating to the product master page.");
       tabControlPage.SelectedTab = tabPageProductMaster;
       currentPage = DisplayPage.MasterProduct;
       masterProductPage1.Reset();
@@ -105,6 +110,7 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.VoidHandler(LoadUserMasterPage));
         return;
       }
+      _log.Info("Navigating to the user master page.");
       tabControlPage.SelectedTab = tabPageUserMaster;
       currentPage = DisplayPage.MasterUser;
       masterUserPage1.Reset();

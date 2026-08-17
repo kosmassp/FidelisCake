@@ -151,6 +151,9 @@ namespace InventoryAndSales.GUI.Controller
           "Laporan Terbatas", MessageBoxButtons.OK, MessageBoxIcon.Warning);
       }
 
+      _log.InfoFormat("Report '{0}' written to '{1}': {2} rows for {3} to {4}.",
+                      title, fullPath, document.Table.RowCount,
+                      start.ToString("yyyy-MM-dd"), stop.ToString("yyyy-MM-dd"));
       OpenReport(fullPath);
     }
 

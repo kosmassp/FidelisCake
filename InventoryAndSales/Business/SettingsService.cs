@@ -18,10 +18,12 @@ namespace InventoryAndSales.Business
     private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
     private readonly SettingConfigurationManager _settingManager;
+    private readonly AuditService _audit;
 
-    public SettingsService(SettingConfigurationManager settingManager)
+    public SettingsService(SettingConfigurationManager settingManager, AuditService audit)
     {
       _settingManager = settingManager;
+      _audit = audit;
     }
 
     public string GetString(string key, string fallback)
@@ -48,6 +50,10 @@ namespace InventoryAndSales.Business
       }
     }
 
+    /// <summary>
+    /// Writes a value and records who changed it. Every configurable thing in the application ends
+    /// up here, so this one place is what makes a settings change auditable at all.
+    /// </summary>
     public void SetString(string key, string value)
     {
       SettingConfiguration setting = _settingManager.FindByKey(key).FirstOrDefault();
@@ -56,8 +62,34 @@ namespace InventoryAndSales.Business
         _log.WarnFormat("Setting '{0}' does not exist and cannot be saved.", key);
         return;
       }
+
+      string previous = setting.Value;
+      if (string.Equals(previous, value, StringComparison.Ordinal))
+        return;
+
       setting.Value = value;
       _settingManager.Update(setting);
+      _log.InfoFormat("Setting '{0}' changed.", key);
+
+      if (_audit != null)
+      {
+        _audit.Record(AuditService.ActionSettingChange, AuditService.EntitySetting, key,
+                      string.Format("'{0}' -> '{1}'", Describe(previous), Describe(value)));
+      }
+    }
+
+    /// <summary>
+    /// Keeps one setting's value readable in an audit row. Multi-line values are collapsed and long
+    /// ones cut, because the point is to see *that* it changed and roughly to what.
+    /// </summary>
+    private static string Describe(string value)
+    {
+      if (value == null)
+        return string.Empty;
+
+      string single = value.Replace(SettingKeys.NewLineToken, " | ").Replace("\r", " ").Replace("\n", " ");
+      const int maxLength = 200;
+      return single.Length <= maxLength ? single : single.Substring(0, maxLength) + "...";
     }
 
     public bool GetBool(string key, bool fallback)

@@ -27,6 +27,9 @@ namespace InventoryAndSales.Business
       return _instance;
     }
 
+    /// <summary>Who changed what. Built first, because most of the rest reports into it.</summary>
+    public AuditService Audit { get; private set; }
+
     public SettingsService Settings { get; private set; }
     public ReportService ReportService { get; private set; }
     public PaymentOptionService PaymentOptions { get; private set; }
@@ -46,16 +49,21 @@ namespace InventoryAndSales.Business
     {
       DBFactory dbFactory = DBFactory.GetInstance();
 
-      Settings = new SettingsService(dbFactory.SettingManager);
+      Audit = new AuditService(dbFactory.AuditLogManager);
+      Settings = new SettingsService(dbFactory.SettingManager, Audit);
       ReportService = new ReportService(Settings);
       PaymentOptions = new PaymentOptionService(Settings);
       Shop = new ShopService(Settings);
       HeldCarts = new HeldCartService();
-      CashierManager = new CashierManager(dbFactory.TransactionManager, dbFactory.UserManager, Settings);
-      LoginManager = new LoginManager(dbFactory.UserManager, Settings);
-      MasterManager = new MasterManager(dbFactory.ProductManager, dbFactory.UserManager);
+      CashierManager = new CashierManager(dbFactory.TransactionManager, dbFactory.UserManager, Settings, Audit);
+      LoginManager = new LoginManager(dbFactory.UserManager, Settings, Audit);
+      MasterManager = new MasterManager(dbFactory.ProductManager, dbFactory.UserManager, Audit);
       ReportManager = new ReportManager(dbFactory.CustomManager);
       ViewManager = new ViewManager(dbFactory.CustomManager);
+
+      // Done last, and by subscription rather than a reference, because the login manager already
+      // depends on the audit service; this is what lets every later entry know who is at the till.
+      Audit.Follow(LoginManager);
     }
   }
 }

@@ -107,6 +107,7 @@
     <Compile Include="Database\DataAccess\UserDao.cs" />
     <Compile Include="Database\DataTable\DataTable.cs" />
     <Compile Include="Database\DBFactory.cs" />
+    <Compile Include="Database\DbScope.cs" />
     <Compile Include="Database\Manager\BaseManager.cs" />
     <Compile Include="Database\Manager\CustomerManager.cs" />
     <Compile Include="Database\Manager\ProductManager.cs" />
@@ -126,6 +127,10 @@
     <Compile Include="Business\PaymentDetail.cs" />
     <Compile Include="Business\PaymentOptionService.cs" />
     <Compile Include="Business\ShopService.cs" />
+    <Compile Include="Business\AuditService.cs" />
+    <Compile Include="Database\Model\AuditLog.cs" />
+    <Compile Include="Database\DataAccess\AuditLogDao.cs" />
+    <Compile Include="Database\Manager\AuditLogManager.cs" />
     <Compile Include="Business\HeldCartService.cs" />
     <Compile Include="GUI\Controller\SettingPage\PaymentOptionSettingController.cs" />
     <Compile Include="GUI\Popup\SettingPage\PaymentOptionSetting.cs">

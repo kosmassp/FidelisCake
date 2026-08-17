@@ -176,6 +176,20 @@ namespace InventoryAndSales.Database.Schema
           ColumnDefinition.Text("Address", 50),
           ColumnDefinition.Text("Phone", 50),
           ColumnDefinition.Column("MemberType", DbColumnType.Int)),
+
+        // Who changed what, and when. The user's name is stored beside the id rather than only
+        // joined: a user row can be soft-deleted or renamed, and an audit trail that stops naming
+        // its actor after the fact answers nothing.
+        new TableDefinition("T_AUDIT_LOG",
+          ColumnDefinition.Identity("Id", DbColumnType.Long),
+          ColumnDefinition.Column("AuditTime", DbColumnType.DateTime),
+          ColumnDefinition.Column("UserId", DbColumnType.Int),
+          ColumnDefinition.Text("UserName", 50),
+          ColumnDefinition.Text("Action", 40),
+          ColumnDefinition.Text("EntityType", 40),
+          ColumnDefinition.Text("EntityKey", 60),
+          ColumnDefinition.Text("Workstation", 60),
+          ColumnDefinition.Column("Detail", DbColumnType.Text)),
       };
     }
 
@@ -216,6 +230,8 @@ namespace InventoryAndSales.Database.Schema
         new IndexDefinition("IDX_T_TRANS_TRXTIME", "T_TRANSACTIONS", new[] { "TransactionTime" }, false, true),
         new IndexDefinition("IDX_T_TRANS_FACTUR", "T_TRANSACTIONS", new[] { "Factur" }, true, false),
         new IndexDefinition("IDX_T_TRDETAIL_TRX_ID", "T_TRANSACTION_DETAILS", new[] { "TransactionId" }, false, true),
+        // An investigation always starts from "what happened around this time".
+        new IndexDefinition("IDX_T_AUDIT_TIME", "T_AUDIT_LOG", new[] { "AuditTime" }, false, true),
       };
     }
   }

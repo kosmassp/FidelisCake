@@ -30,6 +30,7 @@ namespace InventoryAndSales.GUI
     private readonly ReportManager _reportManager;
     private readonly HeldCartService _heldCarts;
     private readonly ShopService _shop;
+    private readonly AuditService _audit;
 
     public MainFormController(MainForm mainForm)
     {
@@ -39,6 +40,7 @@ namespace InventoryAndSales.GUI
       _reportManager = BusinessFactory.GetInstance().ReportManager;
       _heldCarts = BusinessFactory.GetInstance().HeldCarts;
       _shop = BusinessFactory.GetInstance().Shop;
+      _audit = BusinessFactory.GetInstance().Audit;
 
       _loginManager.OnActiveUserChanged += OnActiveUserChanged;
     }
@@ -74,6 +76,7 @@ namespace InventoryAndSales.GUI
 
     public void Logout()
     {
+      _log.Info("Logout requested.");
       _heldCarts.Clear();
       _mainForm.EnableMenu(0);
       _mainForm.UpdateActiveUser("");
@@ -108,7 +111,11 @@ namespace InventoryAndSales.GUI
       List<TransactionDetail> details;
       Transaction t = _cashierManager.GetTransaction(facturNumber, out details);
       if (t == null || details == null)
+      {
+        _log.WarnFormat("Reprint requested for faktur '{0}', which could not be loaded.", facturNumber);
         return false;
+      }
+      _log.InfoFormat("Reprinting receipt for faktur '{0}'.", facturNumber);
       _cashierManager.PrintPaymentNote(t, details);
       return true;
     }
@@ -130,8 +137,19 @@ namespace InventoryAndSales.GUI
       using (AuthenticationForm authenticationForm = new AuthenticationForm(required))
       {
         if (authenticationForm.ShowDialog() != DialogResult.OK)
+        {
+          _log.InfoFormat("Supervisor approval for {0} was refused or cancelled, requested by '{1}'.",
+                          required, activeUser.Name);
           return null;
-        return authenticationForm.AuthenticatedUser;
+        }
+
+        User approver = authenticationForm.AuthenticatedUser;
+        // Somebody borrowing a supervisor's rights is exactly the kind of thing a shop asks about
+        // later, so the approval is recorded against the approver, naming who asked.
+        _audit.RecordAs(approver, AuditService.ActionLogin, AuditService.EntitySession,
+                        approver == null ? string.Empty : approver.Username,
+                        string.Format("Menyetujui akses {0} untuk '{1}'.", required, activeUser.Name));
+        return approver;
       }
     }
 

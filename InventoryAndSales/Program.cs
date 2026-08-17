@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using InventoryAndSales.Database;
@@ -37,6 +38,8 @@ namespace InventoryAndSales
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault(false);
 
+      LogEnvironment();
+
       var splashForm = new SplashForm();
       Application.Run(splashForm);
       if (splashForm.InitializationCheckSuccess)
@@ -45,6 +48,7 @@ namespace InventoryAndSales
         try
         {
           Application.Run(new MainForm());
+          _log.Info("Application closed normally");
         }
         catch (Exception e)
         {
@@ -55,6 +59,26 @@ namespace InventoryAndSales
       {
         _log.Info("Application failed to start");
         Environment.Exit(1);
+      }
+    }
+
+    /// <summary>
+    /// Stamps every run with what it is and where it is running. A log that does not say which
+    /// version and which machine produced it cannot be matched to a report from the shop.
+    /// </summary>
+    private static void LogEnvironment()
+    {
+      try
+      {
+        _log.InfoFormat("=== FidelisCake {0} starting on {1} as {2}, {3}, CLR {4} ===",
+                        Assembly.GetExecutingAssembly().GetName().Version,
+                        Environment.MachineName, Environment.UserName,
+                        Environment.OSVersion, Environment.Version);
+        _log.InfoFormat("Working folder: {0}", AppDomain.CurrentDomain.BaseDirectory);
+      }
+      catch (Exception e)
+      {
+        _log.Warn("Could not describe the environment.", e);
       }
     }
 

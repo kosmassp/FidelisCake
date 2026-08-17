@@ -46,6 +46,7 @@ namespace InventoryAndSales.Database
     private CustomerDao CustomerDao { get; set; }
     private SettingConfigurationDao SettingDao { get; set; }
     private CustomDao CustomDao { get; set; }
+    private AuditLogDao AuditLogDao { get; set; }
 
     public ProductManager ProductManager { get; private set; }
     public UserManager UserManager { get; private set; }
@@ -54,6 +55,7 @@ namespace InventoryAndSales.Database
     public TransactionManager TransactionManager { get; private set; }
     public CustomerManager CustomerManager { get; private set; }
     public CustomManager CustomManager { get; private set; }
+    public AuditLogManager AuditLogManager { get; private set; }
 
     /// <summary>What this installation's database understands.</summary>
     public ISqlDialect Dialect { get; private set; }
@@ -75,6 +77,7 @@ namespace InventoryAndSales.Database
       TransactionDetailDao = new TransactionDetailDao();
       CustomerDao = new CustomerDao();
       CustomDao = new CustomDao();
+      AuditLogDao = new AuditLogDao();
 
       SettingManager = new SettingConfigurationManager(SettingDao);
       ProductManager = new ProductManager(ProductDao);
@@ -83,16 +86,22 @@ namespace InventoryAndSales.Database
       TransactionManager = new TransactionManager(TransactionDao, TransactionDetailManager);
       CustomerManager = new CustomerManager(CustomerDao);
       CustomManager = new CustomManager(CustomDao);
+      AuditLogManager = new AuditLogManager(AuditLogDao);
     }
 
     #region Ambient transaction
 
     private DbTransaction _activeTransaction;
     private DbConnection _activeConnection;
+    private bool _transactionFailed;
     private readonly object _lockTransaction = new object();
 
     /// <summary>
     /// Starts a transaction unless one is already running.
+    ///
+    /// The check happens inside the lock. Tested outside it, two threads could both find no
+    /// transaction and both open one - the second overwriting the first, which then holds its row
+    /// locks with nothing left able to commit or roll it back.
     /// </summary>
     /// <returns>
     /// True when this call opened it, meaning the caller owns the commit. False when it joined an
@@ -100,62 +109,175 @@ namespace InventoryAndSales.Database
     /// </returns>
     public bool BeginTransaction()
     {
-      if (_activeTransaction != null)
-        return false;
       lock (_lockTransaction)
       {
-        _activeConnection = CreateConnection();
-        _activeConnection.Open();
-        _activeTransaction = _activeConnection.BeginTransaction();
+        if (_activeTransaction != null)
+          return false;
+
+        DbConnection connection = CreateConnection();
+        try
+        {
+          connection.Open();
+          _activeTransaction = connection.BeginTransaction();
+          _activeConnection = connection;
+        }
+        catch (Exception)
+        {
+          connection.Dispose();
+          throw;
+        }
         return true;
       }
     }
 
+    /// <summary>
+    /// Commits and clears the ambient transaction. A commit failure is rethrown - the caller has to
+    /// know the write did not land - but the ambient is cleared either way.
+    /// </summary>
     public void CommitTransaction()
     {
-      if (_activeTransaction == null)
-        return;
       lock (_lockTransaction)
       {
-        _activeTransaction.Commit();
-        DisposeAmbient();
+        if (_activeTransaction == null)
+          return;
+
+        if (_transactionFailed)
+        {
+          _log.Error("Not committing: an operation taking part in this transaction failed. Rolling back.");
+          RollbackActive();
+          throw new InvalidOperationException(
+            "The transaction was rolled back because an operation taking part in it failed.");
+        }
+
+        try
+        {
+          _activeTransaction.Commit();
+        }
+        finally
+        {
+          // Without the finally a failed commit left the ambient transaction in place for the rest
+          // of the session: every later BeginTransaction saw it and returned false, so no caller
+          // ever owned a commit again and no sale after the first failure could be saved.
+          DisposeAmbient();
+        }
       }
     }
 
     public void RollbackTransaction()
     {
-      if (_activeTransaction == null)
-        return;
       lock (_lockTransaction)
       {
+        if (_activeTransaction == null)
+          return;
+        RollbackActive();
+      }
+    }
+
+    /// <summary>Rolls back and clears the ambient transaction. Call with the lock held.</summary>
+    private void RollbackActive()
+    {
+      try
+      {
         _activeTransaction.Rollback();
+      }
+      catch (Exception e)
+      {
+        // The server may have aborted it already - a deadlock victim or a lock timeout leaves
+        // nothing to undo and Rollback throws. This runs from a catch block, so rethrowing would
+        // replace the exception being handled and bury the real cause in the log.
+        _log.Warn("Rollback failed; the transaction had probably already been aborted by the server.", e);
+      }
+      finally
+      {
         DisposeAmbient();
       }
     }
 
+    /// <summary>
+    /// Clears the ambient fields first and releases afterwards, so that however badly the release
+    /// goes the next transaction starts from a clean slate.
+    /// </summary>
     private void DisposeAmbient()
     {
-      _activeTransaction.Dispose();
+      DbTransaction transaction = _activeTransaction;
+      DbConnection connection = _activeConnection;
       _activeTransaction = null;
-      _activeConnection.Close();
-      _activeConnection.Dispose();
       _activeConnection = null;
+      _transactionFailed = false;
+
+      try
+      {
+        if (transaction != null)
+          transaction.Dispose();
+      }
+      catch (Exception e)
+      {
+        _log.Warn("Disposing the transaction failed.", e);
+      }
+
+      try
+      {
+        if (connection != null)
+        {
+          connection.Close();
+          connection.Dispose();
+        }
+      }
+      catch (Exception e)
+      {
+        _log.Warn("Closing the transaction's connection failed.", e);
+      }
     }
 
     /// <summary>
-    /// The ambient connection when a transaction is running, otherwise a new one the caller must
-    /// open and close.
+    /// Records that an operation taking part in the ambient transaction failed, so that whoever owns
+    /// the commit is refused it.
+    ///
+    /// A caller that joined an existing transaction must not roll back itself - the scope that
+    /// opened it may still have work to do and owns that decision. But if that outer scope catches
+    /// the failure and carries on, its commit would write a half-finished unit of work. This is how
+    /// a joined caller says so; the commit then turns into a rollback and throws.
     /// </summary>
-    public DbConnection GetConnection()
+    public void MarkTransactionFailed()
     {
-      if (_activeConnection == null)
-        return CreateConnection();
-      return _activeConnection;
+      lock (_lockTransaction)
+      {
+        if (_activeTransaction != null)
+          _transactionFailed = true;
+      }
     }
 
-    public DbTransaction GetActiveTransaction()
+    /// <summary>
+    /// The connection and transaction to run a command on, read as one snapshot. See
+    /// <see cref="DbScope"/> for why they are never fetched separately. Always wrap the result in a
+    /// <c>using</c>.
+    /// </summary>
+    public DbScope AcquireScope()
     {
-      return _activeTransaction;
+      DbConnection ambientConnection;
+      DbTransaction ambientTransaction;
+      lock (_lockTransaction)
+      {
+        ambientConnection = _activeConnection;
+        ambientTransaction = _activeTransaction;
+      }
+
+      if (ambientTransaction != null)
+        return DbScope.Joined(ambientConnection, ambientTransaction);
+
+      // Opened outside the lock: it can block on the network, and a read that takes no part in the
+      // transaction has no business holding up the one that does.
+      DbConnection connection = CreateConnection();
+      try
+      {
+        connection.Open();
+      }
+      catch (Exception)
+      {
+        connection.Dispose();
+        throw;
+      }
+      return DbScope.Owned(connection);
     }
 
     #endregion

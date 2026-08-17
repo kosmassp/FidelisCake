@@ -29,6 +29,7 @@ namespace InventoryAndSales.Database.DataTable
     private static readonly IDataTable TransactionDetailDataTable = new DataTable("T_TRANSACTION_DETAILS", "Id", "ProductId", "Quantity", "ProductDiscount", "ProductPrice", "SubtotalDiscount", "SubtotalPrice", "Subtotal", "TransactionId");
     private static readonly IDataTable CustomerDataTable = new DataTable("M_CUSTOMERS", "Id", "Name",  "Address", "Phone", "MemberType");
     private static readonly IDataTable SettingDataTable = new DataTable("M_SETTINGS", "Id", "Key",  "Group", "Value", "Default");
+    private static readonly IDataTable AuditLogDataTable = new DataTable("T_AUDIT_LOG", "Id", "AuditTime", "UserId", "UserName", "Action", "EntityType", "EntityKey", "Workstation", "Detail");
 
 
     private Dictionary<Type, IDataTable> _dict;
@@ -41,6 +42,7 @@ namespace InventoryAndSales.Database.DataTable
       _dict.Add(typeof(Transaction), TransactionDataTable);
       _dict.Add(typeof(TransactionDetail), TransactionDetailDataTable);
       _dict.Add(typeof(Customer), CustomerDataTable);
+      _dict.Add(typeof(AuditLog), AuditLogDataTable);
       _dict.Add(typeof(CustomQuery), null);
     }
  

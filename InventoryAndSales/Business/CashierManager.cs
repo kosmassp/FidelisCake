@@ -25,13 +25,16 @@ namespace InventoryAndSales.Business
     private readonly TransactionManager _transactionManager;
     private readonly UserManager _userManager;
     private readonly SettingsService _settings;
+    private readonly AuditService _audit;
     private readonly Font _printFont = ReceiptBuilder.CreateReceiptFont();
 
-    public CashierManager(TransactionManager transactionManager, UserManager userManager, SettingsService settings)
+    public CashierManager(TransactionManager transactionManager, UserManager userManager, SettingsService settings,
+                          AuditService audit)
     {
       _transactionManager = transactionManager;
       _userManager = userManager;
       _settings = settings;
+      _audit = audit;
     }
 
     #region Receipt header and footer
@@ -80,9 +83,17 @@ namespace InventoryAndSales.Business
       catch (Exception e)
       {
         _log.Error("Failed to save transaction.", e);
+        // A sale that could not be saved is exactly the event worth investigating, so it is recorded
+        // too - the audit write is outside the failed transaction and survives its rollback.
+        _audit.Record(AuditService.ActionCheckout, AuditService.EntitySale, transaction.Factur,
+                      string.Format(CultureInfo.InvariantCulture, "GAGAL disimpan: {0}", e.Message));
         message = "Gagal menyimpan transaksi. Silahkan coba lagi.";
         return TransactionStatus.FAILED;
       }
+
+      _log.InfoFormat("Sale {0} completed: total {1}, {2}, {3} lines.",
+                      transaction.Factur, transaction.Total, transaction.PaymentMethod, transactionDetails.Count);
+      _audit.Record(AuditService.ActionCheckout, AuditService.EntitySale, transaction.Factur, Describe(transaction, transactionDetails));
 
       try
       {
@@ -108,6 +119,12 @@ namespace InventoryAndSales.Business
       _transactionManager.UpdateCompleteTransaction(originalTransaction, transaction, transactionDetails);
       _lastFactur = transaction.Factur;
 
+      _log.InfoFormat("Sale {0} revised as {1}.", originalTransaction.Factur, transaction.Factur);
+      _audit.Record(AuditService.ActionRevise, AuditService.EntitySale, transaction.Factur,
+                    string.Format(CultureInfo.InvariantCulture, "Ralat dari {0} (total {1}) menjadi {2}",
+                                  originalTransaction.Factur, originalTransaction.Total,
+                                  Describe(transaction, transactionDetails)));
+
       try
       {
         PrintPaymentNote(transaction, transactionDetails);
@@ -126,6 +143,25 @@ namespace InventoryAndSales.Business
       if (transaction == null)
         throw new InvalidOperationException(string.Format("No transaction found for faktur {0}.", transactionFactur));
       _transactionManager.CancelTransaction(transaction, cancelledByUserId);
+
+      _log.InfoFormat("Sale {0} cancelled by user {1}.", transactionFactur, cancelledByUserId);
+      _audit.Record(AuditService.ActionCancel, AuditService.EntitySale, transactionFactur,
+                    string.Format(CultureInfo.InvariantCulture, "Dibatalkan, total {0}, disetujui user {1}",
+                                  transaction.Total, cancelledByUserId));
+    }
+
+    /// <summary>
+    /// A sale as one readable line for the audit trail. Invariant formatting: the row is read later,
+    /// possibly elsewhere, and must not depend on the reading machine's culture.
+    /// </summary>
+    private static string Describe(Transaction transaction, List<TransactionDetail> details)
+    {
+      return string.Format(CultureInfo.InvariantCulture,
+                           "total={0}, diskon={1}, bayar={2}, kembali={3}, metode={4}{5}, baris={6}",
+                           transaction.Total, transaction.TotalDiscount, transaction.Payment, transaction.Exchange,
+                           transaction.PaymentMethod,
+                           string.IsNullOrEmpty(transaction.PaymentReference) ? string.Empty : " (" + transaction.PaymentReference + ")",
+                           details == null ? 0 : details.Count);
     }
 
     private Transaction GenerateTransactionAndDetails(Cart cart, string notes, PaymentDetail payment, int userId, long customerId,
