@@ -51,8 +51,6 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -336,12 +334,57 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
-    <!-- DataTables stylesheet and combined script, unpacked into the report folder on demand.
-         Trimmed from the original 5.4 MB bundle to just the two files the reports actually use. -->
-    <Content Include="reportassets.zip">
+  </ItemGroup>
+  <!--
+    Database providers.
+
+    These are ADO.NET providers loaded at runtime through DbProviderFactories, not compile-time
+    references: the application is built against neither, so the same binary runs on SQL Server,
+    PostgreSQL or SQLite depending only on App.config. They are copied beside the executable so an
+    installation has everything it needs without anyone hunting for assemblies.
+
+    Wildcards on purpose - dropping a DLL into Include\Sqlite or Include\PostgreSql ships it, with
+    no project edit. Link flattens them into the output root, which is where the CLR probes.
+  -->
+  <ItemGroup>
+    <Content Include="Include\Sqlite\*.dll">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Include\PostgreSql\*.dll">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!--
+      The native SQLite engine, which unlike the rest must keep its architecture sub-folder:
+      System.Data.SQLite picks x86 or x64 at runtime to match the process.
+    -->
+    <Content Include="Include\Sqlite\x86\SQLite.Interop.dll">
+      <Link>x86\SQLite.Interop.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Include\Sqlite\x64\SQLite.Interop.dll">
+      <Link>x64\SQLite.Interop.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <!--
+    Report assets. Only the two files a generated report actually references are shipped; the rest of
+    Report\ is the full DataTables download kept for reference and is not needed at runtime.
+    ReportService copies these into the configured report folder on demand.
+  -->
+  <ItemGroup>
+    <Content Include="Report\datatables.min.css">
+      <Link>Report\datatables.min.css</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Report\datatables.min.js">
+      <Link>Report\datatables.min.js</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

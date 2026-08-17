@@ -132,7 +132,7 @@ namespace InventoryAndSales.GUI.Controller
         MessageBox.Show(
           "Laporan dibuat, namun file pendukung tidak ditemukan sehingga fitur urut, cari dan export tidak aktif." +
           Environment.NewLine + Environment.NewLine +
-          "Pastikan file '" + ReportService.AssetBundleFileName + "' berada di folder aplikasi.",
+          "Pastikan folder '" + ReportService.AssetSourceFolderName + "' berada di folder aplikasi.",
           "Laporan Terbatas", MessageBoxButtons.OK, MessageBoxIcon.Warning);
       }
 

@@ -51,11 +51,11 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
       if (_controller == null)
         return;
 
-      if (!_controller.IsAssetBundlePresent())
+      if (!_controller.IsAssetSourcePresent())
       {
         labelAssetStatus.ForeColor = Color.Firebrick;
         labelAssetStatus.Text =
-          "File pendukung '" + ReportService.AssetBundleFileName + "' tidak ditemukan di folder aplikasi. " +
+          "Folder '" + ReportService.AssetSourceFolderName + "' tidak ditemukan di folder aplikasi. " +
           "Laporan tetap dapat dibuat, namun tanpa fitur urut, cari dan export.";
         return;
       }

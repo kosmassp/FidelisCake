@@ -54,7 +54,7 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
       if (!_reportService.EnsureAssets(resolved))
       {
         return "Folder tersimpan, namun file pendukung laporan tidak dapat disiapkan. " +
-               "Pastikan file '" + ReportService.AssetBundleFileName + "' ada di folder aplikasi.";
+               "Pastikan folder '" + ReportService.AssetSourceFolderName + "' ada di folder aplikasi.";
       }
       return string.Empty;
     }
@@ -73,9 +73,10 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
       }
     }
 
-    public bool IsAssetBundlePresent()
+    /// <summary>Whether the application has the files that make a report interactive.</summary>
+    public bool IsAssetSourcePresent()
     {
-      return File.Exists(ReportService.GetAssetBundlePath());
+      return ReportService.IsAssetSourcePresent();
     }
 
     public void OpenReportFolder()

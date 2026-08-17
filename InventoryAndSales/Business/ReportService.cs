@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 
 namespace InventoryAndSales.Business
@@ -20,10 +19,12 @@ namespace InventoryAndSales.Business
   {
     private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-    /// <summary>Bundle shipped with the application, next to the executable.</summary>
-    public const string AssetBundleFileName = "reportassets.zip";
+    /// <summary>
+    /// Folder shipped beside the executable holding the files a generated report links to.
+    /// </summary>
+    public const string AssetSourceFolderName = "Report";
 
-    /// <summary>Sub-folder of the report directory the bundle is unpacked into.</summary>
+    /// <summary>Sub-folder of the report directory the assets are copied into.</summary>
     public const string AssetFolderName = "assets";
 
     public const string StyleSheetFileName = "datatables.min.css";
@@ -122,7 +123,8 @@ namespace InventoryAndSales.Business
     }
 
     /// <summary>
-    /// Makes sure the stylesheet and script are unpacked under the report folder.
+    /// Makes sure the stylesheet and script sit under the report folder, copying them from the
+    /// application's Report folder when they are not there yet.
     /// </summary>
     /// <returns>
     /// True when both assets are in place. False means the report will still open and be readable,
@@ -136,22 +138,29 @@ namespace InventoryAndSales.Business
         if (HasAssets(assetDirectory))
           return true;
 
-        string bundle = GetAssetBundlePath();
-        if (!File.Exists(bundle))
+        string source = GetAssetSourceDirectory();
+        if (!Directory.Exists(source))
         {
-          _log.ErrorFormat("Report asset bundle '{0}' is missing; reports will render without DataTables.", bundle);
+          _log.ErrorFormat("Report asset folder '{0}' is missing; reports will render without DataTables.", source);
           return false;
         }
 
         Directory.CreateDirectory(assetDirectory);
-        ExtractBundle(bundle, assetDirectory);
+        foreach (string fileName in AssetFileNames)
+        {
+          string from = Path.Combine(source, fileName);
+          if (!File.Exists(from))
+          {
+            _log.ErrorFormat("Report asset '{0}' is missing.", from);
+            continue;
+          }
+          File.Copy(from, Path.Combine(assetDirectory, fileName), true);
+        }
 
-        bool extracted = HasAssets(assetDirectory);
-        if (extracted)
-          _log.InfoFormat("Unpacked report assets into '{0}'.", assetDirectory);
-        else
-          _log.ErrorFormat("Report asset bundle '{0}' did not contain the expected files.", bundle);
-        return extracted;
+        bool copied = HasAssets(assetDirectory);
+        if (copied)
+          _log.InfoFormat("Copied report assets into '{0}'.", assetDirectory);
+        return copied;
       }
       catch (Exception e)
       {
@@ -160,31 +169,19 @@ namespace InventoryAndSales.Business
       }
     }
 
-    private static void ExtractBundle(string bundlePath, string assetDirectory)
+    private static string[] AssetFileNames
     {
-      using (ZipArchive archive = ZipFile.OpenRead(bundlePath))
-      {
-        foreach (ZipArchiveEntry entry in archive.Entries)
-        {
-          if (string.IsNullOrEmpty(entry.Name))
-            continue;
-
-          // Only the two files are wanted, and taking the entry name alone keeps a crafted archive
-          // from writing outside the target folder.
-          if (!string.Equals(entry.Name, StyleSheetFileName, StringComparison.OrdinalIgnoreCase)
-              && !string.Equals(entry.Name, ScriptFileName, StringComparison.OrdinalIgnoreCase))
-            continue;
-
-          string destination = Path.Combine(assetDirectory, entry.Name);
-          entry.ExtractToFile(destination, true);
-        }
-      }
+      get { return new[] { StyleSheetFileName, ScriptFileName }; }
     }
 
     private static bool HasAssets(string assetDirectory)
     {
-      return IsPresent(Path.Combine(assetDirectory, StyleSheetFileName))
-             && IsPresent(Path.Combine(assetDirectory, ScriptFileName));
+      foreach (string fileName in AssetFileNames)
+      {
+        if (!IsPresent(Path.Combine(assetDirectory, fileName)))
+          return false;
+      }
+      return true;
     }
 
     private static bool IsPresent(string path)
@@ -193,9 +190,22 @@ namespace InventoryAndSales.Business
       return info.Exists && info.Length > 0;
     }
 
-    public static string GetAssetBundlePath()
+    /// <summary>Where the shipped assets live, beside the executable.</summary>
+    public static string GetAssetSourceDirectory()
     {
-      return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AssetBundleFileName);
+      return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AssetSourceFolderName);
+    }
+
+    /// <summary>True when the application has the files it needs to make a report interactive.</summary>
+    public static bool IsAssetSourcePresent()
+    {
+      string source = GetAssetSourceDirectory();
+      foreach (string fileName in AssetFileNames)
+      {
+        if (!IsPresent(Path.Combine(source, fileName)))
+          return false;
+      }
+      return true;
     }
 
     /// <summary>Relative href a generated report uses to reach the stylesheet.</summary>
