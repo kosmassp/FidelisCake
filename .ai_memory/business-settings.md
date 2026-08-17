@@ -7,7 +7,7 @@ The application has two separate configuration mechanisms. Know which one you ne
 | Changed by | An installer or an administrator editing the file | The operator, in the app |
 | Applies from | Application restart | Immediately |
 | Read via | `ConfigurationManager.AppSettings[...]` | `SettingsService` |
-| Holds | `ConnectionString`, `PrinterName` | `HEADER`, `FOOTER`, `REPORT_DIRECTORY`, `ALLOW_BUILTIN_ADMIN` |
+| Holds | `DatabaseProvider`, `ConnectionString` | receipt notes, report folder, security, printer, EDC terminals |
 
 **Rule of thumb:** infrastructure the operator must not touch goes in `App.config`; anything a shop
 owner would reasonably want to change goes in `M_SETTINGS`.
@@ -31,6 +31,7 @@ absent, so operator edits survive restarts:
 | `FOOTER` | `GENERAL` | `TERIMA KASIH` / `SELAMAT MENIKMATI` |
 | `REPORT_DIRECTORY` | `REPORT` | `<Documents>\FidelisCake\Laporan` |
 | `ALLOW_BUILTIN_ADMIN` | `SECURITY` | `true` |
+| `EDC_TERMINALS` | `GENERAL` | empty — a shop with no card terminals is offered none |
 | `PRINTER_NAME` | `PRINTER` | seeded from the `PrinterName` entry in `App.config`; empty means the Windows default printer |
 | `PRINTER_PAPER_WIDTH_MM` | `PRINTER` | `67` |
 
@@ -90,11 +91,12 @@ discount. Fine as a sample; just do not read it as a formula.
 ## The settings dialog
 
 *Pengaturan* opens `SettingForm`: a list of pages on the left, the selected page on the right.
-Three pages are registered today.
+Five pages are registered today.
 
 | Page (`Tag`) | Requires | Control | Controller |
 |---|---|---|---|
 | Nota | `Master` | `HeaderAndFooterForm` | `HeaderAndFooterController` |
+| Terminal EDC | `Master` | `EdcTerminalSettingForm` | `EdcTerminalSettingController` |
 | Laporan | `Master` | `ReportSettingForm` | `ReportSettingController` |
 | Printer | **`Admin`** | `PrinterSettingForm` | `PrinterSettingController` |
 | Keamanan | **`Admin`** | `SecuritySettingForm` | `SecuritySettingController` |

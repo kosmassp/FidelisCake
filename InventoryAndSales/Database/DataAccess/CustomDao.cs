@@ -215,10 +215,24 @@ namespace InventoryAndSales.Database.DataAccess
       return ExecuteReader(sql, DateRange(start, stop));
     }
 
-    public string GetTodaySummaryByCashier(User activeUser, DateTime date)
+    /// <summary>
+    /// One cashier's takings for a day, split by how they were paid.
+    ///
+    /// The split matters: only the cash is money the cashier physically hands over at the end of the
+    /// day. Card takings settle through the bank, so a single combined figure would overstate what
+    /// should be in the drawer.
+    /// </summary>
+    public CashierDayTotals GetTodaySummaryByCashier(User activeUser, DateTime date)
     {
+      // A sale recorded before payment methods existed has no method and was, by definition, cash.
+      string cashCondition = string.Format(
+        "(COALESCE({0}, '{1}') <> '{2}')", C("t", "PaymentMethod"),
+        PaymentMethodCash, PaymentMethodEdc);
+
       string sql =
-        " SELECT COALESCE(SUM(" + C("t", "Total") + "), 0) AS " + A("SUMTOTAL") +
+        " SELECT" +
+        "  COALESCE(SUM(CASE WHEN " + cashCondition + " THEN " + C("t", "Total") + " ELSE 0 END), 0) AS " + A("CASHTOTAL") + "," +
+        "  COALESCE(SUM(CASE WHEN " + cashCondition + " THEN 0 ELSE " + C("t", "Total") + " END), 0) AS " + A("EDCTOTAL") +
         " FROM " + Table("T_TRANSACTIONS") + " t" +
         ActiveInRange() +
         " AND " + C("t", "UserId") + " = @userId";
@@ -228,9 +242,13 @@ namespace InventoryAndSales.Database.DataAccess
 
       var retValue = ExecuteReader(sql, parameters.ToArray());
       if (retValue.Count == 0)
-        return "Rp. 0";
-      return "Rp. " + retValue[0]["SUMTOTAL"];
+        return new CashierDayTotals("0", "0");
+      // CustomQuery stores every column as an already-formatted string.
+      return new CashierDayTotals((string)retValue[0]["CASHTOTAL"], (string)retValue[0]["EDCTOTAL"]);
     }
+
+    private const string PaymentMethodCash = "CASH";
+    private const string PaymentMethodEdc = "EDC";
 
     #endregion
 

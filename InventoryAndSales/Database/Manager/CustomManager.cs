@@ -56,7 +56,7 @@ namespace InventoryAndSales.Database.Manager
       return returnListDict;
     }
 
-    public string GetTodaySummaryByCashier(User activeUser, DateTime date)
+    public CashierDayTotals GetTodaySummaryByCashier(User activeUser, DateTime date)
     {
       return _customDao.GetTodaySummaryByCashier(activeUser, date);
     }

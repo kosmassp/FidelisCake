@@ -111,6 +111,7 @@
     <Compile Include="Database\Manager\TransactionManager.cs" />
     <Compile Include="Database\Manager\UserManager.cs" />
     <Compile Include="Database\Model\BaseObject.cs" />
+    <Compile Include="Database\Model\CashierDayTotals.cs" />
     <Compile Include="Database\Model\Customer.cs" />
     <Compile Include="Database\Model\Product.cs" />
     <Compile Include="Database\Model\Transaction.cs" />
@@ -119,6 +120,15 @@
     <Compile Include="GUI\Controller\CashierController.cs" />
     <Compile Include="GUI\Controller\SettingPageController.cs" />
     <Compile Include="GUI\Controller\SettingPage\HeaderAndFooterController.cs" />
+    <Compile Include="Business\PaymentDetail.cs" />
+    <Compile Include="Business\EdcTerminalService.cs" />
+    <Compile Include="GUI\Controller\SettingPage\EdcTerminalSettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\EdcTerminalSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\EdcTerminalSetting.Designer.cs">
+      <DependentUpon>EdcTerminalSetting.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Controller\SettingPage\PrinterSettingController.cs" />
     <Compile Include="GUI\Controller\SettingPage\ReportSettingController.cs" />
     <Compile Include="GUI\Popup\SettingPage\PrinterSetting.cs">

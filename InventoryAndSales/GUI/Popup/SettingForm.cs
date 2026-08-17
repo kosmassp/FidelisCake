@@ -78,6 +78,8 @@ namespace InventoryAndSales.GUI.Popup
       {
         new SettingPageEntry("Nota", AccessOption.Master, () => new HeaderAndFooterForm()),
         new SettingPageEntry("Laporan", AccessOption.Master, () => new ReportSettingForm()),
+        // Operational rather than security-sensitive: a supervisor manages the terminal list.
+        new SettingPageEntry("Terminal EDC", AccessOption.Master, () => new EdcTerminalSettingForm()),
         // Printer and security are administrator-only: one decides where every receipt goes, the
         // other whether the recovery account still works.
         new SettingPageEntry("Printer", AccessOption.Admin, () => new PrinterSettingForm()),

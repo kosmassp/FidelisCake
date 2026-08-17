@@ -153,12 +153,24 @@ namespace InventoryAndSales.GUI
       }
     }
 
+    /// <summary>
+    /// Today's takings for the signed-in cashier, cash and card shown separately.
+    ///
+    /// Only the cash is money that has to come out of the drawer, so a single combined figure would
+    /// tell them to hand over more than they hold.
+    /// </summary>
     public string GetCurrentDayTotalTransaction()
     {
       User activeUser = _loginManager.ActiveUser;
       if (activeUser == null)
         return "Rp. 0";
-      return _reportManager.GetTodaySummaryByCashier(activeUser, DateTime.Today);
+
+      CashierDayTotals totals = _reportManager.GetTodaySummaryByCashier(activeUser, DateTime.Today);
+      if (totals.EdcIsZero)
+        return "Rp. " + totals.Cash;
+
+      return "Tunai : Rp. " + totals.Cash + Environment.NewLine +
+             "EDC   : Rp. " + totals.Edc;
     }
   }
 }

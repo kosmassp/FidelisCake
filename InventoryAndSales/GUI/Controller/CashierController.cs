@@ -24,6 +24,7 @@ namespace InventoryAndSales.GUI.Controller
     private readonly LoginManager _loginManager;
     private readonly CashierManager _cashierManager;
     private readonly MasterManager _masterManager;
+    private readonly EdcTerminalService _edcTerminals;
 
     /// <summary>This screen's basket. Not shared with the correction screen.</summary>
     private readonly Cart _cart = new Cart();
@@ -35,6 +36,7 @@ namespace InventoryAndSales.GUI.Controller
       _loginManager = BusinessFactory.GetInstance().LoginManager;
       _masterManager = BusinessFactory.GetInstance().MasterManager;
       _cashierManager = BusinessFactory.GetInstance().CashierManager;
+      _edcTerminals = BusinessFactory.GetInstance().EdcTerminals;
 
       _cart.CartChange += CartChange;
     }
@@ -52,28 +54,57 @@ namespace InventoryAndSales.GUI.Controller
       return _masterManager.GetAllAvailable(string.Empty, string.Empty);
     }
 
+    /// <summary>The terminals a cashier can choose from. Empty means this shop takes no cards.</summary>
+    public List<string> GetEdcTerminals()
+    {
+      return _edcTerminals.GetTerminals();
+    }
+
+    /// <summary>Amount owed, so the screen can show it and a card payment can take exactly that.</summary>
+    public decimal GetCartTotal()
+    {
+      decimal totalPrice, totalDiscount;
+      return _cart.GetTotal(out totalPrice, out totalDiscount);
+    }
+
     /// <summary>
     /// Validates and completes the sale.
     /// </summary>
+    /// <param name="method">How the customer is paying.</param>
+    /// <param name="tendered">Cash handed over. Ignored for a card payment, which takes the total.</param>
+    /// <param name="terminal">Terminal for a card payment.</param>
     /// <returns>An Indonesian error message, or an empty string when the sale went through.</returns>
-    public string Checkout(decimal payment, string notes, out string successMessage)
+    public string Checkout(PaymentMethod method, decimal tendered, string terminal, string notes, out string successMessage)
     {
       successMessage = string.Empty;
 
       if (_loginManager.ActiveUser == null)
         return "Sesi telah berakhir. Silahkan login kembali.";
 
-      if (payment < 0)
-        return "Pembayaran kurang dari 0";
-
       decimal totalPrice, totalDiscount;
       decimal total = _cart.GetTotal(out totalPrice, out totalDiscount);
       if (total <= 0)
         return "Tidak ada pembelian. Silahkan tambahkan item yang dibeli";
 
-      decimal changes = payment - total;
-      if (changes < 0)
-        return "Pembayaran kurang dari harga yang harus dibayarkan.";
+      PaymentDetail payment;
+      if (method == PaymentMethod.Edc)
+      {
+        if (string.IsNullOrWhiteSpace(terminal))
+          return "Silahkan pilih terminal EDC.";
+        // Re-checked here rather than trusting the screen: the list can be edited while a sale is
+        // being rung up, and a payment must never be recorded against a terminal the shop dropped.
+        if (!_edcTerminals.IsKnown(terminal))
+          return "Terminal EDC tersebut tidak terdaftar. Silahkan pilih ulang.";
+        payment = PaymentDetail.Edc(total, terminal);
+      }
+      else
+      {
+        if (tendered < 0)
+          return "Pembayaran kurang dari 0";
+        if (tendered - total < 0)
+          return "Pembayaran kurang dari harga yang harus dibayarkan.";
+        payment = PaymentDetail.Cash(tendered);
+      }
 
       try
       {
@@ -84,8 +115,10 @@ namespace InventoryAndSales.GUI.Controller
         if (status != TransactionStatus.SUCCESS)
           return message;
 
-        successMessage = string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ",
-                                       changes.ToString(Constant.DISPLAY_CURRENCY));
+        successMessage = payment.Method == PaymentMethod.Edc
+          ? string.Format("Transaksi Berhasil. \nEDC {0} Rp {1}. ", terminal, total.ToString(Constant.DISPLAY_CURRENCY))
+          : string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ",
+                          payment.ChangeFor(total).ToString(Constant.DISPLAY_CURRENCY));
         if (!string.IsNullOrEmpty(message))
           successMessage += "\n " + message;
         NewCart();

@@ -56,6 +56,15 @@ namespace InventoryAndSales.Business
     /// </summary>
     public const int DefaultPaperWidthMm = 67;
 
+    /// <summary>
+    /// The EDC terminals a cashier can pick from, one per line.
+    ///
+    /// A list rather than a table: a terminal is only a name, and the multi-line setting machinery
+    /// already exists. If a terminal ever needs more than a name - a bank, a merchant id - this
+    /// should become a table.
+    /// </summary>
+    public const string EdcTerminals = "EDC_TERMINALS";
+
     /// <summary>Marker used inside a setting value to represent a line break.</summary>
     public const string NewLineToken = "%NEW_LINE%";
 
@@ -93,6 +102,9 @@ namespace InventoryAndSales.Business
         new SettingSeed(ReportDirectory, GroupReport, DefaultReportDirectory()),
 
         new SettingSeed(AllowBuiltInAdmin, GroupSecurity, "true"),
+
+        // Seeded empty: a shop with no card terminals should not be offered imaginary ones.
+        new SettingSeed(EdcTerminals, GroupGeneral, string.Empty),
 
         new SettingSeed(PrinterName, GroupPrinter, LegacyConfiguredPrinterName()),
         new SettingSeed(PrinterPaperWidthMm, GroupPrinter,

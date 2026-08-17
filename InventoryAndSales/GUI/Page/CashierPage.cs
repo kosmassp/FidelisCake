@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using InventoryAndSales.Business;
 using InventoryAndSales.Database.Model;
 using InventoryAndSales.GUI.Controller;
 using InventoryAndSales.GUI.Utility;
@@ -30,6 +31,8 @@ namespace InventoryAndSales.GUI.Page
       bool byBarcode;
       FilterItemView(string.Empty, out byBarcode);
       controller.NewCart();
+      // Picks up terminals added or removed in settings since this screen was last shown.
+      ResetPaymentMethod();
       textBoxFilter.Focus();
     }
 
@@ -309,16 +312,90 @@ namespace InventoryAndSales.GUI.Page
       controller.RemoveFromCart(productView);
     }
 
+    /// <summary>Reloads the terminal list and puts the screen back on cash.</summary>
+    private void ResetPaymentMethod()
+    {
+      _loadingPaymentMethod = true;
+      try
+      {
+        comboBoxTerminal.Items.Clear();
+        List<string> terminals = controller.GetEdcTerminals();
+        foreach (string terminal in terminals)
+          comboBoxTerminal.Items.Add(terminal);
+        if (comboBoxTerminal.Items.Count > 0)
+          comboBoxTerminal.SelectedIndex = 0;
+
+        // A shop with no terminals configured is not taking cards, so do not offer the option.
+        radioButtonEdc.Enabled = terminals.Count > 0;
+        radioButtonCash.Checked = true;
+      }
+      finally
+      {
+        _loadingPaymentMethod = false;
+      }
+      ApplyPaymentMethod();
+    }
+
+    private bool _loadingPaymentMethod;
+
+    private bool IsEdcSelected
+    {
+      get { return radioButtonEdc.Checked; }
+    }
+
+    /// <summary>
+    /// Shapes the payment fields around the chosen method: cash takes an amount and gives change,
+    /// a card takes the exact total through a terminal.
+    /// </summary>
+    private void ApplyPaymentMethod()
+    {
+      bool edc = IsEdcSelected;
+
+      comboBoxTerminal.Enabled = edc;
+      labelTerminal.Enabled = edc;
+      textBoxPayment.ReadOnly = edc;
+
+      if (edc)
+      {
+        decimal total = controller.GetCartTotal();
+        textBoxPayment.Text = total.ToString(Constant.DISPLAY_CURRENCY);
+        textBoxChanges.Text = 0.ToString(Constant.DISPLAY_CURRENCY);
+      }
+      else
+      {
+        RecalculateChanges();
+      }
+    }
+
+    private void paymentMethod_CheckedChanged(object sender, EventArgs e)
+    {
+      if (_loadingPaymentMethod)
+        return;
+      ApplyPaymentMethod();
+    }
+
     private void buttonCheckout_Click(object sender, EventArgs e)
     {
-      string validationMsg = ValidateInput(textBoxPayment, "Pembayaran Tidak Valid");
-      if (!string.IsNullOrEmpty(validationMsg))
+      // Only cash needs the typed amount to make sense; a card payment takes the total regardless.
+      decimal tendered = 0;
+      if (!IsEdcSelected)
       {
-        MessageBox.Show(validationMsg);
-        return;
+        string validationMsg = ValidateInput(textBoxPayment, "Pembayaran Tidak Valid");
+        if (!string.IsNullOrEmpty(validationMsg))
+        {
+          MessageBox.Show(validationMsg);
+          return;
+        }
+        tendered = decimal.Parse(textBoxPayment.Text);
       }
+
       string successMessage;
-      string errorMessage = controller.Checkout(decimal.Parse(textBoxPayment.Text), textBoxNotes.Text, out successMessage);
+      string errorMessage = controller.Checkout(
+        IsEdcSelected ? PaymentMethod.Edc : PaymentMethod.Cash,
+        tendered,
+        comboBoxTerminal.SelectedItem as string,
+        textBoxNotes.Text,
+        out successMessage);
       if (!string.IsNullOrEmpty(errorMessage))
       {
         MessageBox.Show(string.Format("Transaksi Gagal.\n{0}\n\n\n{1}", errorMessage, "Silahkan Coba Lagi"));
@@ -354,6 +431,11 @@ namespace InventoryAndSales.GUI.Page
 
     private void RecalculateChanges()
     {
+      // A card payment is always the exact total with no change; ApplyPaymentMethod owns those two
+      // boxes then, and blanking the amount back to zero here would fight it.
+      if (IsEdcSelected)
+        return;
+
       if (string.IsNullOrEmpty(textBoxPayment.Text))
       {
         textBoxPayment.Text = "0";
@@ -444,7 +526,8 @@ namespace InventoryAndSales.GUI.Page
         return;
       }
       textBoxTotal.Text = total.ToString(Constant.DISPLAY_CURRENCY);
-      RecalculateChanges();
+      // For a card payment the amount tracks the total, so it has to follow every cart change.
+      ApplyPaymentMethod();
     }
 
     public void FocusFilter()

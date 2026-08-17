@@ -87,8 +87,14 @@ namespace InventoryAndSales.GUI.Controller
 
       try
       {
-        _cashierManager.UpdateCheckout(_cart, OriginalTransaction, payment, notes, _supervisor.Id, PlaceholderCustomerId);
-        successMessage = string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ", changes.ToString(Constant.DISPLAY_CURRENCY));
+        // A correction keeps the payment method of the sale it replaces: correcting a card sale does
+        // not turn it into a cash one, and the terminal it went through has not changed.
+        PaymentDetail corrected = PaymentDetail.FromStored(
+          OriginalTransaction.PaymentMethod, OriginalTransaction.PaymentReference, payment);
+
+        _cashierManager.UpdateCheckout(_cart, OriginalTransaction, corrected, notes, _supervisor.Id, PlaceholderCustomerId);
+        successMessage = string.Format("Transaksi Berhasil. \nKembalian Rp {0}. ",
+                                       corrected.ChangeFor(total).ToString(Constant.DISPLAY_CURRENCY));
       }
       catch (Exception e)
       {

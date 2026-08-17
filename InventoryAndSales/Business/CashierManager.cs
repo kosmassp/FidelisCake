@@ -66,7 +66,7 @@ namespace InventoryAndSales.Business
     /// A printing failure does not fail the sale: the money has been taken and the record written,
     /// so the status stays SUCCESS and <paramref name="message"/> tells the operator to reprint.
     /// </summary>
-    public TransactionStatus Checkout(Cart cart, decimal payment, string notes, int userId, long customerId, out string message)
+    public TransactionStatus Checkout(Cart cart, PaymentDetail payment, string notes, int userId, long customerId, out string message)
     {
       message = string.Empty;
       List<TransactionDetail> transactionDetails;
@@ -99,7 +99,7 @@ namespace InventoryAndSales.Business
     /// <summary>
     /// Records a correction: writes a new sale and marks the original as superseded by it.
     /// </summary>
-    public void UpdateCheckout(Cart cart, Transaction originalTransaction, decimal payment, string notes, int userId, long customerId)
+    public void UpdateCheckout(Cart cart, Transaction originalTransaction, PaymentDetail payment, string notes, int userId, long customerId)
     {
       List<TransactionDetail> transactionDetails;
       notes = string.Format("Ralat Dari Transaksi: {0}, No Faktur: {1}.", originalTransaction.Id, originalTransaction.Factur) + notes;
@@ -128,7 +128,7 @@ namespace InventoryAndSales.Business
       _transactionManager.CancelTransaction(transaction, cancelledByUserId);
     }
 
-    private Transaction GenerateTransactionAndDetails(Cart cart, string notes, decimal payment, int userId, long customerId,
+    private Transaction GenerateTransactionAndDetails(Cart cart, string notes, PaymentDetail payment, int userId, long customerId,
                                                       out List<TransactionDetail> transactionDetails)
     {
       Transaction transaction = new Transaction();
@@ -138,9 +138,10 @@ namespace InventoryAndSales.Business
       transaction.Notes = TrimNotes(notes);
       transaction.Time = DateTime.Now;
       transaction.Factur = GenerateFactur();
-      transaction.Payment = payment;
       transaction.UserId = userId;
       transaction.CustomerId = customerId;
+      transaction.PaymentMethod = payment.Code;
+      transaction.PaymentReference = payment.Reference;
 
       transactionDetails = cart.GetLines();
       foreach (TransactionDetail td in transactionDetails)
@@ -149,7 +150,11 @@ namespace InventoryAndSales.Business
         transaction.TotalPrice += td.SubtotalPrice;
         transaction.Total += (td.SubtotalPrice - td.SubtotalDiscount);
       }
-      transaction.Exchange = transaction.Payment - transaction.Total;
+
+      // A card terminal takes the exact total, so what was "tendered" is the total and there is no
+      // change. Recording the total keeps the takings columns meaning the same thing for both.
+      transaction.Payment = payment.Method == PaymentMethod.Edc ? transaction.Total : payment.AmountTendered;
+      transaction.Exchange = payment.ChangeFor(transaction.Total);
       return transaction;
     }
 

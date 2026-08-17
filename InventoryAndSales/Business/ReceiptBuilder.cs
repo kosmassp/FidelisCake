@@ -60,8 +60,21 @@ namespace InventoryAndSales.Business
       stringToPrint.Add(new StringPrint("Total Disc   : Rp. " + transaction.TotalDiscount.ToString("N"), leftString));
       stringToPrint.Add(new StringPrint("Total Belanja: Rp. " + transaction.Total.ToString("N"), leftString));
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
-      stringToPrint.Add(new StringPrint("Tunai        : Rp. " + transaction.Payment.ToString("N"), leftString));
-      stringToPrint.Add(new StringPrint("Kembalian    : Rp. " + transaction.Exchange.ToString("N"), leftString));
+
+      // A card payment takes the exact amount, so change would always read zero. Show the terminal
+      // instead - that is what a customer or an auditor needs off the slip.
+      if (PaymentDetail.IsEdc(transaction.PaymentMethod))
+      {
+        stringToPrint.Add(new StringPrint("EDC          : Rp. " + transaction.Payment.ToString("N"), leftString));
+        if (!string.IsNullOrEmpty(transaction.PaymentReference))
+          stringToPrint.Add(new StringPrint("Terminal     : " + transaction.PaymentReference, leftString));
+      }
+      else
+      {
+        stringToPrint.Add(new StringPrint("Tunai        : Rp. " + transaction.Payment.ToString("N"), leftString));
+        stringToPrint.Add(new StringPrint("Kembalian    : Rp. " + transaction.Exchange.ToString("N"), leftString));
+      }
+
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
 
       foreach (string footer in SplitLines(footerNotes))

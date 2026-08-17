@@ -25,6 +25,8 @@ edit them through the WinForms designer, not by hand.
 | Receipt layout | `InventoryAndSales/Business/ReceiptBuilder.cs` |
 | Checkout, revision, cancellation | `InventoryAndSales/Business/CashierManager.cs` |
 | Checkout validation & error messages | `InventoryAndSales/GUI/Controller/CashierController.cs` |
+| Payment methods (cash / EDC) | `InventoryAndSales/Business/PaymentDetail.cs` |
+| EDC terminal list | *Pengaturan → Terminal EDC*, stored in `M_SETTINGS` |
 | Login / password check / recovery account | `InventoryAndSales/Business/LoginManager.cs` |
 | Password hashing | `SimpleCommon/Utility/PasswordHasher.cs` |
 | Who sees which menu | `InventoryAndSales/GUI/MainForm.cs` → `EnableMenu`, `Enumeration/AccessOption.cs` |
@@ -59,6 +61,8 @@ edit them through the WinForms designer, not by hand.
 | File | Purpose |
 |---|---|
 | `Business/BusinessFactory.cs` | Singleton composition root for all business managers. |
+| `Business/PaymentDetail.cs` | How a sale was paid: method, amount tendered, terminal. Owns the change rule. |
+| `Business/EdcTerminalService.cs` | The configured list of EDC terminals. |
 | `Business/Cart.cs` | The basket for one screen: lines, quantities, total, `CartChange` event. One instance per controller. |
 | `Business/CashierManager.cs` | Checkout, revision checkout, cancel, receipt printing, header/footer notes. |
 | `Business/ReceiptBuilder.cs` | **Pure function** turning a sale into printable lines. Shared by the printer and the settings preview. |

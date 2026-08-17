@@ -19,6 +19,12 @@ namespace InventoryAndSales.Database.Model
     public long CustomerId { get; set; }
     public long Revision { get; set; }
 
+    /// <summary>CASH or EDC. Sales made before payment methods existed read as CASH.</summary>
+    public string PaymentMethod { get; set; }
+
+    /// <summary>Terminal a card payment went through. Empty for cash.</summary>
+    public string PaymentReference { get; set; }
+
     [Browsable(false)]
     public override object this[string columnName]
     {
@@ -50,6 +56,10 @@ namespace InventoryAndSales.Database.Model
             return CustomerId;
           case "Revision":
             return Revision;
+          case "PaymentMethod":
+            return PaymentMethod;
+          case "PaymentReference":
+            return PaymentReference;
         }
         throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));
       }
@@ -94,6 +104,12 @@ namespace InventoryAndSales.Database.Model
             break;
           case "Revision":
             Revision = ToLong(value);
+            break;
+          case "PaymentMethod":
+            PaymentMethod = ToText(value);
+            break;
+          case "PaymentReference":
+            PaymentReference = ToText(value);
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

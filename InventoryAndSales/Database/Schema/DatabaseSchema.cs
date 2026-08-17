@@ -165,7 +165,9 @@ namespace InventoryAndSales.Database.Schema
           ColumnDefinition.Column("Exchange", DbColumnType.Decimal),
           ColumnDefinition.Column("UserId", DbColumnType.Int),
           ColumnDefinition.Text("Factur", 20),
-          ColumnDefinition.Column("CustomerId", DbColumnType.Long)),
+          ColumnDefinition.Column("CustomerId", DbColumnType.Long),
+          ColumnDefinition.Text("PaymentMethod", 20),
+          ColumnDefinition.Text("PaymentReference", 50)),
 
         new TableDefinition("M_CUSTOMERS",
           ColumnDefinition.Identity("Id", DbColumnType.Int),
@@ -192,6 +194,13 @@ namespace InventoryAndSales.Database.Schema
         // Who voided a sale and when. Existing rows stay NULL.
         new ColumnAddition("T_TRANSACTIONS", ColumnDefinition.Column("CancelledBy", DbColumnType.Int)),
         new ColumnAddition("T_TRANSACTIONS", ColumnDefinition.Column("CancelledAt", DbColumnType.DateTime)),
+
+        // How a sale was paid for. Every sale before this was cash, so that is what existing rows
+        // are backfilled to - leaving them blank would make historic takings unattributable.
+        new ColumnAddition("T_TRANSACTIONS",
+          ColumnDefinition.Text("PaymentMethod", 20), "'CASH'"),
+        new ColumnAddition("T_TRANSACTIONS",
+          ColumnDefinition.Text("PaymentReference", 50), "''"),
       };
     }
 

@@ -49,6 +49,11 @@
       this.textBoxTotal = new System.Windows.Forms.TextBox();
       this.labelChanges = new System.Windows.Forms.Label();
       this.labelPayment = new System.Windows.Forms.Label();
+      this.labelPaymentMethod = new System.Windows.Forms.Label();
+      this.radioButtonCash = new System.Windows.Forms.RadioButton();
+      this.radioButtonEdc = new System.Windows.Forms.RadioButton();
+      this.labelTerminal = new System.Windows.Forms.Label();
+      this.comboBoxTerminal = new System.Windows.Forms.ComboBox();
       this.buttonCheckout = new System.Windows.Forms.Button();
       this.labelTotal = new System.Windows.Forms.Label();
       this.groupBoxItemList = new System.Windows.Forms.GroupBox();
@@ -76,7 +81,7 @@
       this.groupBoxCart.Controls.Add(this.dataGridViewCart);
       this.groupBoxCart.Location = new System.Drawing.Point(432, 0);
       this.groupBoxCart.Name = "groupBoxCart";
-      this.groupBoxCart.Size = new System.Drawing.Size(633, 365);
+      this.groupBoxCart.Size = new System.Drawing.Size(633, 315);
       this.groupBoxCart.TabIndex = 5;
       this.groupBoxCart.TabStop = false;
       this.groupBoxCart.Text = "Keranjang Belanja";
@@ -174,9 +179,14 @@
       this.groupBoxSummary.Controls.Add(this.labelPayment);
       this.groupBoxSummary.Controls.Add(this.buttonCheckout);
       this.groupBoxSummary.Controls.Add(this.labelTotal);
-      this.groupBoxSummary.Location = new System.Drawing.Point(432, 371);
+      this.groupBoxSummary.Controls.Add(this.labelPaymentMethod);
+      this.groupBoxSummary.Controls.Add(this.radioButtonCash);
+      this.groupBoxSummary.Controls.Add(this.radioButtonEdc);
+      this.groupBoxSummary.Controls.Add(this.labelTerminal);
+      this.groupBoxSummary.Controls.Add(this.comboBoxTerminal);
+      this.groupBoxSummary.Location = new System.Drawing.Point(432, 321);
       this.groupBoxSummary.Name = "groupBoxSummary";
-      this.groupBoxSummary.Size = new System.Drawing.Size(630, 135);
+      this.groupBoxSummary.Size = new System.Drawing.Size(630, 185);
       this.groupBoxSummary.TabIndex = 4;
       this.groupBoxSummary.TabStop = false;
       this.groupBoxSummary.Text = "Total";
@@ -272,7 +282,57 @@
       this.buttonCheckout.Text = "Bayar (F7)";
       this.buttonCheckout.UseVisualStyleBackColor = true;
       this.buttonCheckout.Click += new System.EventHandler(this.buttonCheckout_Click);
-      // 
+      //
+      // labelPaymentMethod
+      //
+      this.labelPaymentMethod.AutoSize = true;
+      this.labelPaymentMethod.Location = new System.Drawing.Point(210, 125);
+      this.labelPaymentMethod.Name = "labelPaymentMethod";
+      this.labelPaymentMethod.Size = new System.Drawing.Size(45, 13);
+      this.labelPaymentMethod.TabIndex = 20;
+      this.labelPaymentMethod.Text = "Metode";
+      //
+      // radioButtonCash
+      //
+      this.radioButtonCash.AutoSize = true;
+      this.radioButtonCash.Checked = true;
+      this.radioButtonCash.Location = new System.Drawing.Point(272, 123);
+      this.radioButtonCash.Name = "radioButtonCash";
+      this.radioButtonCash.Size = new System.Drawing.Size(54, 17);
+      this.radioButtonCash.TabIndex = 21;
+      this.radioButtonCash.TabStop = true;
+      this.radioButtonCash.Text = "Tunai";
+      this.radioButtonCash.UseVisualStyleBackColor = true;
+      this.radioButtonCash.CheckedChanged += new System.EventHandler(this.paymentMethod_CheckedChanged);
+      //
+      // radioButtonEdc
+      //
+      this.radioButtonEdc.AutoSize = true;
+      this.radioButtonEdc.Location = new System.Drawing.Point(340, 123);
+      this.radioButtonEdc.Name = "radioButtonEdc";
+      this.radioButtonEdc.Size = new System.Drawing.Size(48, 17);
+      this.radioButtonEdc.TabIndex = 22;
+      this.radioButtonEdc.Text = "EDC";
+      this.radioButtonEdc.UseVisualStyleBackColor = true;
+      this.radioButtonEdc.CheckedChanged += new System.EventHandler(this.paymentMethod_CheckedChanged);
+      //
+      // labelTerminal
+      //
+      this.labelTerminal.AutoSize = true;
+      this.labelTerminal.Location = new System.Drawing.Point(210, 151);
+      this.labelTerminal.Name = "labelTerminal";
+      this.labelTerminal.Size = new System.Drawing.Size(48, 13);
+      this.labelTerminal.TabIndex = 23;
+      this.labelTerminal.Text = "Terminal";
+      //
+      // comboBoxTerminal
+      //
+      this.comboBoxTerminal.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxTerminal.Location = new System.Drawing.Point(272, 148);
+      this.comboBoxTerminal.Name = "comboBoxTerminal";
+      this.comboBoxTerminal.Size = new System.Drawing.Size(183, 21);
+      this.comboBoxTerminal.TabIndex = 24;
+      //
       // labelTotal
       // 
       this.labelTotal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -421,6 +481,11 @@
     private System.Windows.Forms.TextBox textBoxTotal;
     private System.Windows.Forms.Label labelChanges;
     private System.Windows.Forms.Label labelPayment;
+    private System.Windows.Forms.Label labelPaymentMethod;
+    private System.Windows.Forms.RadioButton radioButtonCash;
+    private System.Windows.Forms.RadioButton radioButtonEdc;
+    private System.Windows.Forms.Label labelTerminal;
+    private System.Windows.Forms.ComboBox comboBoxTerminal;
     private System.Windows.Forms.Button buttonCheckout;
     private System.Windows.Forms.Label labelTotal;
     private System.Windows.Forms.GroupBox groupBoxItemList;
