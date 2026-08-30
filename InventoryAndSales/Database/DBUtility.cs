@@ -45,6 +45,7 @@ namespace InventoryAndSales.Database
     public static void CheckForDatabaseRow()
     {
       UpsertSettingRow();
+      RetireSupersededManifestUrl();
     }
 
     #region Schema reconciliation
@@ -179,6 +180,42 @@ namespace InventoryAndSales.Database
         catch (Exception e)
         {
           _log.Error(string.Format("Failed seeding setting '{0}'.", seed.Key), e);
+        }
+      }
+    }
+
+    /// <summary>
+    /// Rewrites UPDATE_MANIFEST_URL where it still holds a retired default - the hand-edited Google
+    /// Doc releases were announced in before they moved to GitHub. Only exact known defaults are
+    /// rewritten; any other value is an operator's deliberate configuration and stays. Guarded and
+    /// idempotent like every other reconciliation step: once rewritten, nothing matches again.
+    /// </summary>
+    private static void RetireSupersededManifestUrl()
+    {
+      // Value and Default get their own parameters rather than repeating one: providers disagree
+      // about whether a named parameter may appear twice in a statement.
+      string update = string.Format("UPDATE {0} SET {1} = @newValue, {2} = @newDefault WHERE {3} = @key AND {1} = @retired",
+                                    Dialect.Quote("M_SETTINGS"), Dialect.Quote("Value"),
+                                    Dialect.Quote("Default"), Dialect.Quote("Key"));
+
+      foreach (string retired in SettingKeys.RetiredUpdateManifestUrls)
+      {
+        try
+        {
+          int rewritten = ExecuteNonQuery(update,
+            DbParam.Of("@newValue", SettingKeys.DefaultUpdateManifestUrl),
+            DbParam.Of("@newDefault", SettingKeys.DefaultUpdateManifestUrl),
+            DbParam.Of("@key", SettingKeys.UpdateManifestUrl),
+            DbParam.Of("@retired", retired));
+          if (rewritten > 0)
+            _log.InfoFormat("Update manifest address migrated from retired '{0}' to '{1}'.",
+                            retired, SettingKeys.DefaultUpdateManifestUrl);
+        }
+        catch (Exception e)
+        {
+          // Best effort like the rest of reconciliation: a till that cannot migrate the address
+          // still starts, it just keeps checking the old one.
+          _log.Error(string.Format("Could not migrate the update manifest address from '{0}'.", retired), e);
         }
       }
     }

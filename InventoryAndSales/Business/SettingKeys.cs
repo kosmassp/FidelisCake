@@ -22,13 +22,34 @@ namespace InventoryAndSales.Business
 
     /// <summary>
     /// Address of the little text file that says what the current release is. Empty switches update
-    /// checking off entirely, which is the default: an installation that has not been told where to
-    /// look must not go looking.
+    /// checking off entirely.
     ///
-    /// Seeded from the UpdateManifestUrl entry in App.config, so a technician can set it once while
-    /// installing without opening the database.
+    /// Seeded from the UpdateManifestUrl entry in App.config where one exists, so a technician can
+    /// still point an installation somewhere else - or, with an empty value, at nothing. A config
+    /// with no entry at all seeds <see cref="DefaultUpdateManifestUrl"/> instead: updates never
+    /// ship App.config, so an installation updated in place would otherwise never learn where
+    /// releases live.
     /// </summary>
     public const string UpdateManifestUrl = "UPDATE_MANIFEST_URL";
+
+    /// <summary>
+    /// Where releases are announced: version.txt on the repository's master branch. Baked into the
+    /// build because it is the one address that only moves when the project itself moves.
+    /// </summary>
+    public const string DefaultUpdateManifestUrl =
+      "https://raw.githubusercontent.com/kosmassp/FidelisCake/master/version.txt";
+
+    /// <summary>
+    /// Manifest addresses earlier builds seeded and that are no longer maintained - the hand-edited
+    /// Google Doc used before releases moved to GitHub. A stored value equal to one of these is
+    /// rewritten to <see cref="DefaultUpdateManifestUrl"/> at startup
+    /// (DBUtility.RetireSupersededManifestUrl); any other value is somebody's deliberate
+    /// configuration and is never touched.
+    /// </summary>
+    public static readonly string[] RetiredUpdateManifestUrls =
+    {
+      "https://docs.google.com/document/d/1Te1T3JmMbsom7O98dXIhbygrS3eU694ekGj7n1Xq8ek",
+    };
 
     /// <summary>
     /// What this shop is called. Shown on the main window and at the top of every generated report.
@@ -137,12 +158,23 @@ namespace InventoryAndSales.Business
         new SettingSeed(EdcTerminals, GroupGeneral, string.Empty),
         new SettingSeed(QrisProviders, GroupGeneral, string.Empty),
 
-        new SettingSeed(UpdateManifestUrl, GroupUpdate, ConfiguredSetting("UpdateManifestUrl")),
+        new SettingSeed(UpdateManifestUrl, GroupUpdate, ConfiguredManifestUrl()),
 
         new SettingSeed(PrinterName, GroupPrinter, LegacyConfiguredPrinterName()),
         new SettingSeed(PrinterPaperWidthMm, GroupPrinter,
                         DefaultPaperWidthMm.ToString(System.Globalization.CultureInfo.InvariantCulture)),
       };
+    }
+
+    /// <summary>
+    /// What a fresh UPDATE_MANIFEST_URL row starts with. An App.config entry wins even when it is
+    /// empty - empty is how an installation is told not to check - and only a config with no entry
+    /// at all falls back to the built-in address.
+    /// </summary>
+    private static string ConfiguredManifestUrl()
+    {
+      string configured = System.Configuration.ConfigurationManager.AppSettings["UpdateManifestUrl"];
+      return configured == null ? DefaultUpdateManifestUrl : configured.Trim();
     }
 
     /// <summary>
