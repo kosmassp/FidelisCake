@@ -1,0 +1,19 @@
+# What the current release of FidelisCake is. The till downloads this file, compares
+# Version against what it is running, and offers to install File when this one is newer.
+#
+# Format (parsed by InventoryAndSales/Business/UpdateManifest.cs):
+#   - one "Key: value" per line; unknown keys are ignored, # lines are comments
+#   - Version is the released version, matching AssemblyVersion in AssemblyInfo.cs
+#   - Drive is the page a person opens for a manual download
+#   - File is the ZIP the till downloads and installs by itself
+#   - Notes is shown to the operator in the update offer; it must fit on one line
+#   - a malformed file means "no update known" - the till carries on unchanged
+#
+# Order matters when releasing: publish the GitHub release FIRST, then edit this
+# file. The other way round, a till could be offered a download that does not exist.
+# The full procedure is in RELEASING.md.
+
+Version: 1.0.1.3
+Drive:   https://github.com/kosmassp/FidelisCake/releases
+File:    https://github.com/kosmassp/FidelisCake/releases/download/v1.0.1.3/InventoryAndSales.zip
+Notes:   Rilis melalui GitHub.

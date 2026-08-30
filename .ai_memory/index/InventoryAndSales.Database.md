@@ -133,12 +133,13 @@ all three databases instead of three copies drifting apart.
 | Member | Signature | Purpose |
 |---|---|---|
 | `CheckForDatabaseTable` | `static void CheckForDatabaseTable()` | Orchestrates: `CheckTable()` → `UpdateTableTransaction()` → `UpdateTableCustomer()` → `CheckIndex()`. Logs each phase. |
-| `CheckForDatabaseRow` | `static void CheckForDatabaseRow()` | Calls `UpsertSettingRow()`. |
+| `CheckForDatabaseRow` | `static void CheckForDatabaseRow()` | Calls `UpsertSettingRow()`, then `RetireSupersededManifestUrl()`. |
 | `CheckTable` | `private static void CheckTable()` | `CREATE TABLE` for `M_SETTINGS`, `M_PRODUCTS`, `M_USERS`, `T_TRANSACTION_DETAILS`, `T_TRANSACTIONS`, `M_CUSTOMERS`, each guarded by `CheckIfTableExist` and each building its **own** `StringBuilder`. |
 | `UpdateTableTransaction` | `private static void UpdateTableTransaction()` | Adds `Revision bigint NULL` (backfilled to `0`), `CancelledBy int NULL` and `CancelledAt datetime NULL` when missing; widens `Factur` to `varchar(20)` (dropping `IDX_T_TRANS_FACTUR` first) when the type does not match. |
 | `UpdateTableCustomer` | `private static void UpdateTableCustomer()` | Renames `M_CUSTOMERS.Type` to `MemberType` where the old name exists, otherwise adds the column. The application has always mapped `MemberType`, so reading a customer used to fail against an app-created database. |
 | `CheckIndex` | `private static void CheckIndex()` | Creates `IDX_T_TRANS_TRXTIME` (TransactionTime DESC), `IDX_T_TRANS_FACTUR` (unique, Factur ASC), `IDX_T_TRDETAIL_TRX_ID` (TransactionId DESC) when absent. Failures are logged, not thrown. |
 | `UpsertSettingRow` | `private static void UpsertSettingRow()` | Inserts whichever rows from `SettingKeys.Seed()` the database does not have. Existing rows are untouched, so operator edits survive every upgrade. |
+| `RetireSupersededManifestUrl` | `private static void RetireSupersededManifestUrl()` | Rewrites `UPDATE_MANIFEST_URL` to `SettingKeys.DefaultUpdateManifestUrl` where its value exactly matches one of `SettingKeys.RetiredUpdateManifestUrls` (the pre-GitHub Google Doc). Any other value is operator configuration and stays. |
 | `CheckIfTableExist` | `private static bool (string tableName)` | `INFORMATION_SCHEMA.TABLES` lookup. |
 | `IsColumnExist` | `private static bool (string tableName, string columnName)` | `INFORMATION_SCHEMA.COLUMNS` lookup. |
 | `IsColumnTypeEquals` | `private static bool (string tableName, string columnName, string dataType, int charLength = 0)` | Compares `DATA_TYPE`, and `CHARACTER_MAXIMUM_LENGTH` when `charLength > 0`. |

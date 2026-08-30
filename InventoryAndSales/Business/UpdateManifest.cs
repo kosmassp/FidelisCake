@@ -62,7 +62,10 @@ namespace InventoryAndSales.Business
 
       foreach (string rawLine in (content ?? string.Empty).Split('\n'))
       {
-        string line = rawLine.Trim();
+        // Trimmed of the byte order mark as well as whitespace: a Google Doc exported as text
+        // begins with one, and it would otherwise make the first key read as "﻿Version" and
+        // silently fail to match - the whole file parsing as "no update".
+        string line = rawLine.Trim(Insignificant);
         if (line.Length == 0 || line.StartsWith("#", StringComparison.Ordinal))
           continue;
 
@@ -70,8 +73,8 @@ namespace InventoryAndSales.Business
         if (separator <= 0)
           continue;
 
-        string key = line.Substring(0, separator).Trim();
-        string value = line.Substring(separator + 1).Trim();
+        string key = line.Substring(0, separator).Trim(Insignificant);
+        string value = line.Substring(separator + 1).Trim(Insignificant);
 
         if (Is(key, "Version"))
         {
@@ -89,6 +92,12 @@ namespace InventoryAndSales.Business
 
       return new UpdateManifest(version, drive, ToDirectDownloadUrl(file), notes);
     }
+
+    /// <summary>
+    /// Whitespace, plus the invisible characters an exported document brings with it: the byte order
+    /// mark and the zero width space.
+    /// </summary>
+    private static readonly char[] Insignificant = { ' ', '\t', '\r', '﻿', '​' };
 
     private static bool Is(string key, string name)
     {
