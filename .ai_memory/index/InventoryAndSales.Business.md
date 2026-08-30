@@ -159,7 +159,7 @@ expected to hold and `DefaultReportDirectory()`. **Adding a key here is all that
 installation to pick it up on its next launch**, because `DBUtility.UpsertSettingRow` inserts
 whichever rows are missing.
 
-Keys: `SHOP_NAME`, `HEADER`, `FOOTER`, `EDC_TERMINALS`, `QRIS_PROVIDERS` (group `GENERAL`),
+Keys: `SHOP_NAME`, `HEADER`, `FOOTER`, `EDC_TERMINALS`, `QRIS_PROVIDERS`, `TRANSFER_BANKS` (group `GENERAL`),
 `REPORT_DIRECTORY` (`REPORT`), `ALLOW_BUILTIN_ADMIN` (`SECURITY`), `PRINTER_NAME`,
 `PRINTER_PAPER_WIDTH_MM` (`PRINTER`), `UPDATE_MANIFEST_URL` (`UPDATE`).
 

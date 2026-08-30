@@ -28,7 +28,7 @@ Fields: `MainFormController controller`, `DisplayPage currentPage`.
 | `LoadUserMasterPage` | `void LoadUserMasterPage()` | Selects and resets the user master page. |
 | `UpdateActiveUser` | `void UpdateActiveUser(string name)` | Status bar text `ActiveUser=<name>` or `<None>`. |
 | `MainForm_Load` | `private void (object, EventArgs)` | Starts on the login page. |
-| `MainForm_KeyUp` | `private void (object, KeyEventArgs)` | Only while `currentPage == Cashier`: **F5** focus the product filter, **F6** focus the payment box, **F7** trigger checkout. |
+| `MainForm_KeyUp` | `private void (object, KeyEventArgs)` | Only while `currentPage == Cashier`: **F5** focus the product filter, **F6** focus the payment box, **F7** trigger checkout, **Ctrl+1/2/3/4** pick cash / EDC / QRIS / transfer. |
 | `timerDisplayDate_Tick` | `private void (object, EventArgs)` | Clock in the status bar, `dd MMM yyyy HH:mm:ss`. |
 
 ### Menu handlers

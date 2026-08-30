@@ -210,6 +210,8 @@ namespace InventoryAndSales.GUI
         summary += Environment.NewLine + "EDC   : Rp. " + totals.Edc;
       if (!totals.QrisIsZero)
         summary += Environment.NewLine + "QRIS  : Rp. " + totals.Qris;
+      if (!totals.TransferIsZero)
+        summary += Environment.NewLine + "Transfer : Rp. " + totals.Transfer;
       return summary;
     }
   }

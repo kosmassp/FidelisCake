@@ -6,8 +6,8 @@ using InventoryAndSales.GUI.Popup.SettingPage;
 namespace InventoryAndSales.GUI.Controller.SettingPage
 {
   /// <summary>
-  /// Backs the payment options settings page: the EDC terminals and QRIS providers a cashier can
-  /// pick from.
+  /// Backs the payment options settings page: the EDC terminals, QRIS providers and transfer
+  /// destination accounts a cashier can pick from.
   /// </summary>
   internal class PaymentOptionSettingController
   {
@@ -28,6 +28,11 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
     public List<QrisProvider> GetQrisProviders()
     {
       return _options.GetQrisProviders();
+    }
+
+    public List<string> GetTransferBanks()
+    {
+      return _options.GetTransferBanks();
     }
 
     /// <summary>Empty when the name can be added, otherwise a message for the operator.</summary>
@@ -64,10 +69,12 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
       return string.Empty;
     }
 
-    public void Save(IEnumerable<string> edcTerminals, IEnumerable<QrisProvider> qrisProviders)
+    public void Save(IEnumerable<string> edcTerminals, IEnumerable<QrisProvider> qrisProviders,
+                     IEnumerable<string> transferBanks)
     {
       _options.SetEdcTerminals(edcTerminals);
       _options.SetQrisProviders(qrisProviders);
+      _options.SetTransferBanks(transferBanks);
     }
   }
 }

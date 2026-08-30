@@ -158,19 +158,19 @@ must use *Print Ulang Transaksi*, which searches by date range.
 
 ## Payment methods
 
-A sale is paid one of three ways. The method is chosen **first** — it is the top field in the payment
+A sale is paid one of four ways. The method is chosen **first** — it is the top field in the payment
 column — because it decides what the rest of them mean.
 
-| | Cash | EDC (card) | QRIS |
-|---|---|---|---|
-| Amount | Cashier types what was handed over | The total, always | The total, always |
-| Change | `tendered − total`, must not be negative | Always zero | Always zero |
-| Extra input | — | Which terminal | Which provider (its code type comes with it) |
-| Stored | `PaymentMethod = CASH` | `EDC` + `PaymentReference` | `QRIS` + `PaymentReference` + `PaymentVariant` |
+| | Cash | EDC (card) | QRIS | Transfer |
+|---|---|---|---|---|
+| Amount | Cashier types what was handed over | The total, always | The total, always | The total, always |
+| Change | `tendered − total`, must not be negative | Always zero | Always zero | Always zero |
+| Extra input | — | Which terminal | Which provider (its code type comes with it) | Which of the shop's accounts |
+| Stored | `PaymentMethod = CASH` | `EDC` + `PaymentReference` | `QRIS` + `PaymentReference` + `PaymentVariant` | `TRANSFER` + `PaymentReference` |
 
-Default is **Tunai**. Shortcuts: **Ctrl+1** cash, **Ctrl+2** EDC, **Ctrl+3** QRIS, handled in
-`MainForm_KeyUp` alongside F5/F6/F7 and only while the cashier page is showing. A shortcut for a
-method that is not on offer says why rather than doing nothing.
+Default is **Tunai**. Shortcuts: **Ctrl+1** cash, **Ctrl+2** EDC, **Ctrl+3** QRIS, **Ctrl+4**
+transfer, handled in `MainForm_KeyUp` alongside F5/F6/F7 and only while the cashier page is showing.
+A shortcut for a method that is not on offer says why rather than doing nothing.
 
 `Business/PaymentDetail.cs` carries method, amount, reference and variant as one object rather than
 four more parameters on `Checkout`, and owns the change rule (`ChangeFor`) — zero for anything that
@@ -182,15 +182,16 @@ either a printed sticker at the till or codes generated per transaction, and tha
 from one customer to the next - so Statis/Dinamis is set once against the provider in settings, and
 the cashier only picks the provider. The dropdown shows it, e.g. "GoPay (Statis)".
 
-**Terminals and providers are configured, not typed.** `EDC_TERMINALS` and `QRIS_PROVIDERS` each hold
-one name per line, edited under *Pengaturan → Pembayaran* (requires `Master`). A method whose list is
-empty is **left out of the selector entirely** — choosing it could never lead to a completed sale.
-The chosen name is **re-checked against the list at checkout**, not merely taken from the screen: the
-list can be edited while a sale is being rung up, and a payment must never be recorded against a
-terminal or provider the shop has dropped.
+**Terminals, providers and accounts are configured, not typed.** `EDC_TERMINALS`, `QRIS_PROVIDERS`
+and `TRANSFER_BANKS` each hold one entry per line, edited under *Pengaturan → Pembayaran* (requires
+`Master`). A transfer entry is the full line the cashier reads out — bank, number and holder. A
+method whose list is empty is **left out of the selector entirely** — choosing it could never lead to
+a completed sale. The chosen name is **re-checked against the list at checkout**, not merely taken
+from the screen: the list can be edited while a sale is being rung up, and a payment must never be
+recorded against a terminal, provider or account the shop has dropped.
 
 Receipts print the method in place of *Tunai* / *Kembalian*, which would otherwise always read zero —
-`EDC` with its terminal, or `QRIS` with its provider and code type.
+`EDC` with its terminal, `QRIS` with its provider and code type, or `Transfer` with its account.
 
 ⚠ A correction keeps the method, reference and variant of the sale it replaces. Correcting a QRIS
 sale does not turn it into a cash one.
@@ -201,10 +202,10 @@ so a database where the backfill did not run still reports correctly.
 
 ### Why the daily total is split
 
-*Jumlah Setoran* reports cash, EDC and QRIS separately, listing only the non-zero ones and falling
-back to a single figure when everything was cash. Only the cash is money the cashier physically hands
-over at the end of the day — card and QRIS takings settle through the bank — so a single combined
-figure would tell them to hand over more than they hold.
+*Jumlah Setoran* reports cash, EDC, QRIS and transfer separately, listing only the non-zero ones and
+falling back to a single figure when everything was cash. Only the cash is money the cashier
+physically hands over at the end of the day — the electronic takings settle through the bank — so a
+single combined figure would tell them to hand over more than they hold.
 
 ### How the QRIS provider list is stored
 

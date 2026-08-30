@@ -5,17 +5,18 @@ in [business-auth-and-roles.md](business-auth-and-roles.md).
 
 All report SQL lives in one file: `Database/DataAccess/CustomDao.cs`.
 
-## The five reports
+## The reports
 
 | Report | Grain | Columns (Indonesian aliases become the headers) |
 |---|---|---|
-| **By product** | product × date | ProductName, TransactionDate, Jumlah Transaksi, Jumlah Barang Terjual, Total Sebelum Diskon, Total Diskon, Total |
-| **By transaction** | one row per sale | Kasir, Factur, Tanggal Transaksi, Total, Catatan, Pembayaran, Kembalian |
-| **By cashier** | cashier × date | Kasir, Tanggal Transaksi, Jumlah Transaksi, Jumlah Barang Terjual, Total Sebelum Diskon, Total Diskon, Total |
-| **Detail** | one row per sale line | Cashier, Factur, TransactionTime, ProductName, Jumlah, Harga, Diskon, Total Sebelum Diskon, Total Diskon, SubTotal, Total |
-| **Daily cashier total** | one number | `SUM(Total)` for one user on one date |
+| **By product** | product × date | Nama Barang, Tanggal Transaksi, Jumlah Transaksi, Jumlah Barang Terjual, Total Sebelum Diskon, Total Diskon, Harga Rata-rata, Total |
+| **By transaction** | one row per sale | Faktur, Waktu, Kasir, Metode, Referensi, Jumlah Barang, Total Sebelum Diskon, Total Diskon, Total, Pembayaran, Kembalian, Catatan |
+| **By cashier** | cashier × date | Kasir, Tanggal Transaksi, Jumlah Transaksi, Jumlah Barang Terjual, Total Sebelum Diskon, Total Diskon, Tunai, EDC, QRIS, Transfer, Total |
+| **By payment method** | method × reference × variant | Metode, Referensi, Tipe, Jumlah Transaksi, Total Diskon, Total — the figures a shop reconciles against its bank/QRIS statements |
+| **Detail** | one row per sale line | Kasir, Faktur, Waktu, Metode, Nama Barang, Jumlah, Harga Satuan, Diskon Satuan, Total Sebelum Diskon, Total Diskon, SubTotal |
+| **Daily cashier total** | one user, one date | cash / EDC / QRIS / transfer totals, split (`CashierDayTotals`) |
 
-The first four take a start/stop date range. The detail report is the expensive one — it is only run
+They take a start/stop date range. The detail report is the expensive one — it is only run
 when the *detail* checkbox is ticked.
 
 ## Rules every report shares
@@ -124,15 +125,11 @@ longer corrupts the page.
 
 Menu *check kasir → Jumlah Setoran*, available to anyone with `AccessOption.Cashier`.
 
-`ReportManager.GetTodaySummaryByCashier(activeUser, DateTime.Today)` runs:
-
-```sql
-SELECT COALESCE(SUM([Total]), 0) FROM T_TRANSACTIONS
-WHERE UserId = {id} AND Revision = 0 AND CAST(TransactionTime AS date) = '{date}'
-```
-
-and returns a pre-formatted `"Rp. {n}"`. The message box shows the date, the current time, the
-total, and this caveat:
+`ReportManager.GetTodaySummaryByCashier(activeUser, DateTime.Today)` sums the user's active sales
+for the day into a `CashierDayTotals` — cash, EDC, QRIS and transfer as separate figures, where
+anything not explicitly `EDC`, `QRIS` or `TRANSFER` counts as cash. The message shows a single
+figure when everything was cash, otherwise one line per non-zero method: only the cash physically
+leaves the drawer. It also shows this caveat:
 
 > *"Jika terdapat perubahan transaksi, Jumlah kemungkinan tidak sesuai."*
 > (If transactions have been changed, the amount may not match.)

@@ -71,6 +71,12 @@ namespace InventoryAndSales.GUI.Controller
       return _paymentOptions.GetQrisProviders();
     }
 
+    /// <summary>The accounts a customer can transfer to. Empty means this shop takes no transfers.</summary>
+    public List<string> GetTransferBanks()
+    {
+      return _paymentOptions.GetTransferBanks();
+    }
+
     /// <summary>
     /// Whether a method can be offered at all. A method whose list is empty is not shown, because
     /// choosing it could never lead to a completed sale.
@@ -81,6 +87,7 @@ namespace InventoryAndSales.GUI.Controller
       {
         case PaymentMethod.Edc: return _paymentOptions.HasEdcTerminals();
         case PaymentMethod.Qris: return _paymentOptions.HasQrisProviders();
+        case PaymentMethod.Transfer: return _paymentOptions.HasTransferBanks();
         default: return true;
       }
     }
@@ -158,7 +165,7 @@ namespace InventoryAndSales.GUI.Controller
     /// <param name="tendered">Cash handed over. Ignored for a card payment, which takes the total.</param>
     /// <param name="terminal">Terminal for a card payment.</param>
     /// <returns>An Indonesian error message, or an empty string when the sale went through.</returns>
-    /// <param name="reference">EDC terminal or QRIS provider name, whichever the method needs.</param>
+    /// <param name="reference">EDC terminal, QRIS provider or transfer account, whichever the method needs.</param>
     public string Checkout(PaymentMethod method, decimal tendered, string reference,
                            string notes, out string successMessage)
     {
@@ -194,6 +201,16 @@ namespace InventoryAndSales.GUI.Controller
           if (provider == null)
             return "Provider QRIS tersebut tidak terdaftar. Silahkan pilih ulang.";
           payment = PaymentDetail.Qris(total, provider.Name, provider.Mode);
+          break;
+
+        case PaymentMethod.Transfer:
+          if (string.IsNullOrWhiteSpace(reference))
+            return "Silahkan pilih rekening tujuan transfer.";
+          // Same rule as EDC: the list can be edited while a sale is being rung up, and a payment
+          // must never be recorded against an account the shop no longer lists.
+          if (!_paymentOptions.IsKnownTransferBank(reference))
+            return "Rekening tersebut tidak terdaftar. Silahkan pilih ulang.";
+          payment = PaymentDetail.Transfer(total, reference);
           break;
 
         default:

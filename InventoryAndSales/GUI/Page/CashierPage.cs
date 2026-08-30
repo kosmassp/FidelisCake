@@ -358,6 +358,8 @@ namespace InventoryAndSales.GUI.Page
           comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Edc, "EDC (Ctrl+2)"));
         if (controller.IsMethodAvailable(PaymentMethod.Qris))
           comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Qris, "QRIS (Ctrl+3)"));
+        if (controller.IsMethodAvailable(PaymentMethod.Transfer))
+          comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Transfer, "Transfer (Ctrl+4)"));
 
         comboBoxPaymentMethod.SelectedIndex = 0;
       }
@@ -411,7 +413,9 @@ namespace InventoryAndSales.GUI.Page
         }
       }
 
-      string what = method == PaymentMethod.Qris ? "provider QRIS" : "terminal EDC";
+      string what = method == PaymentMethod.Qris ? "provider QRIS"
+        : method == PaymentMethod.Transfer ? "rekening tujuan transfer"
+        : "terminal EDC";
       MessageBox.Show(
         string.Format("Belum ada {0} yang terdaftar.{1}{1}Tambahkan melalui menu Pengaturan.", what, Environment.NewLine),
         "Metode Tidak Tersedia", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -426,13 +430,14 @@ namespace InventoryAndSales.GUI.Page
       PaymentMethod method = SelectedMethod;
       bool exact = PaymentDetail.IsExactAmount(method);
       bool qris = method == PaymentMethod.Qris;
+      bool transfer = method == PaymentMethod.Transfer;
 
       labelReference.Visible = exact;
       comboBoxReference.Visible = exact;
       // Collapse the row rather than leaving a gap where the terminal would have been: cash is the
       // common case and the remaining fields should sit straight under the method.
       tableLayoutFields.RowStyles[ReferenceRowIndex].Height = exact ? ReferenceRowHeight : 0F;
-      labelReference.Text = qris ? "Provider" : "Terminal";
+      labelReference.Text = qris ? "Provider" : transfer ? "Rekening" : "Terminal";
       textBoxPayment.ReadOnly = exact;
 
       if (exact)
@@ -446,6 +451,9 @@ namespace InventoryAndSales.GUI.Page
           if (qris)
             foreach (QrisProvider provider in controller.GetQrisProviders())
               comboBoxReference.Items.Add(provider);
+          else if (transfer)
+            foreach (string bank in controller.GetTransferBanks())
+              comboBoxReference.Items.Add(bank);
           else
             foreach (string terminal in controller.GetEdcTerminals())
               comboBoxReference.Items.Add(terminal);

@@ -139,7 +139,7 @@ namespace InventoryAndSales.Database.DataAccess
       return "COALESCE(NULLIF(" + C("t", "PaymentMethod") + ", ''), '" + PaymentMethodCash + "')";
     }
 
-    /// <summary>EDC terminal or QRIS provider, dashed when the method does not use one.</summary>
+    /// <summary>EDC terminal, QRIS provider or transfer account, dashed when the method does not use one.</summary>
     private static string PaymentReferenceValue()
     {
       return "COALESCE(NULLIF(" + C("t", "PaymentReference") + ", ''), '-')";
@@ -178,7 +178,8 @@ namespace InventoryAndSales.Database.DataAccess
     /// <summary>Cash takings: everything that is not explicitly one of the electronic methods.</summary>
     private static string LineTotalForCash()
     {
-      return "SUM(CASE WHEN " + PaymentMethodValue() + " NOT IN ('" + PaymentMethodEdc + "','" + PaymentMethodQris + "')" +
+      return "SUM(CASE WHEN " + PaymentMethodValue() +
+             " NOT IN ('" + PaymentMethodEdc + "','" + PaymentMethodQris + "','" + PaymentMethodTransfer + "')" +
              " THEN " + C("td", "Subtotal") + " ELSE 0 END)";
     }
 
@@ -247,6 +248,7 @@ namespace InventoryAndSales.Database.DataAccess
         LineTotalForCash() + " AS " + A("Tunai") + "," +
         LineTotalForMethod(PaymentMethodEdc) + " AS " + A("EDC") + "," +
         LineTotalForMethod(PaymentMethodQris) + " AS " + A("QRIS") + "," +
+        LineTotalForMethod(PaymentMethodTransfer) + " AS " + A("Transfer") + "," +
         "SUM(" + C("td", "Subtotal") + ") AS " + A("Total") +
         FromDetailsJoined(true) +
         ActiveInRange() +
@@ -277,14 +279,14 @@ namespace InventoryAndSales.Database.DataAccess
     }
 
     /// <summary>
-    /// Takings grouped by method and by the terminal or provider they came through — the figures a
-    /// shop reconciles against its bank and QRIS statements.
+    /// Takings grouped by method and by the terminal, provider or account they came through — the
+    /// figures a shop reconciles against its bank and QRIS statements.
     /// </summary>
     public List<CustomQuery> GetReportSummaryByPaymentMethod(DateTime start, DateTime stop)
     {
       string sql =
         " SELECT " + PaymentMethodValue() + " AS " + A("Metode") + "," +
-        PaymentReferenceValue() + " AS " + A("Terminal / Provider") + "," +
+        PaymentReferenceValue() + " AS " + A("Referensi") + "," +
         PaymentVariantValue() + " AS " + A("Tipe") + "," +
         "COUNT(" + C("t", "Id") + ") AS " + A("Jumlah Transaksi") + "," +
         "SUM(" + C("t", "TotalDiscount") + ") AS " + A("Total Diskon") + "," +
@@ -322,16 +324,18 @@ namespace InventoryAndSales.Database.DataAccess
     public CashierDayTotals GetTodaySummaryByCashier(User activeUser, DateTime date)
     {
       // A sale recorded before payment methods existed has no method and was, by definition, cash,
-      // so anything that is not explicitly EDC or QRIS counts as cash.
+      // so anything that is not explicitly EDC, QRIS or transfer counts as cash.
       string method = "COALESCE(" + C("t", "PaymentMethod") + ", '" + PaymentMethodCash + "')";
       string total = C("t", "Total");
 
       string sql =
         " SELECT" +
-        "  COALESCE(SUM(CASE WHEN " + method + " NOT IN ('" + PaymentMethodEdc + "','" + PaymentMethodQris + "')" +
+        "  COALESCE(SUM(CASE WHEN " + method +
+        " NOT IN ('" + PaymentMethodEdc + "','" + PaymentMethodQris + "','" + PaymentMethodTransfer + "')" +
         "                    THEN " + total + " ELSE 0 END), 0) AS " + A("CASHTOTAL") + "," +
         "  COALESCE(SUM(CASE WHEN " + method + " = '" + PaymentMethodEdc + "' THEN " + total + " ELSE 0 END), 0) AS " + A("EDCTOTAL") + "," +
-        "  COALESCE(SUM(CASE WHEN " + method + " = '" + PaymentMethodQris + "' THEN " + total + " ELSE 0 END), 0) AS " + A("QRISTOTAL") +
+        "  COALESCE(SUM(CASE WHEN " + method + " = '" + PaymentMethodQris + "' THEN " + total + " ELSE 0 END), 0) AS " + A("QRISTOTAL") + "," +
+        "  COALESCE(SUM(CASE WHEN " + method + " = '" + PaymentMethodTransfer + "' THEN " + total + " ELSE 0 END), 0) AS " + A("TRANSFERTOTAL") +
         " FROM " + Table("T_TRANSACTIONS") + " t" +
         ActiveInRange() +
         " AND " + C("t", "UserId") + " = @userId";
@@ -341,16 +345,18 @@ namespace InventoryAndSales.Database.DataAccess
 
       var retValue = ExecuteReader(sql, parameters.ToArray());
       if (retValue.Count == 0)
-        return new CashierDayTotals("0", "0", "0");
+        return new CashierDayTotals("0", "0", "0", "0");
       // CustomQuery stores every column as an already-formatted string.
       return new CashierDayTotals((string)retValue[0]["CASHTOTAL"],
                                   (string)retValue[0]["EDCTOTAL"],
-                                  (string)retValue[0]["QRISTOTAL"]);
+                                  (string)retValue[0]["QRISTOTAL"],
+                                  (string)retValue[0]["TRANSFERTOTAL"]);
     }
 
     private const string PaymentMethodCash = "CASH";
     private const string PaymentMethodEdc = "EDC";
     private const string PaymentMethodQris = "QRIS";
+    private const string PaymentMethodTransfer = "TRANSFER";
 
     #endregion
 

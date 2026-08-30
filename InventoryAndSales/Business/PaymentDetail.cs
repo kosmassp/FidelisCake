@@ -19,6 +19,9 @@ namespace InventoryAndSales.Business
 
     /// <summary>QRIS code. Also exact, and also needs to record who the code came from.</summary>
     Qris,
+
+    /// <summary>Bank transfer to one of the shop's accounts. Exact, and records which account.</summary>
+    Transfer,
   }
 
   /// <summary>Whether a QRIS code is the shop's fixed sticker or one generated per sale.</summary>
@@ -43,6 +46,7 @@ namespace InventoryAndSales.Business
     public const string CashCode = "CASH";
     public const string EdcCode = "EDC";
     public const string QrisCode = "QRIS";
+    public const string TransferCode = "TRANSFER";
 
     /// <summary>Stored in T_TRANSACTIONS.PaymentVariant for QRIS.</summary>
     public const string StaticCode = "STATIC";
@@ -56,7 +60,7 @@ namespace InventoryAndSales.Business
     /// </summary>
     public decimal AmountTendered { get; private set; }
 
-    /// <summary>EDC terminal, or QRIS provider. Empty for cash.</summary>
+    /// <summary>EDC terminal, QRIS provider, or transfer destination account. Empty for cash.</summary>
     public string Reference { get; private set; }
 
     /// <summary>STATIC or DYNAMIC for QRIS. Empty otherwise.</summary>
@@ -88,6 +92,12 @@ namespace InventoryAndSales.Business
                                mode == QrisMode.Dynamic ? DynamicCode : StaticCode);
     }
 
+    /// <summary>A bank transfer, recording which of the shop's accounts the money went to.</summary>
+    public static PaymentDetail Transfer(decimal total, string bankAccount)
+    {
+      return new PaymentDetail(PaymentMethod.Transfer, total, bankAccount, string.Empty);
+    }
+
     /// <summary>Rebuilds a payment from what was stored, for correcting an existing sale.</summary>
     public static PaymentDetail FromStored(string methodCode, string reference, string variant, decimal amountTendered)
     {
@@ -97,6 +107,8 @@ namespace InventoryAndSales.Business
           return new PaymentDetail(PaymentMethod.Edc, amountTendered, reference, string.Empty);
         case PaymentMethod.Qris:
           return new PaymentDetail(PaymentMethod.Qris, amountTendered, reference, variant);
+        case PaymentMethod.Transfer:
+          return new PaymentDetail(PaymentMethod.Transfer, amountTendered, reference, string.Empty);
         default:
           return new PaymentDetail(PaymentMethod.Cash, amountTendered, string.Empty, string.Empty);
       }
@@ -112,6 +124,8 @@ namespace InventoryAndSales.Business
         return PaymentMethod.Edc;
       if (string.Equals(methodCode, QrisCode, StringComparison.OrdinalIgnoreCase))
         return PaymentMethod.Qris;
+      if (string.Equals(methodCode, TransferCode, StringComparison.OrdinalIgnoreCase))
+        return PaymentMethod.Transfer;
       return PaymentMethod.Cash;
     }
 
@@ -140,6 +154,7 @@ namespace InventoryAndSales.Business
         {
           case PaymentMethod.Edc: return EdcCode;
           case PaymentMethod.Qris: return QrisCode;
+          case PaymentMethod.Transfer: return TransferCode;
           default: return CashCode;
         }
       }
@@ -154,6 +169,7 @@ namespace InventoryAndSales.Business
         {
           case PaymentMethod.Edc: return "EDC";
           case PaymentMethod.Qris: return "QRIS";
+          case PaymentMethod.Transfer: return "TRANSFER";
           default: return "TUNAI";
         }
       }

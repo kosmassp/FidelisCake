@@ -112,6 +112,12 @@ namespace InventoryAndSales.Business
     /// <summary>The QRIS providers a cashier can pick from, one per line.</summary>
     public const string QrisProviders = "QRIS_PROVIDERS";
 
+    /// <summary>
+    /// The accounts a customer can transfer to, one per line - typically bank, number and holder
+    /// written as the cashier should read them out.
+    /// </summary>
+    public const string TransferBanks = "TRANSFER_BANKS";
+
     /// <summary>Marker used inside a setting value to represent a line break.</summary>
     public const string NewLineToken = "%NEW_LINE%";
 
@@ -154,9 +160,11 @@ namespace InventoryAndSales.Business
 
         new SettingSeed(AllowBuiltInAdmin, GroupSecurity, "true"),
 
-        // Seeded empty: a shop with no card terminals or QRIS should not be offered imaginary ones.
+        // Seeded empty: a shop with no card terminals, QRIS or transfer accounts should not be
+        // offered imaginary ones.
         new SettingSeed(EdcTerminals, GroupGeneral, string.Empty),
         new SettingSeed(QrisProviders, GroupGeneral, string.Empty),
+        new SettingSeed(TransferBanks, GroupGeneral, string.Empty),
 
         new SettingSeed(UpdateManifestUrl, GroupUpdate, ConfiguredManifestUrl()),
 

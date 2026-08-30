@@ -25,8 +25,8 @@ edit them through the WinForms designer, not by hand.
 | Receipt layout | `InventoryAndSales/Business/ReceiptBuilder.cs` |
 | Checkout, revision, cancellation | `InventoryAndSales/Business/CashierManager.cs` |
 | Checkout validation & error messages | `InventoryAndSales/GUI/Controller/CashierController.cs` |
-| Payment methods (cash / EDC) | `InventoryAndSales/Business/PaymentDetail.cs` |
-| EDC terminal / QRIS provider lists | *Pengaturan → Pembayaran*, stored in `M_SETTINGS` |
+| Payment methods (cash / EDC / QRIS / transfer) | `InventoryAndSales/Business/PaymentDetail.cs` |
+| EDC terminal / QRIS provider / transfer account lists | *Pengaturan → Pembayaran*, stored in `M_SETTINGS` |
 | The shop's name (window title, report heading) | *Pengaturan → Toko*, resolved by `InventoryAndSales/Business/ShopService.cs` |
 | Who changed what (the audit trail) | `InventoryAndSales/Business/AuditService.cs`, table `T_AUDIT_LOG` |
 | Update checking / the version file in the cloud | `InventoryAndSales/Business/UpdateService.cs`, `UpdateManifest.cs` |
@@ -67,8 +67,8 @@ edit them through the WinForms designer, not by hand.
 | File | Purpose |
 |---|---|
 | `Business/BusinessFactory.cs` | Singleton composition root for all business managers. |
-| `Business/PaymentDetail.cs` | How a sale was paid: method, amount tendered, terminal or provider, QRIS code type. Owns the change rule. |
-| `Business/PaymentOptionService.cs` | The configured EDC terminals and QRIS providers. |
+| `Business/PaymentDetail.cs` | How a sale was paid: method, amount tendered, terminal / provider / account, QRIS code type. Owns the change rule. |
+| `Business/PaymentOptionService.cs` | The configured EDC terminals, QRIS providers and transfer accounts. |
 | `Business/Cart.cs` | The basket for one screen: lines, quantities, total, `CartChange` event. One instance per controller. |
 | `Business/CashierManager.cs` | Checkout, revision checkout, cancel, receipt printing, header/footer notes. |
 | `Business/ReceiptBuilder.cs` | **Pure function** turning a sale into printable lines. Shared by the printer and the settings preview. |
