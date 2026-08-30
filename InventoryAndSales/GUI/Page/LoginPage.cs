@@ -12,6 +12,7 @@ namespace InventoryAndSales.GUI.Page
 {
   public partial class LoginPage : UserControl
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private LoginController controller;
     public LoginPage()
     {
@@ -28,11 +29,30 @@ namespace InventoryAndSales.GUI.Page
     }
     private void buttonLogin_Click(object sender, EventArgs e)
     {
-      bool success = controller.Login(textBoxUsername.Text, textBoxPassword.Text);
-      if (!success)
-        labelCannotLogin.Text = "Username atau password tidak benar";
-      //else
-      //  tabControlPage.SelectedTab = tabPageCashier;
+      // Verifying a password is deliberately slow, so show the operator that something is happening.
+      Cursor previous = Cursor;
+      Cursor = Cursors.WaitCursor;
+      buttonLogin.Enabled = false;
+      try
+      {
+        bool success = controller.Login(textBoxUsername.Text, textBoxPassword.Text);
+        if (!success)
+        {
+          labelCannotLogin.Text = "Username atau password tidak benar";
+          textBoxPassword.Clear();
+          textBoxPassword.Focus();
+        }
+      }
+      catch (Exception ex)
+      {
+        _log.Error("Login failed.", ex);
+        labelCannotLogin.Text = "Tidak dapat menghubungi database. Silahkan coba lagi.";
+      }
+      finally
+      {
+        buttonLogin.Enabled = true;
+        Cursor = previous;
+      }
     }
 
     private void textBoxUsername_Enter(object sender, EventArgs e)

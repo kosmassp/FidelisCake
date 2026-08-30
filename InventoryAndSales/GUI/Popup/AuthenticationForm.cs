@@ -15,9 +15,11 @@ namespace InventoryAndSales.GUI.Popup
 {
   public partial class AuthenticationForm : Form
   {
-    private LoginManager _loginManager; //should not be in the UI form;
-    private AccessOption _accessOption; //should not be in the UI form;
-    private int _failed; //should not be in the UI form;
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+    private readonly LoginManager _loginManager;
+    private readonly AccessOption _accessOption;
+    private int _failed;
     public User AuthenticatedUser { get; private set; }
     public AuthenticationForm(AccessOption accessOption)
     {
@@ -34,22 +36,21 @@ namespace InventoryAndSales.GUI.Popup
       string password = textBoxPassword.Text;
 
       AuthenticatedUser = _loginManager.AuthenticateUsernamePassword(password, username);
-      if (AuthenticatedUser != null)
+      if (AuthenticatedUser != null && BusinessUtil.AllowedRole(AuthenticatedUser.Role, _accessOption))
       {
-        if (BusinessUtil.AllowedRole(AuthenticatedUser.Role, _accessOption))
-        {
-          this.DialogResult = DialogResult.OK;
-          Close();
-        } 
-        else
-        {
-          labelInvalidAuthentication.Text = string.Format("Akses Ditolak", ++_failed);
-        }
-      } 
-      else
-      {
-        labelInvalidAuthentication.Text = string.Format("Akses Ditolak.", ++_failed);
+        this.DialogResult = DialogResult.OK;
+        Close();
+        return;
       }
+
+      // Deliberately the same message whether the credentials were wrong or the account simply
+      // lacks the permission, so it gives nothing away.
+      AuthenticatedUser = null;
+      _failed++;
+      _log.WarnFormat("Rejected approval attempt {0} for '{1}' requiring {2}.", _failed, username, _accessOption);
+      labelInvalidAuthentication.Text = string.Format("Akses Ditolak. (percobaan ke-{0})", _failed);
+      textBoxPassword.Clear();
+      textBoxPassword.Focus();
     }
 
     private void buttonBack_Click(object sender, EventArgs e)

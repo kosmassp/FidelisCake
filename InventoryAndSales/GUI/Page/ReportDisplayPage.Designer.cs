@@ -35,8 +35,11 @@
       this.dataGridViewLaporanProduct = new System.Windows.Forms.DataGridView();
       this.tabPageReportPerTransaction = new System.Windows.Forms.TabPage();
       this.dataGridViewLaporanTransaksi = new System.Windows.Forms.DataGridView();
+      this.tabPageReportPerPayment = new System.Windows.Forms.TabPage();
+      this.dataGridViewLaporanPembayaran = new System.Windows.Forms.DataGridView();
       this.tabPageReportDetail = new System.Windows.Forms.TabPage();
       this.dataGridViewLaporanDetail = new System.Windows.Forms.DataGridView();
+      this.buttonReportPerPembayaran = new System.Windows.Forms.Button();
       this.groupBoxReportFilter = new System.Windows.Forms.GroupBox();
       this.checkBox1 = new System.Windows.Forms.CheckBox();
       this.labelLaporanStart = new System.Windows.Forms.Label();
@@ -56,6 +59,8 @@
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanProduct)).BeginInit();
       this.tabPageReportPerTransaction.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanTransaksi)).BeginInit();
+      this.tabPageReportPerPayment.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanPembayaran)).BeginInit();
       this.tabPageReportDetail.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanDetail)).BeginInit();
       this.groupBoxReportFilter.SuspendLayout();
@@ -70,6 +75,7 @@
       this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerCashier);
       this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerProduct);
       this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerTransaction);
+      this.tabControlSummaryReport.Controls.Add(this.tabPageReportPerPayment);
       this.tabControlSummaryReport.Controls.Add(this.tabPageReportDetail);
       this.tabControlSummaryReport.Location = new System.Drawing.Point(27, 194);
       this.tabControlSummaryReport.Name = "tabControlSummaryReport";
@@ -157,9 +163,36 @@
       this.dataGridViewLaporanTransaksi.RowHeadersVisible = false;
       this.dataGridViewLaporanTransaksi.Size = new System.Drawing.Size(1061, 422);
       this.dataGridViewLaporanTransaksi.TabIndex = 14;
-      // 
+      //
+      // tabPageReportPerPayment
+      //
+      this.tabPageReportPerPayment.Controls.Add(this.dataGridViewLaporanPembayaran);
+      this.tabPageReportPerPayment.Location = new System.Drawing.Point(4, 22);
+      this.tabPageReportPerPayment.Name = "tabPageReportPerPayment";
+      this.tabPageReportPerPayment.Padding = new System.Windows.Forms.Padding(3);
+      this.tabPageReportPerPayment.Size = new System.Drawing.Size(1067, 428);
+      this.tabPageReportPerPayment.TabIndex = 4;
+      this.tabPageReportPerPayment.Text = "Per Pembayaran";
+      this.tabPageReportPerPayment.UseVisualStyleBackColor = true;
+      //
+      // dataGridViewLaporanPembayaran
+      //
+      this.dataGridViewLaporanPembayaran.AllowUserToAddRows = false;
+      this.dataGridViewLaporanPembayaran.AllowUserToDeleteRows = false;
+      this.dataGridViewLaporanPembayaran.AllowUserToOrderColumns = true;
+      this.dataGridViewLaporanPembayaran.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
+      this.dataGridViewLaporanPembayaran.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
+      this.dataGridViewLaporanPembayaran.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.dataGridViewLaporanPembayaran.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.dataGridViewLaporanPembayaran.Location = new System.Drawing.Point(3, 3);
+      this.dataGridViewLaporanPembayaran.Name = "dataGridViewLaporanPembayaran";
+      this.dataGridViewLaporanPembayaran.ReadOnly = true;
+      this.dataGridViewLaporanPembayaran.RowHeadersVisible = false;
+      this.dataGridViewLaporanPembayaran.Size = new System.Drawing.Size(1061, 422);
+      this.dataGridViewLaporanPembayaran.TabIndex = 15;
+      //
       // tabPageReportDetail
-      // 
+      //
       this.tabPageReportDetail.Controls.Add(this.dataGridViewLaporanDetail);
       this.tabPageReportDetail.Location = new System.Drawing.Point(4, 22);
       this.tabPageReportDetail.Name = "tabPageReportDetail";
@@ -299,16 +332,27 @@
       this.buttonReportPerKasir.Text = "Kasir";
       this.buttonReportPerKasir.UseVisualStyleBackColor = true;
       this.buttonReportPerKasir.Click += new System.EventHandler(this.buttonReportPerKasir_Click);
-      // 
+      //
+      // buttonReportPerPembayaran
+      //
+      this.buttonReportPerPembayaran.Location = new System.Drawing.Point(22, 143);
+      this.buttonReportPerPembayaran.Name = "buttonReportPerPembayaran";
+      this.buttonReportPerPembayaran.Size = new System.Drawing.Size(182, 23);
+      this.buttonReportPerPembayaran.TabIndex = 22;
+      this.buttonReportPerPembayaran.Text = "Laporan Metode Pembayaran";
+      this.buttonReportPerPembayaran.UseVisualStyleBackColor = true;
+      this.buttonReportPerPembayaran.Click += new System.EventHandler(this.buttonReportPerPembayaran_Click);
+      //
       // groupBoxHtmlReport
-      // 
+      //
       this.groupBoxHtmlReport.Controls.Add(this.buttonReportPerKasir);
       this.groupBoxHtmlReport.Controls.Add(this.buttonReportPerItem);
       this.groupBoxHtmlReport.Controls.Add(this.buttonReportPerTransaksi);
       this.groupBoxHtmlReport.Controls.Add(this.buttonReportPerProduct);
+      this.groupBoxHtmlReport.Controls.Add(this.buttonReportPerPembayaran);
       this.groupBoxHtmlReport.Location = new System.Drawing.Point(311, 10);
       this.groupBoxHtmlReport.Name = "groupBoxHtmlReport";
-      this.groupBoxHtmlReport.Size = new System.Drawing.Size(239, 167);
+      this.groupBoxHtmlReport.Size = new System.Drawing.Size(239, 177);
       this.groupBoxHtmlReport.TabIndex = 22;
       this.groupBoxHtmlReport.TabStop = false;
       this.groupBoxHtmlReport.Text = "Lihat Laporan Dalam Html";
@@ -329,6 +373,8 @@
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanProduct)).EndInit();
       this.tabPageReportPerTransaction.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanTransaksi)).EndInit();
+      this.tabPageReportPerPayment.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanPembayaran)).EndInit();
       this.tabPageReportDetail.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLaporanDetail)).EndInit();
       this.groupBoxReportFilter.ResumeLayout(false);
@@ -347,6 +393,8 @@
     private System.Windows.Forms.DataGridView dataGridViewLaporanProduct;
     private System.Windows.Forms.TabPage tabPageReportPerTransaction;
     private System.Windows.Forms.DataGridView dataGridViewLaporanTransaksi;
+    private System.Windows.Forms.TabPage tabPageReportPerPayment;
+    private System.Windows.Forms.DataGridView dataGridViewLaporanPembayaran;
     private System.Windows.Forms.TabPage tabPageReportDetail;
     private System.Windows.Forms.DataGridView dataGridViewLaporanDetail;
     private System.Windows.Forms.GroupBox groupBoxReportFilter;
@@ -356,11 +404,11 @@
     private System.Windows.Forms.Button buttonShowReportSummary;
     private System.Windows.Forms.DateTimePicker dateTimePickerStop;
     private System.Windows.Forms.Label labelLaporanEnd;
-    private System.Windows.Forms.Button buttonReportHtml;
     private System.Windows.Forms.Button buttonReportPerItem;
     private System.Windows.Forms.Button buttonReportPerProduct;
     private System.Windows.Forms.Button buttonReportPerTransaksi;
     private System.Windows.Forms.Button buttonReportPerKasir;
+    private System.Windows.Forms.Button buttonReportPerPembayaran;
     private System.Windows.Forms.GroupBox groupBoxHtmlReport;
   }
 }

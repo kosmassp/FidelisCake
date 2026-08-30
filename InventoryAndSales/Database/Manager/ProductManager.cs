@@ -1,32 +1,68 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataAccess;
+using InventoryAndSales.Database.DataTable;
 using InventoryAndSales.Database.Model;
 
 namespace InventoryAndSales.Database.Manager
 {
   public class ProductManager : BaseManager<Product>
   {
+    private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
     public ProductManager(ProductDao dao)
       : base(dao)
     {
     }
 
-
     public List<Product> GetAllAvailable(string criteria)
     {
-      criteria = criteria.Replace(' ', '%');
-      List<Product> items = BaseDao.FindByQuery(string.Format("WHERE Name like '%{0}%' and Deleted = '{1}'", criteria, false));
-      return items;
+      return GetAllAvailable(criteria, null);
     }
+
+    /// <summary>
+    /// Products that have not been soft deleted, optionally filtered by name.
+    /// </summary>
+    /// <param name="criteria">
+    /// Free text from the search box. Spaces become wildcards so "kue coklat" still finds
+    /// "kue besar coklat".
+    /// </param>
+    /// <param name="orderBy">
+    /// Column to sort by. A column name cannot be passed as a parameter, so it is checked against
+    /// the mapped column list and ignored if it is not one of them.
+    /// </param>
     public List<Product> GetAllAvailable(string criteria, string orderBy)
     {
-      criteria = criteria.Replace(' ', '%');
-      List<Product> items = BaseDao.FindByQuery(string.Format("WHERE Name like '%{0}%' and Deleted = '{1}' ", criteria, false), 
-                                                orderBy);
-      return items;
+      string pattern = "%" + (criteria ?? string.Empty).Replace(' ', '%') + "%";
+      // CaseInsensitiveLike rather than a bare LIKE: on PostgreSQL that is ILIKE, and without it the
+      // search box would quietly stop matching anything typed in the wrong case.
+      return BaseDao.FindByQuery(
+        string.Format("WHERE {0} {1} @criteria AND {2} = @deleted",
+                      Dialect.Quote("Name"), Dialect.CaseInsensitiveLike, Dialect.Quote("Deleted")),
+        SanitizeOrderBy(orderBy),
+        DbParam.AnsiText("@criteria", 200, pattern),
+        DbParam.Of("@deleted", false));
+    }
+
+    private static string SanitizeOrderBy(string orderBy)
+    {
+      if (string.IsNullOrEmpty(orderBy))
+        return string.Empty;
+
+      string requested = orderBy.Trim();
+      IDataTable table = DataTableList.Instance.GetDataTable(typeof(Product));
+      foreach (string column in table.Columns)
+      {
+        if (string.Equals(column, requested, StringComparison.OrdinalIgnoreCase))
+          return Dialect.Quote(column);
+      }
+
+      _log.WarnFormat("Ignoring unrecognised sort column '{0}'.", orderBy);
+      return string.Empty;
     }
   }
 }

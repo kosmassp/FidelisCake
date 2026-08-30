@@ -34,19 +34,19 @@ namespace InventoryAndSales.Database.Model
         switch (columnName)
         {
           case "Id":
-            Id = (int)value;
+            Id = ToInt(value);
             break;
           case "Key":
-            Key = (string)value;
+            Key = ToText(value);
             break;
           case "Group":
-            Group = (string)value;
+            Group = ToText(value);
             break;
           case "Value":
-            Value = (string)value;
+            Value = ToText(value);
             break;
           case "Default":
-            Default = (string)value;
+            Default = ToText(value);
             break;
           default:
             throw new KeyNotFoundException(string.Format("Column name {0} not registered on class", columnName));

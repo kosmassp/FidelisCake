@@ -41,6 +41,14 @@
       this.CartItemDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.CartItemSubtotal = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.groupBoxSummary = new System.Windows.Forms.GroupBox();
+      this.tableLayoutSummary = new System.Windows.Forms.TableLayoutPanel();
+      this.panelNotes = new System.Windows.Forms.Panel();
+      this.tableLayoutFields = new System.Windows.Forms.TableLayoutPanel();
+      this.panelActions = new System.Windows.Forms.Panel();
+      this.comboBoxHeldCart = new System.Windows.Forms.ComboBox();
+      this.buttonHoldCart = new System.Windows.Forms.Button();
+      this.buttonRecallCart = new System.Windows.Forms.Button();
+      this.buttonDiscardHeldCart = new System.Windows.Forms.Button();
       this.buttonClearCart = new System.Windows.Forms.Button();
       this.labelNotes = new System.Windows.Forms.Label();
       this.textBoxNotes = new System.Windows.Forms.TextBox();
@@ -49,6 +57,10 @@
       this.textBoxTotal = new System.Windows.Forms.TextBox();
       this.labelChanges = new System.Windows.Forms.Label();
       this.labelPayment = new System.Windows.Forms.Label();
+      this.labelPaymentMethod = new System.Windows.Forms.Label();
+      this.comboBoxPaymentMethod = new System.Windows.Forms.ComboBox();
+      this.labelReference = new System.Windows.Forms.Label();
+      this.comboBoxReference = new System.Windows.Forms.ComboBox();
       this.buttonCheckout = new System.Windows.Forms.Button();
       this.labelTotal = new System.Windows.Forms.Label();
       this.groupBoxItemList = new System.Windows.Forms.GroupBox();
@@ -63,6 +75,10 @@
       this.groupBoxCart.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewCart)).BeginInit();
       this.groupBoxSummary.SuspendLayout();
+      this.tableLayoutSummary.SuspendLayout();
+      this.panelNotes.SuspendLayout();
+      this.tableLayoutFields.SuspendLayout();
+      this.panelActions.SuspendLayout();
       this.groupBoxItemList.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewItemList)).BeginInit();
       this.panelFilter.SuspendLayout();
@@ -76,7 +92,7 @@
       this.groupBoxCart.Controls.Add(this.dataGridViewCart);
       this.groupBoxCart.Location = new System.Drawing.Point(432, 0);
       this.groupBoxCart.Name = "groupBoxCart";
-      this.groupBoxCart.Size = new System.Drawing.Size(633, 365);
+      this.groupBoxCart.Size = new System.Drawing.Size(633, 300);
       this.groupBoxCart.TabIndex = 5;
       this.groupBoxCart.TabStop = false;
       this.groupBoxCart.Text = "Keranjang Belanja";
@@ -97,7 +113,7 @@
       this.dataGridViewCart.Location = new System.Drawing.Point(3, 16);
       this.dataGridViewCart.Name = "dataGridViewCart";
       this.dataGridViewCart.RowHeadersVisible = false;
-      this.dataGridViewCart.Size = new System.Drawing.Size(627, 346);
+      this.dataGridViewCart.Size = new System.Drawing.Size(627, 281);
       this.dataGridViewCart.TabIndex = 0;
       this.dataGridViewCart.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewCart_CellValueChanged);
       this.dataGridViewCart.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewCart_CellContentClick);
@@ -164,125 +180,293 @@
       // 
       this.groupBoxSummary.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                   | System.Windows.Forms.AnchorStyles.Right)));
-      this.groupBoxSummary.Controls.Add(this.buttonClearCart);
-      this.groupBoxSummary.Controls.Add(this.labelNotes);
-      this.groupBoxSummary.Controls.Add(this.textBoxNotes);
-      this.groupBoxSummary.Controls.Add(this.textBoxChanges);
-      this.groupBoxSummary.Controls.Add(this.textBoxPayment);
-      this.groupBoxSummary.Controls.Add(this.textBoxTotal);
-      this.groupBoxSummary.Controls.Add(this.labelChanges);
-      this.groupBoxSummary.Controls.Add(this.labelPayment);
-      this.groupBoxSummary.Controls.Add(this.buttonCheckout);
-      this.groupBoxSummary.Controls.Add(this.labelTotal);
-      this.groupBoxSummary.Location = new System.Drawing.Point(432, 371);
+      this.groupBoxSummary.Controls.Add(this.tableLayoutSummary);
+      this.groupBoxSummary.Location = new System.Drawing.Point(432, 306);
       this.groupBoxSummary.Name = "groupBoxSummary";
-      this.groupBoxSummary.Size = new System.Drawing.Size(630, 135);
+      this.groupBoxSummary.Size = new System.Drawing.Size(633, 200);
       this.groupBoxSummary.TabIndex = 4;
       this.groupBoxSummary.TabStop = false;
       this.groupBoxSummary.Text = "Total";
-      // 
-      // buttonClearCart
-      // 
-      this.buttonClearCart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonClearCart.Location = new System.Drawing.Point(481, 31);
-      this.buttonClearCart.Name = "buttonClearCart";
-      this.buttonClearCart.Size = new System.Drawing.Size(130, 23);
-      this.buttonClearCart.TabIndex = 2;
-      this.buttonClearCart.Text = "Bersihkan";
-      this.buttonClearCart.UseVisualStyleBackColor = true;
-      this.buttonClearCart.Click += new System.EventHandler(this.buttonClearCart_Click);
-      // 
+      //
+      // tableLayoutSummary
+      //
+      // Three columns: the notes take whatever width is left over, the payment fields and the
+      // action buttons keep their own width and stay together against the right edge.
+      this.tableLayoutSummary.ColumnCount = 3;
+      this.tableLayoutSummary.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+      this.tableLayoutSummary.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.AutoSize));
+      this.tableLayoutSummary.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.AutoSize));
+      this.tableLayoutSummary.Controls.Add(this.panelNotes, 0, 0);
+      this.tableLayoutSummary.Controls.Add(this.tableLayoutFields, 1, 0);
+      this.tableLayoutSummary.Controls.Add(this.panelActions, 2, 0);
+      this.tableLayoutSummary.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.tableLayoutSummary.Location = new System.Drawing.Point(3, 16);
+      this.tableLayoutSummary.Name = "tableLayoutSummary";
+      this.tableLayoutSummary.Padding = new System.Windows.Forms.Padding(9, 3, 9, 6);
+      this.tableLayoutSummary.RowCount = 1;
+      this.tableLayoutSummary.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+      this.tableLayoutSummary.Size = new System.Drawing.Size(627, 181);
+      this.tableLayoutSummary.TabIndex = 0;
+      //
+      // panelNotes
+      //
+      this.panelNotes.Controls.Add(this.textBoxNotes);
+      this.panelNotes.Controls.Add(this.labelNotes);
+      this.panelNotes.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.panelNotes.Location = new System.Drawing.Point(9, 3);
+      this.panelNotes.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
+      this.panelNotes.Name = "panelNotes";
+      this.panelNotes.Size = new System.Drawing.Size(197, 172);
+      this.panelNotes.TabIndex = 0;
+      //
       // labelNotes
-      // 
-      this.labelNotes.AutoSize = true;
-      this.labelNotes.Location = new System.Drawing.Point(12, 31);
+      //
+      this.labelNotes.Dock = System.Windows.Forms.DockStyle.Top;
+      this.labelNotes.Location = new System.Drawing.Point(0, 0);
       this.labelNotes.Name = "labelNotes";
-      this.labelNotes.Size = new System.Drawing.Size(47, 13);
-      this.labelNotes.TabIndex = 8;
+      this.labelNotes.Size = new System.Drawing.Size(197, 18);
+      this.labelNotes.TabIndex = 0;
       this.labelNotes.Text = "Catatan:";
-      // 
+      this.labelNotes.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+      //
       // textBoxNotes
-      // 
-      this.textBoxNotes.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                  | System.Windows.Forms.AnchorStyles.Left)
-                  | System.Windows.Forms.AnchorStyles.Right)));
-      this.textBoxNotes.Location = new System.Drawing.Point(15, 54);
+      //
+      this.textBoxNotes.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.textBoxNotes.Location = new System.Drawing.Point(0, 18);
       this.textBoxNotes.Multiline = true;
       this.textBoxNotes.Name = "textBoxNotes";
-      this.textBoxNotes.Size = new System.Drawing.Size(174, 63);
-      this.textBoxNotes.TabIndex = 0;
-      // 
-      // textBoxChanges
-      // 
-      this.textBoxChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.textBoxChanges.Location = new System.Drawing.Point(272, 93);
-      this.textBoxChanges.Name = "textBoxChanges";
-      this.textBoxChanges.ReadOnly = true;
-      this.textBoxChanges.Size = new System.Drawing.Size(183, 20);
-      this.textBoxChanges.TabIndex = 6;
-      // 
-      // textBoxPayment
-      // 
-      this.textBoxPayment.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.textBoxPayment.Location = new System.Drawing.Point(272, 64);
-      this.textBoxPayment.Name = "textBoxPayment";
-      this.textBoxPayment.Size = new System.Drawing.Size(183, 20);
-      this.textBoxPayment.TabIndex = 1;
-      this.textBoxPayment.TextChanged += new System.EventHandler(this.textBoxPayment_TextChanged);
-      this.textBoxPayment.Click += new System.EventHandler(this.textBoxPayment_Click);
-      this.textBoxPayment.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBoxPayment_KeyUp);
-      // 
+      this.textBoxNotes.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+      this.textBoxNotes.Size = new System.Drawing.Size(197, 154);
+      this.textBoxNotes.TabIndex = 1;
+      //
+      // tableLayoutFields
+      //
+      // One row per field, so the labels and the boxes line up whatever the window width. The
+      // terminal row is collapsed to nothing by ApplyPaymentMethod when it does not apply.
+      this.tableLayoutFields.AutoSize = true;
+      this.tableLayoutFields.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+      this.tableLayoutFields.ColumnCount = 2;
+      this.tableLayoutFields.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 72F));
+      this.tableLayoutFields.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.AutoSize));
+      this.tableLayoutFields.Controls.Add(this.labelPaymentMethod, 0, 0);
+      this.tableLayoutFields.Controls.Add(this.comboBoxPaymentMethod, 1, 0);
+      this.tableLayoutFields.Controls.Add(this.labelReference, 0, 1);
+      this.tableLayoutFields.Controls.Add(this.comboBoxReference, 1, 1);
+      this.tableLayoutFields.Controls.Add(this.labelTotal, 0, 2);
+      this.tableLayoutFields.Controls.Add(this.textBoxTotal, 1, 2);
+      this.tableLayoutFields.Controls.Add(this.labelPayment, 0, 3);
+      this.tableLayoutFields.Controls.Add(this.textBoxPayment, 1, 3);
+      this.tableLayoutFields.Controls.Add(this.labelChanges, 0, 4);
+      this.tableLayoutFields.Controls.Add(this.textBoxChanges, 1, 4);
+      this.tableLayoutFields.Location = new System.Drawing.Point(218, 3);
+      this.tableLayoutFields.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
+      this.tableLayoutFields.Name = "tableLayoutFields";
+      this.tableLayoutFields.RowCount = 5;
+      this.tableLayoutFields.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27F));
+      this.tableLayoutFields.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27F));
+      this.tableLayoutFields.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27F));
+      this.tableLayoutFields.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27F));
+      this.tableLayoutFields.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27F));
+      this.tableLayoutFields.Size = new System.Drawing.Size(255, 135);
+      this.tableLayoutFields.TabIndex = 1;
+      //
+      // labelPaymentMethod
+      //
+      this.labelPaymentMethod.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.labelPaymentMethod.Location = new System.Drawing.Point(0, 0);
+      this.labelPaymentMethod.Margin = new System.Windows.Forms.Padding(0, 0, 6, 0);
+      this.labelPaymentMethod.Name = "labelPaymentMethod";
+      this.labelPaymentMethod.Size = new System.Drawing.Size(66, 27);
+      this.labelPaymentMethod.TabIndex = 0;
+      this.labelPaymentMethod.Text = "Metode";
+      this.labelPaymentMethod.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      //
+      // comboBoxPaymentMethod
+      //
+      this.comboBoxPaymentMethod.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.comboBoxPaymentMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxPaymentMethod.Location = new System.Drawing.Point(72, 3);
+      this.comboBoxPaymentMethod.Margin = new System.Windows.Forms.Padding(0);
+      this.comboBoxPaymentMethod.Name = "comboBoxPaymentMethod";
+      this.comboBoxPaymentMethod.Size = new System.Drawing.Size(183, 21);
+      this.comboBoxPaymentMethod.TabIndex = 1;
+      this.comboBoxPaymentMethod.SelectedIndexChanged += new System.EventHandler(this.comboBoxPaymentMethod_SelectedIndexChanged);
+      //
+      // labelReference
+      //
+      this.labelReference.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.labelReference.Location = new System.Drawing.Point(0, 27);
+      this.labelReference.Margin = new System.Windows.Forms.Padding(0, 0, 6, 0);
+      this.labelReference.Name = "labelReference";
+      this.labelReference.Size = new System.Drawing.Size(66, 27);
+      this.labelReference.TabIndex = 2;
+      this.labelReference.Text = "Terminal";
+      this.labelReference.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      //
+      // comboBoxReference
+      //
+      this.comboBoxReference.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.comboBoxReference.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxReference.Location = new System.Drawing.Point(72, 30);
+      this.comboBoxReference.Margin = new System.Windows.Forms.Padding(0);
+      this.comboBoxReference.Name = "comboBoxReference";
+      this.comboBoxReference.Size = new System.Drawing.Size(183, 21);
+      this.comboBoxReference.TabIndex = 3;
+      //
+      // labelTotal
+      //
+      this.labelTotal.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.labelTotal.Location = new System.Drawing.Point(0, 54);
+      this.labelTotal.Margin = new System.Windows.Forms.Padding(0, 0, 6, 0);
+      this.labelTotal.Name = "labelTotal";
+      this.labelTotal.Size = new System.Drawing.Size(66, 27);
+      this.labelTotal.TabIndex = 4;
+      this.labelTotal.Text = "Total";
+      this.labelTotal.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      //
       // textBoxTotal
-      // 
-      this.textBoxTotal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.textBoxTotal.Location = new System.Drawing.Point(272, 31);
+      //
+      this.textBoxTotal.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.textBoxTotal.Location = new System.Drawing.Point(72, 57);
+      this.textBoxTotal.Margin = new System.Windows.Forms.Padding(0);
       this.textBoxTotal.Name = "textBoxTotal";
       this.textBoxTotal.ReadOnly = true;
       this.textBoxTotal.Size = new System.Drawing.Size(183, 20);
-      this.textBoxTotal.TabIndex = 4;
-      // 
-      // labelChanges
-      // 
-      this.labelChanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.labelChanges.AutoSize = true;
-      this.labelChanges.Location = new System.Drawing.Point(210, 96);
-      this.labelChanges.Name = "labelChanges";
-      this.labelChanges.Size = new System.Drawing.Size(44, 13);
-      this.labelChanges.TabIndex = 3;
-      this.labelChanges.Text = "Kembali";
-      // 
+      this.textBoxTotal.TabIndex = 5;
+      this.textBoxTotal.TabStop = false;
+      this.textBoxTotal.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+      //
       // labelPayment
-      // 
-      this.labelPayment.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.labelPayment.AutoSize = true;
-      this.labelPayment.Location = new System.Drawing.Point(210, 67);
+      //
+      this.labelPayment.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.labelPayment.Location = new System.Drawing.Point(0, 81);
+      this.labelPayment.Margin = new System.Windows.Forms.Padding(0, 0, 6, 0);
       this.labelPayment.Name = "labelPayment";
-      this.labelPayment.Size = new System.Drawing.Size(55, 13);
-      this.labelPayment.TabIndex = 2;
+      this.labelPayment.Size = new System.Drawing.Size(66, 27);
+      this.labelPayment.TabIndex = 6;
       this.labelPayment.Text = "Bayar (F6)";
-      // 
-      // buttonCheckout
-      // 
-      this.buttonCheckout.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+      this.labelPayment.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      //
+      // textBoxPayment
+      //
+      this.textBoxPayment.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.textBoxPayment.Location = new System.Drawing.Point(72, 84);
+      this.textBoxPayment.Margin = new System.Windows.Forms.Padding(0);
+      this.textBoxPayment.Name = "textBoxPayment";
+      this.textBoxPayment.Size = new System.Drawing.Size(183, 20);
+      this.textBoxPayment.TabIndex = 7;
+      this.textBoxPayment.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+      this.textBoxPayment.TextChanged += new System.EventHandler(this.textBoxPayment_TextChanged);
+      this.textBoxPayment.Click += new System.EventHandler(this.textBoxPayment_Click);
+      this.textBoxPayment.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBoxPayment_KeyUp);
+      //
+      // labelChanges
+      //
+      this.labelChanges.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.labelChanges.Location = new System.Drawing.Point(0, 108);
+      this.labelChanges.Margin = new System.Windows.Forms.Padding(0, 0, 6, 0);
+      this.labelChanges.Name = "labelChanges";
+      this.labelChanges.Size = new System.Drawing.Size(66, 27);
+      this.labelChanges.TabIndex = 8;
+      this.labelChanges.Text = "Kembali";
+      this.labelChanges.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      //
+      // textBoxChanges
+      //
+      this.textBoxChanges.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.textBoxChanges.Location = new System.Drawing.Point(72, 111);
+      this.textBoxChanges.Margin = new System.Windows.Forms.Padding(0);
+      this.textBoxChanges.Name = "textBoxChanges";
+      this.textBoxChanges.ReadOnly = true;
+      this.textBoxChanges.Size = new System.Drawing.Size(183, 20);
+      this.textBoxChanges.TabIndex = 9;
+      this.textBoxChanges.TabStop = false;
+      this.textBoxChanges.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+      //
+      // panelActions
+      //
+      this.panelActions.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)));
+      this.panelActions.Controls.Add(this.comboBoxHeldCart);
+      this.panelActions.Controls.Add(this.buttonHoldCart);
+      this.panelActions.Controls.Add(this.buttonRecallCart);
+      this.panelActions.Controls.Add(this.buttonDiscardHeldCart);
+      this.panelActions.Controls.Add(this.buttonClearCart);
+      this.panelActions.Controls.Add(this.buttonCheckout);
+      this.panelActions.Location = new System.Drawing.Point(485, 3);
+      this.panelActions.Margin = new System.Windows.Forms.Padding(0);
+      this.panelActions.Name = "panelActions";
+      this.panelActions.Size = new System.Drawing.Size(133, 172);
+      this.panelActions.TabIndex = 2;
+      //
+      // comboBoxHeldCart
+      //
+      this.comboBoxHeldCart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                   | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonCheckout.Location = new System.Drawing.Point(481, 67);
+      this.comboBoxHeldCart.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboBoxHeldCart.Location = new System.Drawing.Point(0, 0);
+      this.comboBoxHeldCart.Name = "comboBoxHeldCart";
+      this.comboBoxHeldCart.Size = new System.Drawing.Size(133, 21);
+      this.comboBoxHeldCart.TabIndex = 0;
+      //
+      // buttonHoldCart
+      //
+      this.buttonHoldCart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonHoldCart.Location = new System.Drawing.Point(0, 27);
+      this.buttonHoldCart.Name = "buttonHoldCart";
+      this.buttonHoldCart.Size = new System.Drawing.Size(63, 23);
+      this.buttonHoldCart.TabIndex = 1;
+      this.buttonHoldCart.Text = "Simpan";
+      this.buttonHoldCart.UseVisualStyleBackColor = true;
+      this.buttonHoldCart.Click += new System.EventHandler(this.buttonHoldCart_Click);
+      //
+      // buttonRecallCart
+      //
+      this.buttonRecallCart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonRecallCart.Location = new System.Drawing.Point(70, 27);
+      this.buttonRecallCart.Name = "buttonRecallCart";
+      this.buttonRecallCart.Size = new System.Drawing.Size(63, 23);
+      this.buttonRecallCart.TabIndex = 2;
+      this.buttonRecallCart.Text = "Ambil";
+      this.buttonRecallCart.UseVisualStyleBackColor = true;
+      this.buttonRecallCart.Click += new System.EventHandler(this.buttonRecallCart_Click);
+      //
+      // buttonDiscardHeldCart
+      //
+      this.buttonDiscardHeldCart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonDiscardHeldCart.Location = new System.Drawing.Point(0, 56);
+      this.buttonDiscardHeldCart.Name = "buttonDiscardHeldCart";
+      this.buttonDiscardHeldCart.Size = new System.Drawing.Size(133, 23);
+      this.buttonDiscardHeldCart.TabIndex = 3;
+      this.buttonDiscardHeldCart.Text = "Hapus Simpanan";
+      this.buttonDiscardHeldCart.UseVisualStyleBackColor = true;
+      this.buttonDiscardHeldCart.Click += new System.EventHandler(this.buttonDiscardHeldCart_Click);
+      //
+      // buttonClearCart
+      //
+      this.buttonClearCart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonClearCart.Location = new System.Drawing.Point(0, 85);
+      this.buttonClearCart.Name = "buttonClearCart";
+      this.buttonClearCart.Size = new System.Drawing.Size(133, 23);
+      this.buttonClearCart.TabIndex = 4;
+      this.buttonClearCart.Text = "Bersihkan";
+      this.buttonClearCart.UseVisualStyleBackColor = true;
+      this.buttonClearCart.Click += new System.EventHandler(this.buttonClearCart_Click);
+      //
+      // buttonCheckout
+      //
+      this.buttonCheckout.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                  | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonCheckout.Location = new System.Drawing.Point(0, 122);
       this.buttonCheckout.Name = "buttonCheckout";
-      this.buttonCheckout.Size = new System.Drawing.Size(130, 50);
-      this.buttonCheckout.TabIndex = 3;
+      this.buttonCheckout.Size = new System.Drawing.Size(133, 50);
+      this.buttonCheckout.TabIndex = 5;
       this.buttonCheckout.Text = "Bayar (F7)";
       this.buttonCheckout.UseVisualStyleBackColor = true;
       this.buttonCheckout.Click += new System.EventHandler(this.buttonCheckout_Click);
-      // 
-      // labelTotal
-      // 
-      this.labelTotal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.labelTotal.AutoSize = true;
-      this.labelTotal.Location = new System.Drawing.Point(210, 38);
-      this.labelTotal.Name = "labelTotal";
-      this.labelTotal.Size = new System.Drawing.Size(31, 13);
-      this.labelTotal.TabIndex = 0;
-      this.labelTotal.Text = "Total";
-      // 
+      //
       // groupBoxItemList
       // 
       this.groupBoxItemList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -393,7 +577,13 @@
       this.groupBoxCart.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewCart)).EndInit();
       this.groupBoxSummary.ResumeLayout(false);
-      this.groupBoxSummary.PerformLayout();
+      this.tableLayoutSummary.ResumeLayout(false);
+      this.tableLayoutSummary.PerformLayout();
+      this.panelNotes.ResumeLayout(false);
+      this.panelNotes.PerformLayout();
+      this.tableLayoutFields.ResumeLayout(false);
+      this.tableLayoutFields.PerformLayout();
+      this.panelActions.ResumeLayout(false);
       this.groupBoxItemList.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridViewItemList)).EndInit();
       this.panelFilter.ResumeLayout(false);
@@ -413,6 +603,14 @@
     private System.Windows.Forms.DataGridViewTextBoxColumn CartItemDiscount;
     private System.Windows.Forms.DataGridViewTextBoxColumn CartItemSubtotal;
     private System.Windows.Forms.GroupBox groupBoxSummary;
+    private System.Windows.Forms.TableLayoutPanel tableLayoutSummary;
+    private System.Windows.Forms.Panel panelNotes;
+    private System.Windows.Forms.TableLayoutPanel tableLayoutFields;
+    private System.Windows.Forms.Panel panelActions;
+    private System.Windows.Forms.ComboBox comboBoxHeldCart;
+    private System.Windows.Forms.Button buttonHoldCart;
+    private System.Windows.Forms.Button buttonRecallCart;
+    private System.Windows.Forms.Button buttonDiscardHeldCart;
     private System.Windows.Forms.Button buttonClearCart;
     private System.Windows.Forms.Label labelNotes;
     private System.Windows.Forms.TextBox textBoxNotes;
@@ -421,6 +619,10 @@
     private System.Windows.Forms.TextBox textBoxTotal;
     private System.Windows.Forms.Label labelChanges;
     private System.Windows.Forms.Label labelPayment;
+    private System.Windows.Forms.Label labelPaymentMethod;
+    private System.Windows.Forms.ComboBox comboBoxPaymentMethod;
+    private System.Windows.Forms.Label labelReference;
+    private System.Windows.Forms.ComboBox comboBoxReference;
     private System.Windows.Forms.Button buttonCheckout;
     private System.Windows.Forms.Label labelTotal;
     private System.Windows.Forms.GroupBox groupBoxItemList;

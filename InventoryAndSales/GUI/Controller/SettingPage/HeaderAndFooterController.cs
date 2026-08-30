@@ -6,19 +6,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace InventoryAndSales.GUI.Controller.SettingPage
 {
-  class HeaderAndFooterController
+  internal class HeaderAndFooterController
   {
-    private HeaderAndFooterForm _headerAndFooter;
-    private CashierManager _cashierManager;
+    private readonly HeaderAndFooterForm _headerAndFooter;
+    private readonly CashierManager _cashierManager;
 
     public HeaderAndFooterController(HeaderAndFooterForm headerAndFooter)
     {
-      this._headerAndFooter = headerAndFooter;
+      _headerAndFooter = headerAndFooter;
       _cashierManager = BusinessFactory.GetInstance().CashierManager;
+      // Preview is shown in the font the printer uses, so the alignment matches.
       headerAndFooter.SetPaymentNoteFont(_cashierManager.GetPrintFont());
     }
 
@@ -32,27 +32,48 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
       return _cashierManager.GetFooterNote();
     }
 
+    public void SetHeader(string text)
+    {
+      _cashierManager.SetHeaderNote(text);
+    }
+
+    public void SetFooter(string text)
+    {
+      _cashierManager.SetFooterNote(text);
+    }
+
+    /// <summary>
+    /// Renders a made-up sale through the real receipt builder, so the preview cannot drift away
+    /// from what the printer produces. Nothing here touches the database or the printer.
+    /// </summary>
     internal List<StringPrint> GetExample(string headers, string footers)
     {
-      Transaction transaction = new Transaction();
-      transaction.TotalPrice = 0;
-      transaction.TotalDiscount = 0;
-      transaction.Total = 0;
-      transaction.Notes = "CONTOH";
-      transaction.Time = DateTime.Now;
-      transaction.Factur = "KODE_UNIK_FACTUR";
-      transaction.Payment = 0;
-      transaction.UserId = 0;
-      transaction.CustomerId = 0;
-      var transactionDetails = new List<TransactionDetail>();
-      for(int i = 1; i <= 3; i++)
+      Transaction transaction = new Transaction
       {
-        TransactionDetail td = new TransactionDetail();
-        td.ProductName = "NAMA_PRODUK " + i;
-        td.ProductId = 0;
-        td.ProductDiscount = ( i / 3 ) * 500;
-        td.ProductPrice = i * 5000;
-        td.Quantity = i * 2;
+        TotalPrice = 0,
+        TotalDiscount = 0,
+        Total = 0,
+        Notes = "CONTOH",
+        Time = DateTime.Now,
+        Factur = "KODE_UNIK_FACTUR",
+        Payment = 0,
+        UserId = 0,
+        CustomerId = 0,
+      };
+
+      var transactionDetails = new List<TransactionDetail>();
+      for (int i = 1; i <= 3; i++)
+      {
+        TransactionDetail td = new TransactionDetail
+        {
+          ProductName = "NAMA_PRODUK " + i,
+          ProductId = 0,
+          // Integer division on purpose: only the third sample line carries a discount, so the
+          // preview shows both a line with one and lines without.
+          ProductDiscount = (i / 3) * 500,
+          ProductPrice = i * 5000,
+          Quantity = i * 2,
+        };
         td.SubtotalDiscount = td.ProductDiscount * td.Quantity;
         td.SubtotalPrice = td.ProductPrice * td.Quantity;
         td.Subtotal = td.SubtotalPrice - td.SubtotalDiscount;
@@ -64,21 +85,7 @@ namespace InventoryAndSales.GUI.Controller.SettingPage
       }
       transaction.Exchange = transaction.Payment - transaction.Total;
 
-      User user = new User();
-      user.Id = 0;
-      user.Name = "NAMA_KASIR";
-      user.Role = 1;
-      return  CashierManager.GeneratePaymentNote(headers, footers, transaction, transactionDetails, user);
-    }
-
-    public void SetHeader(string text)
-    {
-      _cashierManager.SetHeaderNote(text);
-    }
-
-    public void SetFooter(string text)
-    {
-      _cashierManager.SetFooterNote(text);
+      return ReceiptBuilder.Build(headers, footers, transaction, transactionDetails, "NAMA_KASIR");
     }
   }
 }

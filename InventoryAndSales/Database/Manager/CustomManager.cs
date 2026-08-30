@@ -46,6 +46,12 @@ namespace InventoryAndSales.Database.Manager
       return ConvertToList(returnList);
     }
 
+    public List<Dictionary<string, string>> GetReportSummaryByPaymentMethod(DateTime start, DateTime stop)
+    {
+      List<CustomQuery> returnList = _customDao.GetReportSummaryByPaymentMethod(start, stop);
+      return ConvertToList(returnList);
+    }
+
     private static List<Dictionary<string, string>> ConvertToList(List<CustomQuery> returnList)
     {
       List<Dictionary<string, string>> returnListDict = new List<Dictionary<string, string>>(returnList.Count);
@@ -56,7 +62,7 @@ namespace InventoryAndSales.Database.Manager
       return returnListDict;
     }
 
-    public string GetTodaySummaryByCashier(User activeUser, DateTime date)
+    public CashierDayTotals GetTodaySummaryByCashier(User activeUser, DateTime date)
     {
       return _customDao.GetTodaySummaryByCashier(activeUser, date);
     }

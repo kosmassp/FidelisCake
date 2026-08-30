@@ -1,16 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 using InventoryAndSales.Database.DataTable;
+using InventoryAndSales.Database.Dialect;
 using InventoryAndSales.Database.Model;
 
 namespace InventoryAndSales.Database.DataAccess
 {
+  /// <summary>
+  /// Generic CRUD driven by the column metadata in <see cref="DataTableList"/>.
+  ///
+  /// Values are always passed as parameters, never concatenated into the statement: it keeps a
+  /// product name containing an apostrophe from corrupting the SQL, and it lets the provider deal
+  /// with decimal, boolean and timestamp conversion instead of relying on the thread culture.
+  ///
+  /// Identifiers are quoted through the dialect, which is what makes reserved words such as Key and
+  /// Group usable and keeps identifier case intact on PostgreSQL.
+  /// </summary>
   public class BaseDao<T> where T : BaseObject, new()
   {
     private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -19,31 +29,42 @@ namespace InventoryAndSales.Database.DataAccess
     public BaseDao()
     {
       _dataTable = DataTableList.Instance.GetDataTable(typeof(T));
-      CheckUpdateTable();
     }
 
-    private void CheckUpdateTable()
+    protected static ISqlDialect Dialect
     {
-      if(_dataTable == null)
-        return;
+      get { return DBFactory.GetInstance().Dialect; }
     }
 
     public virtual T FindById(int id)
     {
-      var result = FindByQuery(string.Format("WHERE {0}={1}", _dataTable.PrimaryKeyColumn, id));
+      var result = FindByQuery(
+        string.Format("WHERE {0} = @id", Dialect.Quote(_dataTable.PrimaryKeyColumn)),
+        string.Empty,
+        DbParam.Of("@id", id));
       if (result.Count > 0)
         return result[0];
       return null;
     }
 
     private const string FIND_BY_QUERY = "SELECT * FROM {0} {1}";
+
     public virtual List<T> FindByQuery(string whereClause)
     {
       return FindByQuery(whereClause, string.Empty);
     }
+
     public virtual List<T> FindByQuery(string whereClause, string orderbyClause)
     {
-      //TODO execute sql FIND_BY_ID_SQL, WE don't not to describe this everytime
+      return FindByQuery(whereClause, orderbyClause, new DbParameter[0]);
+    }
+
+    /// <summary>
+    /// Runs a SELECT against this DAO's table. Any value inside <paramref name="whereClause"/> must
+    /// be supplied as a named parameter - do not build the clause by interpolating user input.
+    /// </summary>
+    public virtual List<T> FindByQuery(string whereClause, string orderbyClause, params DbParameter[] parameters)
+    {
       if (!string.IsNullOrEmpty(whereClause))
       {
         whereClause = whereClause.Trim();
@@ -57,71 +78,74 @@ namespace InventoryAndSales.Database.DataAccess
           orderbyClause = "ORDER BY " + orderbyClause;
         orderbyClause = " " + orderbyClause;
       }
-      string preparedSql = string.Format(FIND_BY_QUERY, _dataTable.TableName, whereClause + orderbyClause);
-      return ExecuteReader(preparedSql);
+      string preparedSql = string.Format(FIND_BY_QUERY, Dialect.Quote(_dataTable.TableName), whereClause + orderbyClause);
+      return ExecuteReader(preparedSql, parameters);
     }
 
     private const string INSERT_SQL = "INSERT INTO {0}({1}) VALUES ({2})";
+
     public virtual bool Save(T dataObject)
     {
       StringBuilder columns = new StringBuilder();
       StringBuilder values = new StringBuilder();
-      bool first = true;
+      List<DbParameter> parameters = new List<DbParameter>();
+
       foreach (string column in _dataTable.Columns)
       {
-        if( column == _dataTable.PrimaryKeyColumn) 
+        if (column == _dataTable.PrimaryKeyColumn)
           continue;
-        if(first)
+        string parameterName = "@p" + parameters.Count;
+        if (parameters.Count > 0)
         {
-          columns.AppendFormat("[{0}]", column);
-          values.AppendFormat("'{0}'", dataObject[column]);
-          first = false;
+          columns.Append(",");
+          values.Append(",");
         }
-        else
-        {
-          columns.AppendFormat(",[{0}]", column);
-          values.AppendFormat(",'{0}'", dataObject[column]);
-        }
+        columns.Append(Dialect.Quote(column));
+        values.Append(parameterName);
+        parameters.Add(DbParam.Of(parameterName, ToParameterValue(dataObject[column])));
       }
 
+      string insertSql = string.Format(INSERT_SQL, Dialect.Quote(_dataTable.TableName), columns, values);
 
-      string insertSql = string.Format(INSERT_SQL, _dataTable.TableName, columns, values);
-      int insert = DBUtility.ExecuteNonQuery(insertSql);
-      if (insert > 0)
+      // The generated key is read back by the same statement that inserts the row. Asking for it
+      // afterwards, as a separate command, is the obvious shape and is wrong: a parameterised insert
+      // travels as sp_executesql on SQL Server, so a later SCOPE_IDENTITY() is outside that scope
+      // and comes back NULL - leaving every new row with an id of zero and every foreign key that
+      // depends on it pointing at nothing.
+      string insertWithIdentity = Dialect.AppendIdentityRetrieval(insertSql, _dataTable.PrimaryKeyColumn);
+      object generatedId = DBUtility.ExecuteScalar(insertWithIdentity, parameters.ToArray());
+      if (generatedId == null)
       {
-        //SqlServer
-        var lastId = DBUtility.ExecuteScalar("SELECT SCOPE_IDENTITY()");
-        //Mysql
-        //dataObject[_dataTable.PrimaryKeyColumn] = ExecuteScalar("SELECT LAST_INSERT_ID();"); 
-        dataObject[_dataTable.PrimaryKeyColumn] = int.Parse(lastId.ToString());
+        _log.ErrorFormat("Insert into {0} did not return a generated key.", _dataTable.TableName);
+        return false;
       }
 
-      return insert > 0;
+      dataObject[_dataTable.PrimaryKeyColumn] = NormalizeIdentity(generatedId);
+      return true;
     }
-    private const string UPDATE_SQL = "UPDATE {0} SET {1} WHERE {2} = {3}";
+
+    private const string UPDATE_SQL = "UPDATE {0} SET {1} WHERE {2} = @id";
+
     public virtual int Update(T dataObject)
     {
       StringBuilder columnValuePair = new StringBuilder();
+      List<DbParameter> parameters = new List<DbParameter>();
 
-      bool first = true;
       foreach (string column in _dataTable.Columns)
       {
-        if( column == _dataTable.PrimaryKeyColumn) 
+        if (column == _dataTable.PrimaryKeyColumn)
           continue;
-        if(first)
-        {
-          columnValuePair.AppendFormat("[{0}]='{1}'", column, dataObject[column]);
-          first = false;
-        }
-        else
-        {
-          columnValuePair.AppendFormat(",[{0}]='{1}'", column, dataObject[column]);
-        }
+        string parameterName = "@p" + parameters.Count;
+        if (parameters.Count > 0)
+          columnValuePair.Append(",");
+        columnValuePair.AppendFormat("{0}={1}", Dialect.Quote(column), parameterName);
+        parameters.Add(DbParam.Of(parameterName, ToParameterValue(dataObject[column])));
       }
+      parameters.Add(DbParam.Of("@id", dataObject[_dataTable.PrimaryKeyColumn]));
 
-
-      string updateSql = string.Format(UPDATE_SQL, _dataTable.TableName, columnValuePair, _dataTable.PrimaryKeyColumn, dataObject[_dataTable.PrimaryKeyColumn]);
-      return DBUtility.ExecuteNonQuery(updateSql);
+      string updateSql = string.Format(UPDATE_SQL, Dialect.Quote(_dataTable.TableName), columnValuePair,
+                                       Dialect.Quote(_dataTable.PrimaryKeyColumn));
+      return DBUtility.ExecuteNonQuery(updateSql, parameters.ToArray());
     }
 
     public virtual bool Delete(T dataObject)
@@ -129,51 +153,78 @@ namespace InventoryAndSales.Database.DataAccess
       return DeleteById((int)dataObject[_dataTable.PrimaryKeyColumn]);
     }
 
-    private const string DELETE_SQL = "DELETE FROM {0} WHERE [{1}] = {2}";
+    private const string DELETE_SQL = "DELETE FROM {0} WHERE {1} = @id";
+
     public virtual bool DeleteById(int id)
     {
-      //TODO execute sql FIND_BY_ID_SQL, WE don't not to describe this everytime
-      string preparedSql = string.Format(DELETE_SQL, _dataTable.TableName, _dataTable.PrimaryKeyColumn, id);
-      int delete = DBUtility.ExecuteNonQuery(preparedSql);
+      string preparedSql = string.Format(DELETE_SQL, Dialect.Quote(_dataTable.TableName),
+                                         Dialect.Quote(_dataTable.PrimaryKeyColumn));
+      int delete = DBUtility.ExecuteNonQuery(preparedSql, DbParam.Of("@id", id));
       return delete > 0;
     }
 
-    //TODO: This might need to be moved to DBUtil. Need to rethink about it.
-    protected virtual List<T> ExecuteReader(String commandText, params SqlParameter[] parameters)
+    /// <summary>
+    /// A null string used to be written as an empty string, because the old code wrapped every value
+    /// in quotes. Installations rely on that - product Code and Barcode are read back without null
+    /// checks in places - so keep writing an empty string rather than NULL.
+    /// </summary>
+    private static object ToParameterValue(object value)
     {
-      try
+      if (value == null)
+        return string.Empty;
+      return value;
+    }
+
+    /// <summary>
+    /// Boxes a generated identity as the type the model's indexer expects.
+    ///
+    /// Providers disagree about what the last-identity query returns - SQL Server hands back a
+    /// decimal, SQLite a long. The int keyed models unbox with a direct (int) cast, which throws on
+    /// anything else, while the bigint keyed ones parse whatever they are given, so box an int
+    /// whenever the value fits and fall back to long.
+    /// </summary>
+    private static object NormalizeIdentity(object identity)
+    {
+      long value = Convert.ToInt64(identity, CultureInfo.InvariantCulture);
+      if (value >= int.MinValue && value <= int.MaxValue)
+        return (int)value;
+      return value;
+    }
+
+    protected virtual List<T> ExecuteReader(String commandText, params DbParameter[] parameters)
+    {
+      using (DbScope scope = DBFactory.GetInstance().AcquireScope())
       {
-        List<T> returnList = new List<T>();
-        SqlConnection connection = DBFactory.GetInstance().GetConnection();
-        SqlCommand command = connection.CreateCommand();
-        command.CommandText = commandText;
-        command.CommandTimeout = 600;
-        command.Parameters.AddRange(parameters);
-        SqlTransaction activeTransaction = DBFactory.GetInstance().GetActiveTransaction();
-        if (activeTransaction == null)
-          connection.Open();
-        command.Transaction = activeTransaction;
-        // When using CommandBehavior.CloseConnection, the connection will be closed when the 
-        // IDataReader is closed.
-        SqlDataReader reader = command.ExecuteReader();
-        while (reader.Read())
+        try
         {
-          T t = new T();
-          //This one should pick from dataTable so some new column or unspecified column in the code will be ignored.
-          foreach (string columnName in _dataTable.Columns)
+          List<T> returnList = new List<T>();
+          using (DbCommand command = scope.CreateCommand(commandText))
           {
-            if (!(reader[columnName] is DBNull))
-              t[columnName] = reader[columnName];
+            DBUtility.AddParameters(command, parameters);
+            using (DbDataReader reader = command.ExecuteReader())
+            {
+              while (reader.Read())
+              {
+                T t = new T();
+                // Driven by the column map rather than the result set, so a column that exists in the
+                // database but is not mapped is simply ignored.
+                foreach (string columnName in _dataTable.Columns)
+                {
+                  object value = reader[columnName];
+                  if (!(value is DBNull))
+                    t[columnName] = value;
+                }
+                returnList.Add(t);
+              }
+            }
           }
-          returnList.Add(t);
+          return returnList;
         }
-        reader.Close();
-        return returnList;
-      }
-      catch (Exception ex)
-      {
-        _log.Error($"Trying to execute: {commandText}", ex);
-        throw;
+        catch (Exception ex)
+        {
+          _log.Error(string.Format("Trying to execute: {0}", commandText), ex);
+          throw;
+        }
       }
     }
   }

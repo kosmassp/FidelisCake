@@ -30,7 +30,7 @@ namespace InventoryAndSales.GUI.Popup
 
     private void TransactionUpdateForm_FormClosing(object sender, FormClosingEventArgs e)
     {
-
+      // Nothing to release: the correction screen owns its own cart and subscribes only to that.
     }
   }
 }

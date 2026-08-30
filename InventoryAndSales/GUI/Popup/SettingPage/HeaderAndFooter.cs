@@ -20,20 +20,34 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
     public HeaderAndFooterForm()
     {
       InitializeComponent();
-      _controller = new HeaderAndFooterController(this);
       buttonSave.Enabled = false;
     }
 
     private void HeaderAndFooterForm_Load(object sender, EventArgs e)
     {
+      // The controller reaches the database, so it is created here rather than in the constructor -
+      // the Visual Studio designer instantiates the control and must not hit SQL Server.
       if (DesignMode)
         return;
 
-      textBoxHeader.Text = _controller.GetHeader();
-      textBoxFooter.Text = _controller.GetFooter();
+      _controller = new HeaderAndFooterController(this);
+
+      _loading = true;
+      try
+      {
+        textBoxHeader.Text = _controller.GetHeader();
+        textBoxFooter.Text = _controller.GetFooter();
+      }
+      finally
+      {
+        _loading = false;
+      }
 
       BuildExample();
+      buttonSave.Enabled = false;
     }
+
+    private bool _loading;
 
     internal void SetPaymentNoteFont(Font font)
     {
@@ -42,7 +56,9 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
 
     private void BuildExample()
     {
-      var example =  _controller.GetExample(textBoxHeader.Text, textBoxFooter.Text);
+      if (_controller == null)
+        return;
+      var example = _controller.GetExample(textBoxHeader.Text, textBoxFooter.Text);
       StringBuilder sb = new StringBuilder();
       foreach (var ex in example)
       {
@@ -69,12 +85,16 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
 
     private void textBoxHeader_TextChanged(object sender, EventArgs e)
     {
+      if (_loading)
+        return;
       BuildExample();
       buttonSave.Enabled = true;
     }
 
     private void textBoxFooter_TextChanged(object sender, EventArgs e)
     {
+      if (_loading)
+        return;
       BuildExample();
       buttonSave.Enabled = true;
     }

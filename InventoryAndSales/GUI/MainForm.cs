@@ -1,4 +1,6 @@
 ﻿using InventoryAndSales.Enumeration;
+using InventoryAndSales.Business;
+using InventoryAndSales.GUI.Controller;
 using InventoryAndSales.GUI.Popup;
 using InventoryAndSales.GUI.Util;
 using SimpleCommon.Utility;
@@ -24,11 +26,25 @@ namespace InventoryAndSales.GUI
       CultureInfo.DefaultThreadCurrentUICulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
       InitializeComponent();
-      Version version = Assembly.GetEntryAssembly().GetName().Version;
-      Text = Text + $" [version: {version}]";
       ControlUtility.HideTabHeader(tabControlPage);
       controller = new MainFormController(this);
+      RefreshWindowTitle();
       KeyPreview = true;
+    }
+
+    /// <summary>
+    /// Titles the window with the shop's own name. Called again when the settings dialog closes, so
+    /// a rename shows without restarting the till.
+    /// </summary>
+    public void RefreshWindowTitle()
+    {
+      if (InvokeRequired)
+      {
+        this.BeginInvoke(new DelegateUtility.VoidHandler(RefreshWindowTitle));
+        return;
+      }
+      Version version = Assembly.GetEntryAssembly().GetName().Version;
+      Text = $"{controller.GetShopName()} [version: {version}]";
     }
 
     public void EnableMenu(int role)
@@ -40,7 +56,9 @@ namespace InventoryAndSales.GUI
       }
       transaksiToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Cashier);
       editToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Master);
-      laporanToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Admin);
+      // Gated on Laporan, not Admin. It used to test the Admin bit, which meant a Supervisor held
+      // the Laporan permission but still could not open the reports menu.
+      laporanToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Laporan);
       checkKasirToolStripMenuItem.Visible = BusinessUtil.AllowedRole(role, AccessOption.Cashier);
     }
 
@@ -51,6 +69,9 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.VoidHandler(LoadCashierPage));
         return;
       }
+      // Every page switch is logged: reconstructing what the operator was doing when something went
+      // wrong is most of the work of answering a report from the shop.
+      _log.Info("Navigating to the cashier page.");
       tabControlPage.SelectedTab = tabPageCashier;
       currentPage = DisplayPage.Cashier;
       cashierPage1.Reset();
@@ -63,6 +84,7 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.VoidHandler(LoadLoginPage));
         return;
       }
+      _log.Info("Navigating to the login page.");
       tabControlPage.SelectedTab = tabPageLogin;
       currentPage = DisplayPage.Login;
       controller.Logout();
@@ -76,6 +98,7 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.VoidHandler(LoadProductMasterPage));
         return;
       }
+      _log.Info("Navigating to the product master page.");
       tabControlPage.SelectedTab = tabPageProductMaster;
       currentPage = DisplayPage.MasterProduct;
       masterProductPage1.Reset();
@@ -88,6 +111,7 @@ namespace InventoryAndSales.GUI
         this.BeginInvoke(new DelegateUtility.VoidHandler(LoadUserMasterPage));
         return;
       }
+      _log.Info("Navigating to the user master page.");
       tabControlPage.SelectedTab = tabPageUserMaster;
       currentPage = DisplayPage.MasterUser;
       masterUserPage1.Reset();
@@ -149,6 +173,8 @@ namespace InventoryAndSales.GUI
     private void laporanTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
     {
       tabControlPage.SelectedTab = tabPageReport;
+      // Kept in step with the visible tab so the cashier hotkeys stop firing while reports are up.
+      currentPage = DisplayPage.Report;
       reportDisplayPage1.RefreshOnDisplay();
     }
 
@@ -162,6 +188,33 @@ namespace InventoryAndSales.GUI
       if (currentPage == DisplayPage.Cashier)
       {
         Keys keyCode = e.KeyCode;
+
+        // Ctrl+1/2/3 pick the payment method without leaving the keyboard. Handled before the
+        // switch because they are chords, and because the digit keys alone belong to the filter box.
+        if (e.Control)
+        {
+          switch (keyCode)
+          {
+            case Keys.D1:
+            case Keys.NumPad1:
+              cashierPage1.SelectPaymentMethod(PaymentMethod.Cash);
+              e.Handled = true;
+              return;
+
+            case Keys.D2:
+            case Keys.NumPad2:
+              cashierPage1.SelectPaymentMethod(PaymentMethod.Edc);
+              e.Handled = true;
+              return;
+
+            case Keys.D3:
+            case Keys.NumPad3:
+              cashierPage1.SelectPaymentMethod(PaymentMethod.Qris);
+              e.Handled = true;
+              return;
+          }
+        }
+
         switch (keyCode)
         {
           case Keys.F5:
@@ -182,10 +235,58 @@ namespace InventoryAndSales.GUI
     private void MainForm_Load(object sender, EventArgs e)
     {
       LoadLoginPage();
+      CheckForUpdateInBackground();
+    }
+
+    /// <summary>
+    /// Asks about a newer release once, on a background thread, and says nothing unless there is
+    /// one. A shop with no internet must not notice this happening, so nothing here is allowed to
+    /// delay the login screen or reach the operator on failure.
+    /// </summary>
+    private void CheckForUpdateInBackground()
+    {
+      ThreadPool.QueueUserWorkItem(state =>
+      {
+        try
+        {
+          UpdateController updates = new UpdateController();
+          if (!updates.IsConfigured)
+            return;
+
+          // The check itself runs off the UI thread; the question it may ask has to go back on it.
+          BeginInvoke(new MethodInvoker(() => updates.CheckForUpdate(false)));
+        }
+        catch (Exception ex)
+        {
+          _log.Warn("The startup update check failed.", ex);
+        }
+      });
+    }
+
+    private void periksaPembaruanToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      Cursor previous = Cursor;
+      Cursor = Cursors.WaitCursor;
+      try
+      {
+        new UpdateController().CheckForUpdate(true);
+      }
+      catch (Exception ex)
+      {
+        _log.Error("The update check failed.", ex);
+        MessageBox.Show("Pemeriksaan pembaruan gagal.", "Periksa Pembaruan",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+      }
+      finally
+      {
+        Cursor = previous;
+      }
     }
     private void pengaturanToolStripMenuItem_Click(object sender, EventArgs e)
     {
       SettingForm settingForm = new SettingForm();
+      // The dialog is modeless, so the title is refreshed when it closes rather than after Show.
+      settingForm.FormClosed += (s, args) => RefreshWindowTitle();
       settingForm.Show();
     }
 
@@ -213,7 +314,15 @@ namespace InventoryAndSales.GUI
     }
     private void ubahTransaksiToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      controller.RequestUpdateTransaction();
+      try
+      {
+        controller.RequestUpdateTransaction();
+      }
+      catch (Exception ex)
+      {
+        _log.Error(ex);
+        MessageBox.Show("Terdapat kesalahan sistem. Tolong check kembali. ");
+      }
       LoadCashierPage();
     }
   }

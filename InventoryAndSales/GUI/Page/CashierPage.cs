@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using InventoryAndSales.Business;
 using InventoryAndSales.Database.Model;
 using InventoryAndSales.GUI.Controller;
 using InventoryAndSales.GUI.Utility;
@@ -30,6 +31,10 @@ namespace InventoryAndSales.GUI.Page
       bool byBarcode;
       FilterItemView(string.Empty, out byBarcode);
       controller.NewCart();
+      // Picks up terminals added or removed in settings since this screen was last shown.
+      ResetPaymentMethod();
+      // Held baskets survive leaving and returning to this screen - they only end with the session.
+      RefreshHeldCarts();
       textBoxFilter.Focus();
     }
 
@@ -234,8 +239,10 @@ namespace InventoryAndSales.GUI.Page
             if (selectedIndex < 0)
               selectedIndex = rowIdProduct.Key;
           }
-          else if (product.Name.ToLower().Contains(filter.ToLower())
-                   || product.Code.StartsWith(filter, StringComparison.InvariantCultureIgnoreCase))
+          // Null tolerant: Code and Name can be empty on rows created by a CSV import or edited
+          // directly in the database.
+          else if ((product.Name ?? string.Empty).IndexOf(filter, StringComparison.CurrentCultureIgnoreCase) >= 0
+                   || (product.Code ?? string.Empty).StartsWith(filter, StringComparison.InvariantCultureIgnoreCase))
           {
             dataGridViewItemList.Rows[rowIdProduct.Key].Visible = true;
             filterCountResult++;
@@ -307,16 +314,273 @@ namespace InventoryAndSales.GUI.Page
       controller.RemoveFromCart(productView);
     }
 
-    private void buttonCheckout_Click(object sender, EventArgs e)
+    private bool _loadingPaymentMethod;
+
+    /// <summary>The terminal/provider row in <c>tableLayoutFields</c>, and its height when shown.</summary>
+    private const int ReferenceRowIndex = 1;
+    private const float ReferenceRowHeight = 27F;
+
+    /// <summary>
+    /// An entry in the method combo. Keeps the label and the value together so the screen never has
+    /// to match on display text.
+    /// </summary>
+    private class MethodChoice
     {
-      string validationMsg = ValidateInput(textBoxPayment, "Pembayaran Tidak Valid");
-      if (!string.IsNullOrEmpty(validationMsg))
+      public PaymentMethod Method { get; private set; }
+      public string Label { get; private set; }
+
+      public MethodChoice(PaymentMethod method, string label)
       {
-        MessageBox.Show(validationMsg);
+        Method = method;
+        Label = label;
+      }
+
+      public override string ToString()
+      {
+        return Label;
+      }
+    }
+
+    /// <summary>
+    /// Rebuilds the method list and puts the screen back on cash.
+    ///
+    /// A method whose list is empty is left out rather than shown-but-broken: choosing it could
+    /// never lead to a completed sale.
+    /// </summary>
+    private void ResetPaymentMethod()
+    {
+      _loadingPaymentMethod = true;
+      try
+      {
+        comboBoxPaymentMethod.Items.Clear();
+        comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Cash, "Tunai (Ctrl+1)"));
+        if (controller.IsMethodAvailable(PaymentMethod.Edc))
+          comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Edc, "EDC (Ctrl+2)"));
+        if (controller.IsMethodAvailable(PaymentMethod.Qris))
+          comboBoxPaymentMethod.Items.Add(new MethodChoice(PaymentMethod.Qris, "QRIS (Ctrl+3)"));
+
+        comboBoxPaymentMethod.SelectedIndex = 0;
+      }
+      finally
+      {
+        _loadingPaymentMethod = false;
+      }
+      ApplyPaymentMethod();
+    }
+
+    private PaymentMethod SelectedMethod
+    {
+      get
+      {
+        MethodChoice choice = comboBoxPaymentMethod.SelectedItem as MethodChoice;
+        return choice == null ? PaymentMethod.Cash : choice.Method;
+      }
+    }
+
+    /// <summary>
+    /// The terminal or provider name the cashier picked, or empty for cash.
+    ///
+    /// A QRIS entry displays as "GoPay (Statis)", so the name is taken from the object rather than
+    /// from what is on screen.
+    /// </summary>
+    private string SelectedReference
+    {
+      get
+      {
+        object selected = comboBoxReference.SelectedItem;
+        if (selected == null)
+          return string.Empty;
+        QrisProvider provider = selected as QrisProvider;
+        return provider != null ? provider.Name : selected.ToString();
+      }
+    }
+
+    /// <summary>
+    /// Picks a method from the keyboard. Does nothing if it is not on offer, but says why - a
+    /// shortcut that silently ignores you is worse than one that explains itself.
+    /// </summary>
+    public void SelectPaymentMethod(PaymentMethod method)
+    {
+      for (int i = 0; i < comboBoxPaymentMethod.Items.Count; i++)
+      {
+        MethodChoice choice = comboBoxPaymentMethod.Items[i] as MethodChoice;
+        if (choice != null && choice.Method == method)
+        {
+          comboBoxPaymentMethod.SelectedIndex = i;
+          return;
+        }
+      }
+
+      string what = method == PaymentMethod.Qris ? "provider QRIS" : "terminal EDC";
+      MessageBox.Show(
+        string.Format("Belum ada {0} yang terdaftar.{1}{1}Tambahkan melalui menu Pengaturan.", what, Environment.NewLine),
+        "Metode Tidak Tersedia", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+
+    /// <summary>
+    /// Shapes the payment fields around the chosen method: cash takes an amount and gives change,
+    /// everything else takes the exact total and needs to record where it came through.
+    /// </summary>
+    private void ApplyPaymentMethod()
+    {
+      PaymentMethod method = SelectedMethod;
+      bool exact = PaymentDetail.IsExactAmount(method);
+      bool qris = method == PaymentMethod.Qris;
+
+      labelReference.Visible = exact;
+      comboBoxReference.Visible = exact;
+      // Collapse the row rather than leaving a gap where the terminal would have been: cash is the
+      // common case and the remaining fields should sit straight under the method.
+      tableLayoutFields.RowStyles[ReferenceRowIndex].Height = exact ? ReferenceRowHeight : 0F;
+      labelReference.Text = qris ? "Provider" : "Terminal";
+      textBoxPayment.ReadOnly = exact;
+
+      if (exact)
+      {
+        _loadingPaymentMethod = true;
+        try
+        {
+          comboBoxReference.Items.Clear();
+          // QRIS entries go in as objects so the code type shows in the list and the name can be
+          // read back without parsing the label.
+          if (qris)
+            foreach (QrisProvider provider in controller.GetQrisProviders())
+              comboBoxReference.Items.Add(provider);
+          else
+            foreach (string terminal in controller.GetEdcTerminals())
+              comboBoxReference.Items.Add(terminal);
+          if (comboBoxReference.Items.Count > 0)
+            comboBoxReference.SelectedIndex = 0;
+        }
+        finally
+        {
+          _loadingPaymentMethod = false;
+        }
+
+        decimal total = controller.GetCartTotal();
+        textBoxPayment.Text = total.ToString(Constant.DISPLAY_CURRENCY);
+        textBoxChanges.Text = 0.ToString(Constant.DISPLAY_CURRENCY);
+      }
+      else
+      {
+        RecalculateChanges();
+      }
+    }
+
+    private void comboBoxPaymentMethod_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      if (_loadingPaymentMethod)
+        return;
+      ApplyPaymentMethod();
+    }
+
+    #region Held carts
+
+    /// <summary>
+    /// Rebuilds the held-basket list. Called after every hold, recall or discard so the dropdown
+    /// always matches what is actually set aside.
+    /// </summary>
+    private void RefreshHeldCarts()
+    {
+      List<HeldCart> held = controller.GetHeldCarts();
+
+      comboBoxHeldCart.Items.Clear();
+      foreach (HeldCart cart in held)
+        comboBoxHeldCart.Items.Add(cart);
+      if (comboBoxHeldCart.Items.Count > 0)
+        comboBoxHeldCart.SelectedIndex = 0;
+
+      bool any = held.Count > 0;
+      comboBoxHeldCart.Enabled = any;
+      buttonRecallCart.Enabled = any;
+      buttonDiscardHeldCart.Enabled = any;
+    }
+
+    private HeldCart SelectedHeldCart
+    {
+      get { return comboBoxHeldCart.SelectedItem as HeldCart; }
+    }
+
+    private void buttonHoldCart_Click(object sender, EventArgs e)
+    {
+      HeldCart held;
+      // The notes box doubles as the label, so a cashier can tag a basket without another dialog.
+      string problem = controller.HoldCart(textBoxNotes.Text, out held);
+      if (!string.IsNullOrEmpty(problem))
+      {
+        MessageBox.Show(problem, "Tidak Dapat Disimpan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         return;
       }
+
+      RefreshHeldCarts();
+      textBoxFilter.Focus();
+      MessageBox.Show(string.Format("Keranjang disimpan di nomor {0}.", held.Slot), "Tersimpan",
+                      MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+
+    private void buttonRecallCart_Click(object sender, EventArgs e)
+    {
+      HeldCart selected = SelectedHeldCart;
+      if (selected == null)
+        return;
+
+      HeldCart recalled;
+      string problem = controller.RecallCart(selected.Slot, out recalled);
+      if (!string.IsNullOrEmpty(problem))
+      {
+        MessageBox.Show(problem, "Tidak Dapat Diambil", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        return;
+      }
+
+      // The note travels with the basket, so whoever picks it up sees what it was tagged with.
+      textBoxNotes.Text = recalled.Label;
+      RefreshHeldCarts();
+      ApplyPaymentMethod();
+      textBoxFilter.Focus();
+    }
+
+    private void buttonDiscardHeldCart_Click(object sender, EventArgs e)
+    {
+      HeldCart selected = SelectedHeldCart;
+      if (selected == null)
+        return;
+
+      DialogResult confirm = MessageBox.Show(
+        string.Format("Hapus keranjang tersimpan nomor {0}?", selected.Slot) +
+        Environment.NewLine + Environment.NewLine + selected.ToString(),
+        "Konfirmasi Hapus", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+      if (confirm != DialogResult.OK)
+        return;
+
+      controller.DiscardHeldCart(selected.Slot);
+      RefreshHeldCarts();
+    }
+
+    #endregion
+
+    private void buttonCheckout_Click(object sender, EventArgs e)
+    {
+      // Only cash needs the typed amount to make sense; the others take the total regardless.
+      PaymentMethod method = SelectedMethod;
+      decimal tendered = 0;
+      if (!PaymentDetail.IsExactAmount(method))
+      {
+        string validationMsg = ValidateInput(textBoxPayment, "Pembayaran Tidak Valid");
+        if (!string.IsNullOrEmpty(validationMsg))
+        {
+          MessageBox.Show(validationMsg);
+          return;
+        }
+        tendered = decimal.Parse(textBoxPayment.Text);
+      }
+
       string successMessage;
-      string errorMessage = controller.Checkout(decimal.Parse(textBoxPayment.Text), textBoxNotes.Text, out successMessage);
+      string errorMessage = controller.Checkout(
+        method,
+        tendered,
+        SelectedReference,
+        textBoxNotes.Text,
+        out successMessage);
       if (!string.IsNullOrEmpty(errorMessage))
       {
         MessageBox.Show(string.Format("Transaksi Gagal.\n{0}\n\n\n{1}", errorMessage, "Silahkan Coba Lagi"));
@@ -352,6 +616,11 @@ namespace InventoryAndSales.GUI.Page
 
     private void RecalculateChanges()
     {
+      // A card or QRIS payment is always the exact total with no change; ApplyPaymentMethod owns
+      // those two boxes then, and blanking the amount back to zero here would fight it.
+      if (PaymentDetail.IsExactAmount(SelectedMethod))
+        return;
+
       if (string.IsNullOrEmpty(textBoxPayment.Text))
       {
         textBoxPayment.Text = "0";
@@ -442,7 +711,8 @@ namespace InventoryAndSales.GUI.Page
         return;
       }
       textBoxTotal.Text = total.ToString(Constant.DISPLAY_CURRENCY);
-      RecalculateChanges();
+      // For a card payment the amount tracks the total, so it has to follow every cart change.
+      ApplyPaymentMethod();
     }
 
     public void FocusFilter()

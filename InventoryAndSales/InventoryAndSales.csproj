@@ -60,17 +60,36 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
+    <!-- Ships with .NET Framework; needed to unpack a release archive. -->
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Business\BusinessFactory.cs" />
+    <Compile Include="Business\Cart.cs" />
     <Compile Include="Business\CashierManager.cs" />
+    <Compile Include="Business\ReceiptBuilder.cs" />
+    <Compile Include="Business\ReportService.cs" />
+    <Compile Include="Business\SettingKeys.cs" />
+    <Compile Include="Business\SettingsService.cs" />
     <Compile Include="Business\Enum\TransactionStatus.cs" />
     <Compile Include="Business\ViewManager.cs" />
     <Compile Include="Business\ReportManager.cs" />
+    <Compile Include="Business\ReportColumnKind.cs" />
+    <Compile Include="Business\ReportDocument.cs" />
+    <Compile Include="Business\ReportTable.cs" />
     <Compile Include="Business\MasterManager.cs" />
+    <Compile Include="Database\Dialect\ISqlDialect.cs" />
+    <Compile Include="Database\Dialect\PostgreSqlDialect.cs" />
+    <Compile Include="Database\Dialect\ProviderLoader.cs" />
+    <Compile Include="Database\Dialect\SqlDialectBase.cs" />
+    <Compile Include="Database\Dialect\SqlDialectFactory.cs" />
+    <Compile Include="Database\Dialect\SqliteDialect.cs" />
+    <Compile Include="Database\Dialect\SqlServerDialect.cs" />
+    <Compile Include="Database\Schema\DatabaseSchema.cs" />
     <Compile Include="Database\DataAccess\CustomDao.cs" />
     <Compile Include="Database\DataAccess\SettingDao.cs" />
     <Compile Include="Database\DBUtility.cs" />
@@ -91,6 +110,7 @@
     <Compile Include="Database\DataAccess\UserDao.cs" />
     <Compile Include="Database\DataTable\DataTable.cs" />
     <Compile Include="Database\DBFactory.cs" />
+    <Compile Include="Database\DbScope.cs" />
     <Compile Include="Database\Manager\BaseManager.cs" />
     <Compile Include="Database\Manager\CustomerManager.cs" />
     <Compile Include="Database\Manager\ProductManager.cs" />
@@ -98,6 +118,7 @@
     <Compile Include="Database\Manager\TransactionManager.cs" />
     <Compile Include="Database\Manager\UserManager.cs" />
     <Compile Include="Database\Model\BaseObject.cs" />
+    <Compile Include="Database\Model\CashierDayTotals.cs" />
     <Compile Include="Database\Model\Customer.cs" />
     <Compile Include="Database\Model\Product.cs" />
     <Compile Include="Database\Model\Transaction.cs" />
@@ -106,6 +127,53 @@
     <Compile Include="GUI\Controller\CashierController.cs" />
     <Compile Include="GUI\Controller\SettingPageController.cs" />
     <Compile Include="GUI\Controller\SettingPage\HeaderAndFooterController.cs" />
+    <Compile Include="Business\PaymentDetail.cs" />
+    <Compile Include="Business\PaymentOptionService.cs" />
+    <Compile Include="Business\ShopService.cs" />
+    <Compile Include="Business\AuditService.cs" />
+    <Compile Include="Business\UpdateManifest.cs" />
+    <Compile Include="Business\UpdateService.cs" />
+    <Compile Include="Utility\UpdateInstaller.cs" />
+    <Compile Include="GUI\Controller\UpdateController.cs" />
+    <Compile Include="Database\Model\AuditLog.cs" />
+    <Compile Include="Database\DataAccess\AuditLogDao.cs" />
+    <Compile Include="Database\Manager\AuditLogManager.cs" />
+    <Compile Include="Business\HeldCartService.cs" />
+    <Compile Include="GUI\Controller\SettingPage\PaymentOptionSettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\PaymentOptionSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\PaymentOptionSetting.Designer.cs">
+      <DependentUpon>PaymentOptionSetting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Controller\SettingPage\PrinterSettingController.cs" />
+    <Compile Include="GUI\Controller\SettingPage\ReportSettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\PrinterSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\PrinterSetting.Designer.cs">
+      <DependentUpon>PrinterSetting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Controller\SettingPage\SecuritySettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\ReportSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\ReportSetting.Designer.cs">
+      <DependentUpon>ReportSetting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\SecuritySetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\SecuritySetting.Designer.cs">
+      <DependentUpon>SecuritySetting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Controller\SettingPage\ShopSettingController.cs" />
+    <Compile Include="GUI\Popup\SettingPage\ShopSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Popup\SettingPage\ShopSetting.Designer.cs">
+      <DependentUpon>ShopSetting.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Controller\TransactionUpdateController.cs" />
     <Compile Include="GUI\Controller\LoginController.cs" />
     <Compile Include="GUI\Controller\MasterProductController.cs" />
@@ -308,6 +376,72 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+  </ItemGroup>
+  <!--
+    Database providers.
+
+    These are ADO.NET providers loaded at runtime through DbProviderFactories, not compile-time
+    references: the application is built against neither, so the same binary runs on SQL Server,
+    PostgreSQL or SQLite depending only on App.config. They are copied beside the executable so an
+    installation has everything it needs without anyone hunting for assemblies.
+
+    Wildcards on purpose - dropping a DLL into Include\Sqlite or Include\PostgreSql ships it, with
+    no project edit. Link flattens them into the output root, which is where the CLR probes.
+  -->
+  <ItemGroup>
+    <Content Include="Include\PostgreSql\Microsoft.Bcl.AsyncInterfaces.dll" />
+    <Content Include="Include\PostgreSql\Npgsql.dll" />
+    <Content Include="Include\PostgreSql\System.Buffers.dll" />
+    <Content Include="Include\PostgreSql\System.Memory.dll" />
+    <Content Include="Include\PostgreSql\System.Numerics.Vectors.dll" />
+    <Content Include="Include\PostgreSql\System.Runtime.CompilerServices.Unsafe.dll" />
+    <Content Include="Include\PostgreSql\System.Text.Encodings.Web.dll" />
+    <Content Include="Include\PostgreSql\System.Text.Json.dll" />
+    <Content Include="Include\PostgreSql\System.Threading.Tasks.Extensions.dll" />
+    <Content Include="Include\PostgreSql\System.ValueTuple.dll" />
+    <Content Include="Include\Sqlite\*.dll">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Include\PostgreSql\*.dll">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Include\Sqlite\System.Data.SQLite.dll" />
+    <Content Include="Include\Sqlite\x64\SQLite.Interop.dll" />
+    <!--
+      The native SQLite engine, which unlike the rest must keep its architecture sub-folder:
+      System.Data.SQLite picks x86 or x64 at runtime to match the process.
+    -->
+    <Content Include="Include\Sqlite\x86\SQLite.Interop.dll">
+      <Link>x86\SQLite.Interop.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Include\Sqlite\x64\SQLite.Interop.dll">
+      <Link>x64\SQLite.Interop.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <!--
+    Report assets. Only the two files a generated report actually references are shipped; the rest of
+    Report\ is the full DataTables download kept for reference and is not needed at runtime.
+    ReportService copies these into the configured report folder on demand.
+  -->
+  <ItemGroup>
+    <Content Include="Include\Sqlite\x86\SQLite.Interop.dll" />
+    <Content Include="Report\datatables.min.css">
+      <Link>Report\datatables.min.css</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Report\datatables.min.js">
+      <Link>Report\datatables.min.js</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Report\" />
+    <Folder Include="x64\" />
+    <Folder Include="x86\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

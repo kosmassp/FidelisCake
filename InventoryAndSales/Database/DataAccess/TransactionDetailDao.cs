@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using InventoryAndSales.Database.DataTable;
@@ -9,14 +10,17 @@ namespace InventoryAndSales.Database.DataAccess
 {
   public class TransactionDetailDao : BaseDao<TransactionDetail>
   {
-    public TransactionDetailDao() 
+    public TransactionDetailDao()
       : base()
     {
     }
 
     public List<TransactionDetail> FindByTransactionId(long id)
     {
-      return FindByQuery(string.Format("Where TransactionId = '{0}'", id));
+      return FindByQuery(
+        string.Format("WHERE {0} = @transactionId", Dialect.Quote("TransactionId")),
+        string.Empty,
+        DbParam.Of("@transactionId", id));
     }
   }
 }
