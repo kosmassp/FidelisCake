@@ -58,7 +58,7 @@ edit them through the WinForms designer, not by hand.
 | File | Purpose |
 |---|---|
 | `InventoryAndSales/Program.cs` | Entry point. Dispatches `--apply-update` to `UpdateInstaller` **first**, then forces `en-US` culture, runs `SplashForm` then `MainForm`, logs unhandled exceptions and the environment. |
-| `InventoryAndSales/App.config` | `DatabaseProvider` and `ConnectionString`. Also `PrinterName` and `UpdateManifestUrl`, each read once to seed its setting. |
+| `InventoryAndSales/App.config` | `DatabaseProvider` and `ConnectionString`. Also `PrinterName` and `UpdateManifestUrl`, each read once to seed its setting; a config without `UpdateManifestUrl` seeds the built-in GitHub `version.txt` address. |
 | `InventoryAndSales/log4net.config` | Logging to console + `Log\log.txt`, **appending**, rolled by date and size, 30 backups. |
 | `InventoryAndSales/InventoryAndSales.csproj` | Project file, compile list, references. |
 
@@ -325,6 +325,8 @@ edit them through the WinForms designer, not by hand.
 
 | File | Purpose |
 |---|---|
+| `version.txt` | Update manifest the tills read via the raw GitHub URL; edited per release, **after** the GitHub release exists. |
+| `RELEASING.md` | Step-by-step release checklist: version bump, build, ZIP contents (and what must stay out), GitHub release, manifest update. |
 | `DDL.sql` | Reference schema dump (UTF-16). Not executed by the app. |
 | `InventoryAndSalesProject.sln` | Solution file. |
 | `.gitignore` | Inherited from an unrelated project; contains stale rules. |

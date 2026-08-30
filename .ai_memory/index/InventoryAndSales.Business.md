@@ -163,9 +163,14 @@ Keys: `SHOP_NAME`, `HEADER`, `FOOTER`, `EDC_TERMINALS`, `QRIS_PROVIDERS` (group 
 `REPORT_DIRECTORY` (`REPORT`), `ALLOW_BUILTIN_ADMIN` (`SECURITY`), `PRINTER_NAME`,
 `PRINTER_PAPER_WIDTH_MM` (`PRINTER`), `UPDATE_MANIFEST_URL` (`UPDATE`).
 
-`ConfiguredSetting(name)` seeds a key from `App.config` — used by `PRINTER_NAME` and
-`UPDATE_MANIFEST_URL` so a technician can set them once at install time. Read **only** when the row
-is missing; editing `App.config` afterwards changes nothing.
+`ConfiguredSetting(name)` seeds a key from `App.config` — used by `PRINTER_NAME` so a technician can
+set it once at install time. Read **only** when the row is missing; editing `App.config` afterwards
+changes nothing. `UPDATE_MANIFEST_URL` seeds through `ConfiguredManifestUrl()` instead: an
+`App.config` entry wins (empty included — empty means "do not check"), but a config with **no entry
+at all** seeds `DefaultUpdateManifestUrl`, the GitHub `version.txt` address baked into the build —
+updates never ship the config, so an updated-in-place till must not end with checking off.
+`RetiredUpdateManifestUrls` lists superseded defaults (the pre-GitHub Google Doc);
+`DBUtility.RetireSupersededManifestUrl` rewrites a stored value that exactly matches one of them.
 
 **Every `SetString` is audited**, so adding a key here makes it auditable for free.
 
@@ -217,7 +222,7 @@ the user table is.
 | Member | Signature | Purpose |
 |---|---|---|
 | `CurrentVersion` | `static Version` | The running assembly version. |
-| `GetManifestUrl` / `SetManifestUrl` | | `UPDATE_MANIFEST_URL`. Empty switches the feature off, which is the default. |
+| `GetManifestUrl` / `SetManifestUrl` | | `UPDATE_MANIFEST_URL`. Empty switches the feature off; fresh rows seed `SettingKeys.DefaultUpdateManifestUrl` (GitHub `version.txt`) unless `App.config` says otherwise. |
 | `FetchManifest` | `UpdateManifest ()` | Downloads and parses it. **Returns null for every failure** — not configured, unreachable, unparseable — because they all mean "carry on as you are". |
 | `IsNewer` | `static bool (UpdateManifest)` | Strictly greater than the running version. |
 | `StageUpdate` | `string (UpdateManifest, out string problem)` | Downloads the archive, unpacks it, returns the folder holding the new files. |

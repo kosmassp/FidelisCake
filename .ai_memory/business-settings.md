@@ -35,6 +35,12 @@ absent, so operator edits survive restarts:
 | `QRIS_PROVIDERS` | `GENERAL` | empty — same for QRIS |
 | `PRINTER_NAME` | `PRINTER` | seeded from the `PrinterName` entry in `App.config`; empty means the Windows default printer |
 | `PRINTER_PAPER_WIDTH_MM` | `PRINTER` | `67` |
+| `UPDATE_MANIFEST_URL` | `UPDATE` | seeded from the `UpdateManifestUrl` entry in `App.config` when present (empty = checking off); with no entry at all, the built-in GitHub `version.txt` address (`SettingKeys.DefaultUpdateManifestUrl`) |
+
+One value migration exists on top of insert-if-missing seeding: `DBUtility.RetireSupersededManifestUrl`
+rewrites a stored `UPDATE_MANIFEST_URL` that exactly matches a retired default
+(`SettingKeys.RetiredUpdateManifestUrls`, the pre-GitHub Google Doc) to the current built-in address.
+Anything else stored there is treated as deliberate configuration and never touched.
 
 **The seed list is data, not code:** `Business/SettingKeys.cs → Seed()` returns the rows a database
 is expected to have, and `UpsertSettingRow` inserts whichever are missing. Because installations sit
