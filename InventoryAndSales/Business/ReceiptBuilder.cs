@@ -61,7 +61,7 @@ namespace InventoryAndSales.Business
       stringToPrint.Add(new StringPrint("Total Belanja: Rp. " + transaction.Total.ToString("N"), leftString));
       stringToPrint.Add(new StringPrint(Environment.NewLine, centerString));
 
-      // A card or QRIS payment takes the exact amount, so change would always read zero. Show where
+      // An electronic payment takes the exact amount, so change would always read zero. Show where
       // the money came through instead - that is what a customer or an auditor needs off the slip.
       switch (PaymentDetail.Parse(transaction.PaymentMethod))
       {
@@ -78,6 +78,12 @@ namespace InventoryAndSales.Business
           string variant = PaymentDetail.DescribeVariant(transaction.PaymentVariant);
           if (!string.IsNullOrEmpty(variant))
             stringToPrint.Add(new StringPrint("Tipe QRIS    : " + variant, leftString));
+          break;
+
+        case PaymentMethod.Transfer:
+          stringToPrint.Add(new StringPrint("Transfer     : Rp. " + transaction.Payment.ToString("N"), leftString));
+          if (!string.IsNullOrEmpty(transaction.PaymentReference))
+            stringToPrint.Add(new StringPrint("Rekening     : " + transaction.PaymentReference, leftString));
           break;
 
         default:

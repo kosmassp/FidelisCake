@@ -7,10 +7,11 @@ using InventoryAndSales.GUI.Controller.SettingPage;
 namespace InventoryAndSales.GUI.Popup.SettingPage
 {
   /// <summary>
-  /// Add and remove the EDC terminals and QRIS providers a cashier can charge a sale to.
+  /// Add and remove the EDC terminals, QRIS providers and transfer destination accounts a cashier
+  /// can charge a sale to.
   ///
-  /// Both lists live on one page because they are the same decision made twice; an empty list simply
-  /// means that method is not offered at the till.
+  /// The lists live on one page because they are the same decision made three times; an empty list
+  /// simply means that method is not offered at the till.
   /// </summary>
   public partial class PaymentOptionSettingForm : UserControl
   {
@@ -40,6 +41,10 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
         listBoxQris.Items.Clear();
         foreach (QrisProvider provider in _controller.GetQrisProviders())
           listBoxQris.Items.Add(provider);
+
+        listBoxTransfer.Items.Clear();
+        foreach (string bank in _controller.GetTransferBanks())
+          listBoxTransfer.Items.Add(bank);
 
         comboBoxQrisMode.Items.Clear();
         comboBoxQrisMode.Items.Add("Statis");
@@ -141,6 +146,22 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
       buttonSave.Enabled = true;
     }
 
+    /// <summary>Adds a transfer destination account, which is only a line of text.</summary>
+    private void AddTransfer()
+    {
+      string problem = _controller.ValidateNew(textBoxNewTransfer.Text, ItemsOf(listBoxTransfer));
+      if (!string.IsNullOrEmpty(problem))
+      {
+        MessageBox.Show(problem, "Tidak Dapat Ditambahkan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        return;
+      }
+
+      listBoxTransfer.Items.Add(textBoxNewTransfer.Text.Trim());
+      textBoxNewTransfer.Clear();
+      textBoxNewTransfer.Focus();
+      buttonSave.Enabled = true;
+    }
+
     /// <summary>Adds a QRIS provider together with the code type it issues.</summary>
     private void AddQris()
     {
@@ -198,6 +219,16 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
       Remove(listBoxQris, "provider");
     }
 
+    private void buttonAddTransfer_Click(object sender, EventArgs e)
+    {
+      AddTransfer();
+    }
+
+    private void buttonRemoveTransfer_Click(object sender, EventArgs e)
+    {
+      Remove(listBoxTransfer, "rekening");
+    }
+
     // Enter adds, so a list can be typed straight through without reaching for the mouse.
     private void textBoxNewEdc_KeyDown(object sender, KeyEventArgs e)
     {
@@ -215,11 +246,19 @@ namespace InventoryAndSales.GUI.Popup.SettingPage
       AddQris();
     }
 
+    private void textBoxNewTransfer_KeyDown(object sender, KeyEventArgs e)
+    {
+      if (e.KeyCode != Keys.Enter)
+        return;
+      e.SuppressKeyPress = true;
+      AddTransfer();
+    }
+
     private void buttonSave_Click(object sender, EventArgs e)
     {
       try
       {
-        _controller.Save(ItemsOf(listBoxEdc), QrisItems());
+        _controller.Save(ItemsOf(listBoxEdc), QrisItems(), ItemsOf(listBoxTransfer));
         buttonSave.Enabled = false;
         MessageBox.Show("Pengaturan pembayaran berhasil disimpan.", "BERHASIL",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);

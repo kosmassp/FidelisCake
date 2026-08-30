@@ -28,6 +28,11 @@
       this.comboBoxQrisMode = new System.Windows.Forms.ComboBox();
       this.buttonAddQris = new System.Windows.Forms.Button();
       this.buttonRemoveQris = new System.Windows.Forms.Button();
+      this.labelTransfer = new System.Windows.Forms.Label();
+      this.listBoxTransfer = new System.Windows.Forms.ListBox();
+      this.textBoxNewTransfer = new System.Windows.Forms.TextBox();
+      this.buttonAddTransfer = new System.Windows.Forms.Button();
+      this.buttonRemoveTransfer = new System.Windows.Forms.Button();
       this.labelDescription = new System.Windows.Forms.Label();
       this.buttonSave = new System.Windows.Forms.Button();
       this.SuspendLayout();
@@ -132,21 +137,67 @@
       this.buttonRemoveQris.UseVisualStyleBackColor = true;
       this.buttonRemoveQris.Click += new System.EventHandler(this.buttonRemoveQris_Click);
       //
+      // labelTransfer
+      //
+      this.labelTransfer.AutoSize = true;
+      this.labelTransfer.Location = new System.Drawing.Point(470, 12);
+      this.labelTransfer.Name = "labelTransfer";
+      this.labelTransfer.Size = new System.Drawing.Size(97, 13);
+      this.labelTransfer.TabIndex = 12;
+      this.labelTransfer.Text = "Rekening Transfer:";
+      //
+      // listBoxTransfer
+      //
+      this.listBoxTransfer.FormattingEnabled = true;
+      this.listBoxTransfer.Location = new System.Drawing.Point(470, 30);
+      this.listBoxTransfer.Name = "listBoxTransfer";
+      this.listBoxTransfer.Size = new System.Drawing.Size(175, 160);
+      this.listBoxTransfer.TabIndex = 13;
+      //
+      // textBoxNewTransfer
+      //
+      this.textBoxNewTransfer.Location = new System.Drawing.Point(470, 197);
+      this.textBoxNewTransfer.Name = "textBoxNewTransfer";
+      this.textBoxNewTransfer.Size = new System.Drawing.Size(175, 20);
+      this.textBoxNewTransfer.TabIndex = 14;
+      this.textBoxNewTransfer.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxNewTransfer_KeyDown);
+      //
+      // buttonAddTransfer
+      //
+      this.buttonAddTransfer.Location = new System.Drawing.Point(470, 223);
+      this.buttonAddTransfer.Name = "buttonAddTransfer";
+      this.buttonAddTransfer.Size = new System.Drawing.Size(85, 23);
+      this.buttonAddTransfer.TabIndex = 15;
+      this.buttonAddTransfer.Text = "Tambah";
+      this.buttonAddTransfer.UseVisualStyleBackColor = true;
+      this.buttonAddTransfer.Click += new System.EventHandler(this.buttonAddTransfer_Click);
+      //
+      // buttonRemoveTransfer
+      //
+      this.buttonRemoveTransfer.Location = new System.Drawing.Point(560, 223);
+      this.buttonRemoveTransfer.Name = "buttonRemoveTransfer";
+      this.buttonRemoveTransfer.Size = new System.Drawing.Size(85, 23);
+      this.buttonRemoveTransfer.TabIndex = 16;
+      this.buttonRemoveTransfer.Text = "Hapus";
+      this.buttonRemoveTransfer.UseVisualStyleBackColor = true;
+      this.buttonRemoveTransfer.Click += new System.EventHandler(this.buttonRemoveTransfer_Click);
+      //
       // labelDescription
       //
       this.labelDescription.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
       this.labelDescription.Location = new System.Drawing.Point(9, 285);
       this.labelDescription.Name = "labelDescription";
-      this.labelDescription.Size = new System.Drawing.Size(516, 45);
+      this.labelDescription.Size = new System.Drawing.Size(638, 45);
       this.labelDescription.TabIndex = 10;
       this.labelDescription.Text = "Yang terdaftar di sini dapat dipilih kasir saat pembayaran. Bila daftar kosong, me" +
-    "tode tersebut tidak ditawarkan di layar kasir. Tipe kode QRIS mengikuti providernya.";
+    "tode tersebut tidak ditawarkan di layar kasir. Tipe kode QRIS mengikuti provider" +
+    "nya. Tulis rekening transfer lengkap: bank, nomor, dan atas nama.";
       //
       // buttonSave
       //
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point(450, 340);
+      this.buttonSave.Location = new System.Drawing.Point(572, 340);
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size(75, 23);
       this.buttonSave.TabIndex = 11;
@@ -160,6 +211,11 @@
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.Controls.Add(this.buttonSave);
       this.Controls.Add(this.labelDescription);
+      this.Controls.Add(this.buttonRemoveTransfer);
+      this.Controls.Add(this.buttonAddTransfer);
+      this.Controls.Add(this.textBoxNewTransfer);
+      this.Controls.Add(this.listBoxTransfer);
+      this.Controls.Add(this.labelTransfer);
       this.Controls.Add(this.buttonRemoveQris);
       this.Controls.Add(this.comboBoxQrisMode);
       this.Controls.Add(this.buttonAddQris);
@@ -172,7 +228,7 @@
       this.Controls.Add(this.listBoxEdc);
       this.Controls.Add(this.labelEdc);
       this.Name = "PaymentOptionSettingForm";
-      this.Size = new System.Drawing.Size(537, 378);
+      this.Size = new System.Drawing.Size(659, 378);
       this.Tag = "Pembayaran";
       this.Load += new System.EventHandler(this.PaymentOptionSettingForm_Load);
       this.ResumeLayout(false);
@@ -193,6 +249,11 @@
     private System.Windows.Forms.ComboBox comboBoxQrisMode;
     private System.Windows.Forms.Button buttonAddQris;
     private System.Windows.Forms.Button buttonRemoveQris;
+    private System.Windows.Forms.Label labelTransfer;
+    private System.Windows.Forms.ListBox listBoxTransfer;
+    private System.Windows.Forms.TextBox textBoxNewTransfer;
+    private System.Windows.Forms.Button buttonAddTransfer;
+    private System.Windows.Forms.Button buttonRemoveTransfer;
     private System.Windows.Forms.Label labelDescription;
     private System.Windows.Forms.Button buttonSave;
   }

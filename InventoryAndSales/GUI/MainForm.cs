@@ -189,7 +189,7 @@ namespace InventoryAndSales.GUI
       {
         Keys keyCode = e.KeyCode;
 
-        // Ctrl+1/2/3 pick the payment method without leaving the keyboard. Handled before the
+        // Ctrl+1/2/3/4 pick the payment method without leaving the keyboard. Handled before the
         // switch because they are chords, and because the digit keys alone belong to the filter box.
         if (e.Control)
         {
@@ -210,6 +210,12 @@ namespace InventoryAndSales.GUI
             case Keys.D3:
             case Keys.NumPad3:
               cashierPage1.SelectPaymentMethod(PaymentMethod.Qris);
+              e.Handled = true;
+              return;
+
+            case Keys.D4:
+            case Keys.NumPad4:
+              cashierPage1.SelectPaymentMethod(PaymentMethod.Transfer);
               e.Handled = true;
               return;
           }

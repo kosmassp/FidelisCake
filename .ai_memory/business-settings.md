@@ -33,6 +33,7 @@ absent, so operator edits survive restarts:
 | `ALLOW_BUILTIN_ADMIN` | `SECURITY` | `true` |
 | `EDC_TERMINALS` | `GENERAL` | empty — a shop with no card terminals is offered none |
 | `QRIS_PROVIDERS` | `GENERAL` | empty — same for QRIS |
+| `TRANSFER_BANKS` | `GENERAL` | empty — same for transfer destination accounts |
 | `PRINTER_NAME` | `PRINTER` | seeded from the `PrinterName` entry in `App.config`; empty means the Windows default printer |
 | `PRINTER_PAPER_WIDTH_MM` | `PRINTER` | `67` |
 | `UPDATE_MANIFEST_URL` | `UPDATE` | seeded from the `UpdateManifestUrl` entry in `App.config` when present (empty = checking off); with no entry at all, the built-in GitHub `version.txt` address (`SettingKeys.DefaultUpdateManifestUrl`) |

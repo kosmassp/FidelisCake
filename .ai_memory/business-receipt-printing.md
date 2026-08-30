@@ -57,6 +57,9 @@ Kembalian    : Rp. 13,000.00
 - Separator: 33 `=` characters — sized for an 80 mm roll at `Courier New 9pt`.
 - Amounts use `ToString("N")`, dates `dd-MM-yyyy HH:mm`. Both depend on the `en-US` culture pin.
 - A line's discount row appears only when the product carried one.
+- The payment block depends on the method: cash prints *Tunai*/*Kembalian* (above); EDC prints the
+  amount and its *Terminal*; QRIS the amount, *Provider* and *Tipe QRIS*; transfer the amount and
+  its *Rekening*. The electronic methods show no change line — it would always read zero.
 
 ## Printer configuration
 

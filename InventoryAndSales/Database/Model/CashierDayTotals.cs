@@ -6,7 +6,7 @@ namespace InventoryAndSales.Database.Model
   /// One cashier's takings for a day, split by how they were paid.
   ///
   /// Kept apart because only <see cref="Cash"/> is money that has to be counted out of the drawer at
-  /// the end of the day; card takings settle through the bank.
+  /// the end of the day; the electronic takings settle through the bank.
   ///
   /// Values are already formatted for display, as everything from the report layer is.
   /// </summary>
@@ -15,12 +15,14 @@ namespace InventoryAndSales.Database.Model
     public string Cash { get; private set; }
     public string Edc { get; private set; }
     public string Qris { get; private set; }
+    public string Transfer { get; private set; }
 
-    public CashierDayTotals(string cash, string edc, string qris)
+    public CashierDayTotals(string cash, string edc, string qris, string transfer)
     {
       Cash = cash ?? "0";
       Edc = edc ?? "0";
       Qris = qris ?? "0";
+      Transfer = transfer ?? "0";
     }
 
     /// <summary>
@@ -29,7 +31,7 @@ namespace InventoryAndSales.Database.Model
     /// </summary>
     public bool CashOnly
     {
-      get { return IsZero(Edc) && IsZero(Qris); }
+      get { return IsZero(Edc) && IsZero(Qris) && IsZero(Transfer); }
     }
 
     public bool EdcIsZero
@@ -40,6 +42,11 @@ namespace InventoryAndSales.Database.Model
     public bool QrisIsZero
     {
       get { return IsZero(Qris); }
+    }
+
+    public bool TransferIsZero
+    {
+      get { return IsZero(Transfer); }
     }
 
     private static bool IsZero(string amount)

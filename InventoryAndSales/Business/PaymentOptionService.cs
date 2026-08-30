@@ -36,7 +36,8 @@ namespace InventoryAndSales.Business
   }
 
   /// <summary>
-  /// The lists a cashier picks from when the payment is not cash: EDC terminals and QRIS providers.
+  /// The lists a cashier picks from when the payment is not cash: EDC terminals, QRIS providers and
+  /// transfer destination accounts.
   ///
   /// Each is one setting holding an entry per line. Lists rather than tables because an entry is
   /// little more than a name; if one ever needs a bank or a merchant id it should become a table.
@@ -84,6 +85,42 @@ namespace InventoryAndSales.Business
       if (string.IsNullOrWhiteSpace(terminal))
         return false;
       return GetEdcTerminals().Any(t => string.Equals(t, terminal.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    #endregion
+
+    #region Transfer banks
+
+    /// <summary>
+    /// The accounts a customer can transfer to, as the cashier reads them out - typically bank,
+    /// number and holder in one line. Empty means the shop takes no transfers, which is what keeps
+    /// the method off the sale screen.
+    /// </summary>
+    public List<string> GetTransferBanks()
+    {
+      return CleanNames(SplitLines(_settings.GetMultiLine(SettingKeys.TransferBanks, string.Empty)));
+    }
+
+    public void SetTransferBanks(IEnumerable<string> banks)
+    {
+      List<string> cleaned = CleanNames(banks);
+      _settings.SetMultiLine(SettingKeys.TransferBanks, string.Join(Environment.NewLine, cleaned.ToArray()));
+    }
+
+    public bool HasTransferBanks()
+    {
+      return GetTransferBanks().Count > 0;
+    }
+
+    /// <summary>
+    /// Whether an account is one the shop actually holds. Checked at checkout so an account removed
+    /// while a sale was being rung up cannot be recorded against it.
+    /// </summary>
+    public bool IsKnownTransferBank(string bank)
+    {
+      if (string.IsNullOrWhiteSpace(bank))
+        return false;
+      return GetTransferBanks().Any(b => string.Equals(b, bank.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 
     #endregion
