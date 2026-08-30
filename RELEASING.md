@@ -27,8 +27,11 @@ lands on every till, and whatever is not stays untouched.
 
 - [ ] Backfill the current version so `version.txt` points at something real: create a
       release on <https://github.com/kosmassp/FidelisCake/releases>, tag `v1.0.1.3`,
-      and upload the existing `InventoryAndSales\bin\Release\Fidelis_2025_Release_v1.0.1.3.zip`
-      **renamed to `InventoryAndSales.zip`**.
+      and upload the existing v1.0.1.3 ZIP from `InventoryAndSales\bin\Release`
+      **renamed to `InventoryAndSales.zip`**. Upload that file byte-for-byte as it is:
+      `version.txt` already carries its SHA-256
+      (`5da79f82767cac8b6d546d89915097747fcc787a417a9104c27d0ca6bb8095b1`), and a
+      re-zipped copy would hash differently.
 - [ ] After `version.txt` reaches `master`, open
       <https://raw.githubusercontent.com/kosmassp/FidelisCake/master/version.txt> in a
       browser and check it renders as plain text starting with the `#` comment block.
@@ -36,6 +39,20 @@ lands on every till, and whatever is not stays untouched.
 ---
 
 ## Every release
+
+With the Actions workflow ([.github/workflows/release.yml](.github/workflows/release.yml)),
+steps 2, 3 and 5 run by themselves. Bump the version (step 1), get it onto `master`, then:
+
+```powershell
+git tag v1.0.1.4
+git push origin v1.0.1.4
+```
+
+The release appears with the ZIP attached and its SHA-256 in the body. Continue at step 4
+(smoke-test the ZIP you just released), then step 6 — the release body contains the
+`version.txt` block ready to paste. The workflow refuses a tag that does not match
+`AssemblyVersion`, so a forgotten bump fails loudly instead of releasing a build that
+reports the wrong version. The steps below double as the manual fallback.
 
 ### 1. Bump the version
 
@@ -60,40 +77,30 @@ C# 6 syntax with `CS1056`, which means wrong compiler, not broken code:
 
 ### 3. Assemble `InventoryAndSales.zip`
 
-The ZIP must contain **exactly** this, with `InventoryAndSales.exe` at the ZIP root
-(one wrapper folder is also accepted, deeper is refused by the staging check):
-
-| Include | Why |
-|---|---|
-| `InventoryAndSales.exe`, `InventoryAndSales.pdb` | the application |
-| `SimpleCommon.dll`, `SimpleCommon.pdb` | its library |
-| `log4net.dll`, `log4net.config` | logging |
-| `Report\datatables.min.css`, `Report\datatables.min.js` | report assets the app copies into the report folder — from the source tree's `InventoryAndSales\Report\`, **not** the whole folder |
-
-Never include — each of these has burned someone or would:
+The csproj curates the Release output: alongside the application it copies in the database
+providers (`Npgsql.dll` with its `System.*` helpers, `System.Data.SQLite.dll`), the native
+SQLite engines (which must keep their `x64\` and `x86\` sub-folders), and the two `Report\`
+assets. The package is therefore simply **the build output, minus what must never reach a
+till**:
 
 - **`InventoryAndSales.exe.config`** — it holds each shop's `DatabaseProvider` and
   `ConnectionString`. Shipping it would overwrite a shop's database settings on update.
-  Left out of the ZIP, the installed config survives untouched. If a release truly needs a
-  config change, say so in the release notes and handle it shop by shop.
+  Left out of the ZIP, the installed config survives untouched, because the installer
+  never deletes anything. If a release truly needs a config change, say so in the release
+  notes and handle it shop by shop.
 - **`SalesInventory.db`** or any `*.db` — a test database created by running the exe from
   `bin\Release` would silently replace a shop's live data file. Check for this every time.
 - `Log\`, `Backup\`, and old release ZIPs sitting in `bin\Release`.
-- Database provider DLLs (`System.Data.SQLite` etc.) — installed per shop, they survive
-  updates on their own.
 
-From `InventoryAndSales\bin\Release`, in PowerShell:
+`InventoryAndSales.exe` must sit at the ZIP root (one wrapper folder is also accepted;
+deeper is refused by the staging check), and the ZIP must stay under 200 MB — the till
+refuses bigger. From `InventoryAndSales\bin\Release`, in PowerShell:
 
 ```powershell
-New-Item -ItemType Directory -Force pkg\Report | Out-Null
-Copy-Item InventoryAndSales.exe, InventoryAndSales.pdb, SimpleCommon.dll, SimpleCommon.pdb, log4net.dll, log4net.config pkg\
-Copy-Item ..\..\Report\datatables.min.css, ..\..\Report\datatables.min.js pkg\Report\
+robocopy . pkg /S /XD Log Backup pkg /XF InventoryAndSales.exe.config *.zip *.db
 Compress-Archive -Path pkg\* -DestinationPath InventoryAndSales.zip -Force
 Remove-Item -Recurse -Force pkg
 ```
-
-(Assembling from an explicit list, not by zipping the folder — `bin\Release` accumulates
-logs, test databases and old ZIPs. Keep the ZIP under 200 MB; the till refuses bigger.)
 
 ### 4. Smoke-test the ZIP
 
@@ -104,7 +111,8 @@ it is sortable/searchable (proves the `Report\` assets made it in).
 
 ### 5. Publish the GitHub release
 
-On <https://github.com/kosmassp/FidelisCake/releases> → *Draft a new release*:
+Pushing a `v1.0.1.4` tag does this for you, together with steps 2 and 3. By hand instead:
+on <https://github.com/kosmassp/FidelisCake/releases> → *Draft a new release*:
 
 - Tag: `v1.0.1.4` (the `v` prefix, on `master`)
 - Title: `1.0.1.4`
@@ -113,12 +121,20 @@ On <https://github.com/kosmassp/FidelisCake/releases> → *Draft a new release*:
 
 ### 6. Update `version.txt` — only after the release is live
 
+This is the step that actually rolls the update out; nothing before it reaches any till.
+The workflow puts this exact block, hash filled in, in the release body — copy it, write
+the `Notes` line, done:
+
 ```
 Version: 1.0.1.4
 Drive:   https://github.com/kosmassp/FidelisCake/releases
 File:    https://github.com/kosmassp/FidelisCake/releases/download/v1.0.1.4/InventoryAndSales.zip
+Sha256:  <SHA-256 of the ZIP - releasing manually, compute it with: Get-FileHash InventoryAndSales.zip>
 Notes:   Satu baris, bahasa Indonesia - ini yang dibaca operator di kasir.
 ```
+
+A till checks the downloaded archive against `Sha256` and refuses a mismatch, so the hash
+must be of the exact file attached to the release — never re-zip after computing it.
 
 Commit to `master`, push, and open the raw URL to confirm. GitHub's raw CDN caches for
 about five minutes, so a just-pushed change can take that long to appear.

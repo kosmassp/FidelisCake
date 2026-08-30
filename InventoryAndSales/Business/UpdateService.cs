@@ -1,8 +1,11 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace InventoryAndSales.Business
 {
@@ -150,6 +153,11 @@ namespace InventoryAndSales.Business
           return string.Empty;
         }
 
+        // Verified before anything is unpacked: bytes that do not match the manifest are not a
+        // release and must not even be opened.
+        if (!ChecksumAccepted(manifest, archive, out problem))
+          return string.Empty;
+
         // A Drive link that was never shared publicly answers with a sign-in page instead of the
         // file. It downloads perfectly happily as HTML, so the archive is what proves it is real.
         string staging = Path.Combine(workingDirectory, "staging");
@@ -181,6 +189,43 @@ namespace InventoryAndSales.Business
         _log.Error(string.Format("Could not prepare update {0}.", manifest.Version), e);
         problem = "Pembaruan gagal disiapkan. Periksa koneksi internet lalu coba lagi.";
         return string.Empty;
+      }
+    }
+
+    /// <summary>
+    /// True when the archive is what the manifest promised. A manifest without a Sha256 line skips
+    /// the check — older releases never published one and must keep installing. A manifest with one
+    /// is a commitment: any mismatch, including a mistyped line, refuses the install, because "the
+    /// bytes are not what the release said" has no safe reading.
+    /// </summary>
+    private static bool ChecksumAccepted(UpdateManifest manifest, string archive, out string problem)
+    {
+      problem = string.Empty;
+      string expected = (manifest.Sha256 ?? string.Empty).Trim().ToLowerInvariant();
+      if (expected.Length == 0)
+        return true;
+
+      string actual = ComputeSha256(archive);
+      if (string.Equals(expected, actual, StringComparison.Ordinal))
+        return true;
+
+      _log.ErrorFormat("Update archive rejected: manifest says SHA-256 {0} but the download is {1}.",
+                       expected, actual);
+      problem = "Berkas pembaruan tidak cocok dengan tanda SHA-256 pada berkas versi, sehingga " +
+                "tidak dipasang. Coba lagi; bila terus gagal, periksa berkas versi.";
+      return false;
+    }
+
+    private static string ComputeSha256(string path)
+    {
+      using (SHA256 sha = SHA256.Create())
+      using (FileStream stream = File.OpenRead(path))
+      {
+        byte[] hash = sha.ComputeHash(stream);
+        StringBuilder hex = new StringBuilder(hash.Length * 2);
+        foreach (byte b in hash)
+          hex.Append(b.ToString("x2", CultureInfo.InvariantCulture));
+        return hex.ToString();
       }
     }
 

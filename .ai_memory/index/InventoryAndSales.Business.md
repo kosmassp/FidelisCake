@@ -225,12 +225,13 @@ the user table is.
 | `GetManifestUrl` / `SetManifestUrl` | | `UPDATE_MANIFEST_URL`. Empty switches the feature off; fresh rows seed `SettingKeys.DefaultUpdateManifestUrl` (GitHub `version.txt`) unless `App.config` says otherwise. |
 | `FetchManifest` | `UpdateManifest ()` | Downloads and parses it. **Returns null for every failure** — not configured, unreachable, unparseable — because they all mean "carry on as you are". |
 | `IsNewer` | `static bool (UpdateManifest)` | Strictly greater than the running version. |
-| `StageUpdate` | `string (UpdateManifest, out string problem)` | Downloads the archive, unpacks it, returns the folder holding the new files. |
+| `StageUpdate` | `string (UpdateManifest, out string problem)` | Downloads the archive, verifies it against the manifest's optional `Sha256` (a mismatch — including a mistyped line — refuses before unpacking; no line skips the check), unpacks it, returns the folder holding the new files. |
 | `InstallDirectory` / `WorkingRoot` | `static string` | Where the application is; where downloads go (`%LOCALAPPDATA%\FidelisCake\Update`). |
 
-`public class UpdateManifest` — the hand-edited file in the cloud, one `Key: value` per line
-(`Version`, `Drive`, `File`, `Notes`); unknown keys, blanks and `#` comments ignored. `Parse` never
-throws — a mistyped release must leave the till running.
+`public class UpdateManifest` — the manifest file (`version.txt` on GitHub), one `Key: value` per
+line (`Version`, `Drive`, `File`, `Sha256`, `Notes`); unknown keys, blanks and `#` comments ignored.
+`Parse` never throws — a mistyped release must leave the till running. `Sha256` is stored raw;
+normalization (trim + lowercase) happens in `UpdateService.ChecksumAccepted`.
 
 `ToDirectDownloadUrl` turns a Google Drive sharing link into `uc?export=download&id=…`, because a
 link copied out of Drive points at a viewer page and fetching it returns HTML. A **folder** link has

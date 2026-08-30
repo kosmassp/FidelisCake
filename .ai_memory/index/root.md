@@ -5,7 +5,8 @@ Repository root. No C# source lives here.
 | File | Purpose |
 |---|---|
 | `InventoryAndSalesProject.sln` | Visual Studio solution. Contains `InventoryAndSales` (WinExe) and `SimpleCommon` (Library). |
-| `version.txt` | The update manifest tills read from `raw.githubusercontent.com/.../master/version.txt` — `Version:` / `Drive:` / `File:` / `Notes:` lines parsed by `Business/UpdateManifest.cs`. Edited **after** the matching GitHub release is published, never before. |
+| `version.txt` | The update manifest tills read from `raw.githubusercontent.com/.../master/version.txt` — `Version:` / `Drive:` / `File:` / `Sha256:` / `Notes:` lines parsed by `Business/UpdateManifest.cs`. Edited **after** the matching GitHub release is published, never before; editing it is what arms a rollout. |
+| `.github/workflows/release.yml` | Tag push `v*` → verifies the tag matches `AssemblyVersion`, builds (CI retargets to 4.6.2 — hosted runners lack the 4.6 reference assemblies), zips the build output minus `exe.config`, publishes the release with the ZIP and its SHA-256 (plus a paste-ready `version.txt` block) in the body. Never touches `version.txt` itself. |
 | `RELEASING.md` | The release checklist: bump `AssemblyInfo.cs`, build with VS2022 MSBuild, assemble `InventoryAndSales.zip` from an explicit file list (no `exe.config`, no `*.db`), publish the GitHub release, then update `version.txt` and the transitional Google Doc. |
 | `DDL.sql` | Reference dump of the SQL Server schema for database `SalesInventory`. UTF-16 encoded. **Documentation only** — the app creates its own tables at startup via `Database/DBUtility.cs`, so this file can drift. |
 | `.gitignore` | Copied from an unrelated project (`RockImager`, `FrapImageProcessor` rules are stale). The useful parts are `bin/`, `obj/`, `Debug/`, `Release/`, `*.suo`, `*.user`. |

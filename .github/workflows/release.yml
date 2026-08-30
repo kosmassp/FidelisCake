@@ -1,0 +1,99 @@
+# Builds a tagged release and publishes it with InventoryAndSales.zip attached.
+#
+# Use: bump AssemblyVersion + AssemblyFileVersion in AssemblyInfo.cs, merge to master,
+# then push a matching tag:
+#
+#   git tag v1.0.1.4
+#   git push origin v1.0.1.4
+#
+# The workflow refuses a tag that does not match AssemblyVersion, builds the solution,
+# zips the build output the way RELEASING.md prescribes (never the exe.config), and
+# creates the release with the ZIP attached and its SHA-256 in the body - including a
+# ready-to-paste version.txt block.
+#
+# Publishing a release does NOT arm the update. Tills only act on version.txt, so the
+# rollout happens when a person copies that block into version.txt on master. That is
+# deliberate: a bad release stays harmless until somebody points the manifest at it.
+
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refuse a tag that does not match AssemblyVersion
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          $tagVersion = $env:TAG.TrimStart('v')
+          $info = Get-Content InventoryAndSales/Properties/AssemblyInfo.cs -Raw
+          if ($info -notmatch '(?m)^\[assembly: AssemblyVersion\("([^"]+)"\)\]') {
+            throw 'AssemblyVersion was not found in AssemblyInfo.cs.'
+          }
+          $assemblyVersion = $Matches[1]
+          if ($assemblyVersion -ne $tagVersion) {
+            throw "Tag says $tagVersion but AssemblyVersion is $assemblyVersion. Bump AssemblyInfo.cs (both lines) and re-tag - the till compares AssemblyVersion, so a mismatched tag would release a build that reports the wrong version."
+          }
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        shell: pwsh
+        # TargetFrameworkVersion=v4.6.2: the project targets 4.6, but hosted runners no
+        # longer carry the 4.6 reference assemblies. 4.6.2 is the oldest they have; the
+        # code uses no API beyond 4.6 (it compiles against 4.6 locally), so the output
+        # still runs on a 4.6 machine.
+        run: msbuild InventoryAndSalesProject.sln /t:Rebuild /p:Configuration=Release /p:TargetFrameworkVersion=v4.6.2 /v:minimal /nologo
+
+      - name: Assemble InventoryAndSales.zip
+        shell: pwsh
+        # The csproj curates the build output (database providers, native SQLite engines,
+        # report assets), so the package is that output minus the one file that must never
+        # reach a till: the config holding each shop's database settings. The installer
+        # copies everything in the ZIP over every installation and deletes nothing, so an
+        # absent file is left alone on the till. The other excludes are defensive - a CI
+        # build starts clean.
+        run: |
+          robocopy InventoryAndSales/bin/Release pkg /S /XD Log Backup /XF InventoryAndSales.exe.config *.zip *.db
+          if ($LASTEXITCODE -ge 8) { throw "robocopy failed with exit code $LASTEXITCODE." }
+          foreach ($required in 'InventoryAndSales.exe', 'SimpleCommon.dll', 'log4net.dll',
+                                'Report/datatables.min.css', 'x64/SQLite.Interop.dll') {
+            if (-not (Test-Path "pkg/$required")) { throw "'$required' is missing from the package." }
+          }
+          if (Test-Path pkg/InventoryAndSales.exe.config) { throw 'The exe.config must not be packaged.' }
+          Compress-Archive -Path pkg/* -DestinationPath InventoryAndSales.zip -Force
+
+      - name: Create the GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          $version = $env:TAG.TrimStart('v')
+          $sha = (Get-FileHash InventoryAndSales.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          $notes = @(
+            "SHA-256 of ``InventoryAndSales.zip``: ``$sha``"
+            ''
+            'This release does not reach any till by itself. To roll it out, paste this into'
+            '`version.txt` on `master` (and write a one-line Indonesian note for the operator):'
+            ''
+            '```'
+            "Version: $version"
+            "Drive:   https://github.com/$env:REPO/releases"
+            "File:    https://github.com/$env:REPO/releases/download/$env:TAG/InventoryAndSales.zip"
+            "Sha256:  $sha"
+            'Notes:   '
+            '```'
+          ) -join "`n"
+          gh release create $env:TAG InventoryAndSales.zip --title $version --notes $notes

@@ -12,23 +12,30 @@ namespace InventoryAndSales.Business
   ///
   /// <code>
   /// Version: 1.0.1.4
-  /// Drive:   https://drive.google.com/drive/folders/1MUM...
-  /// File:    https://drive.google.com/file/d/FILEID/view
+  /// Drive:   https://github.com/kosmassp/FidelisCake/releases
+  /// File:    https://github.com/kosmassp/FidelisCake/releases/download/v1.0.1.4/InventoryAndSales.zip
+  /// Sha256:  9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
   /// Notes:   Perbaikan laporan
   /// </code>
   ///
-  /// <c>Drive</c> is the folder a person opens. <c>File</c> is the release archive the application
+  /// <c>Drive</c> is the page a person opens. <c>File</c> is the release archive the application
   /// downloads; without it there is nothing to install unattended and the update becomes a
   /// notification. Both accept an ordinary Google Drive sharing link — turning one into something a
   /// program can actually fetch is <see cref="ToDirectDownloadUrl"/>'s job.
+  ///
+  /// <c>Sha256</c> is the checksum of the archive. Optional — an older manifest without one still
+  /// installs — but when present the downloaded archive must match it, so a tampered or corrupted
+  /// download is refused instead of run. The verification lives in
+  /// <see cref="UpdateService.StageUpdate"/>.
   /// </summary>
   public class UpdateManifest
   {
-    private UpdateManifest(Version version, string driveUrl, string fileUrl, string notes)
+    private UpdateManifest(Version version, string driveUrl, string fileUrl, string sha256, string notes)
     {
       Version = version;
       DriveUrl = driveUrl;
       FileUrl = fileUrl;
+      Sha256 = sha256;
       Notes = notes;
     }
 
@@ -40,6 +47,12 @@ namespace InventoryAndSales.Business
 
     /// <summary>Direct link to the release archive. Empty when the release cannot be installed unattended.</summary>
     public string FileUrl { get; private set; }
+
+    /// <summary>
+    /// Expected SHA-256 of the release archive, as hex. Empty when the release did not publish one,
+    /// which skips verification rather than failing it — older manifests must keep working.
+    /// </summary>
+    public string Sha256 { get; private set; }
 
     public string Notes { get; private set; }
 
@@ -58,6 +71,7 @@ namespace InventoryAndSales.Business
       Version version = null;
       string drive = string.Empty;
       string file = string.Empty;
+      string sha256 = string.Empty;
       string notes = string.Empty;
 
       foreach (string rawLine in (content ?? string.Empty).Split('\n'))
@@ -86,11 +100,13 @@ namespace InventoryAndSales.Business
           drive = value;
         else if (Is(key, "File"))
           file = value;
+        else if (Is(key, "Sha256"))
+          sha256 = value;
         else if (Is(key, "Notes"))
           notes = value;
       }
 
-      return new UpdateManifest(version, drive, ToDirectDownloadUrl(file), notes);
+      return new UpdateManifest(version, drive, ToDirectDownloadUrl(file), sha256, notes);
     }
 
     /// <summary>

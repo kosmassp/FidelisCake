@@ -325,7 +325,8 @@ edit them through the WinForms designer, not by hand.
 
 | File | Purpose |
 |---|---|
-| `version.txt` | Update manifest the tills read via the raw GitHub URL; edited per release, **after** the GitHub release exists. |
+| `version.txt` | Update manifest the tills read via the raw GitHub URL; edited per release, **after** the GitHub release exists. Its `Sha256:` line is enforced at download. |
+| `.github/workflows/release.yml` | Tag push builds, zips and publishes the release with SHA-256 in the body; never edits `version.txt` — arming a rollout stays manual. |
 | `RELEASING.md` | Step-by-step release checklist: version bump, build, ZIP contents (and what must stay out), GitHub release, manifest update. |
 | `DDL.sql` | Reference schema dump (UTF-16). Not executed by the app. |
 | `InventoryAndSalesProject.sln` | Solution file. |
