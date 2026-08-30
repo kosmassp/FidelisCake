@@ -66,6 +66,8 @@ jobs:
         run: |
           robocopy InventoryAndSales/bin/Release pkg /S /XD Log Backup /XF InventoryAndSales.exe.config *.zip *.db
           if ($LASTEXITCODE -ge 8) { throw "robocopy failed with exit code $LASTEXITCODE." }
+          # robocopy reports success as 1-7; the runner would read that as step failure.
+          cmd /c exit 0
           foreach ($required in 'InventoryAndSales.exe', 'SimpleCommon.dll', 'log4net.dll',
                                 'Report/datatables.min.css', 'x64/SQLite.Interop.dll') {
             if (-not (Test-Path "pkg/$required")) { throw "'$required' is missing from the package." }
