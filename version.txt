@@ -15,8 +15,8 @@
 # file. The other way round, a till could be offered a download that does not exist.
 # The full procedure is in RELEASING.md.
 
-Version: 1.0.1.3
+Version: 1.0.1.4
 Drive:   https://github.com/kosmassp/FidelisCake/releases
-File:    https://github.com/kosmassp/FidelisCake/releases/download/v1.0.1.3/InventoryAndSales.zip
-Sha256:  5da79f82767cac8b6d546d89915097747fcc787a417a9104c27d0ca6bb8095b1
-Notes:   Rilis melalui GitHub.
+File:    https://github.com/kosmassp/FidelisCake/releases/download/v1.0.1.4/InventoryAndSales.zip
+Sha256:  90250fd676825ee9d539c1713f70089553a3dc7f5d36e1af7859e02847d1057a
+Notes:   Pembaruan otomatis dari GitHub, laporan baru, dan perbaikan keamanan.
